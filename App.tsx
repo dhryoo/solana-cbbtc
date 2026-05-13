@@ -1,20 +1,15 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React from "react";
+import { StatusBar } from "expo-status-bar";
 
-export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
+import { WalletProvider } from "@/providers/WalletProvider";
+import { HomeScreen } from "@/screens/HomeScreen";
+
+export default function App(): React.JSX.Element
+{
+    return (
+        <WalletProvider>
+            <HomeScreen />
+            <StatusBar style="auto" />
+        </WalletProvider>
+    );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

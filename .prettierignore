@@ -1,0 +1,15 @@
+node_modules
+.expo
+dist
+web-build
+coverage
+android
+ios
+package-lock.json
+yarn.lock
+
+# TS/TSX는 ESLint(Allman)가 포매팅을 담당하므로 Prettier 제외
+*.ts
+*.tsx
+*.js
+*.jsx

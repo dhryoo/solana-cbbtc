@@ -1,0 +1,12 @@
+node_modules
+.expo
+dist
+web-build
+coverage
+android
+ios
+*.config.js
+babel.config.js
+metro.config.js
+jest.config.js
+expo-env.d.ts
