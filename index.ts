@@ -1,12 +1,6 @@
-// Polyfills MUST be imported before any module that uses crypto/Buffer.
-// web3.js depends on these in the React Native runtime.
-import "react-native-get-random-values";
-import { Buffer } from "buffer";
-
-if (typeof global.Buffer === "undefined")
-{
-    global.Buffer = Buffer;
-}
+// IMPORTANT: polyfills must be imported before any other module
+// that transitively depends on Buffer / crypto.
+import "./polyfills";
 
 import { registerRootComponent } from "expo";
 

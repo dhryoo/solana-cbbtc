@@ -1,53 +1,73 @@
-import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { useQueryClient } from "@tanstack/react-query";
+import React, { useCallback, useState } from "react";
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 
+import { BalanceCard } from "@/components/BalanceCard";
 import { WalletButton } from "@/components/WalletButton";
+import { CBBTC, SOL } from "@/constants/tokens";
 import { useWallet } from "@/hooks/useWallet";
 
 export function HomeScreen(): React.JSX.Element
 {
     const { account } = useWallet();
+    const queryClient = useQueryClient();
+    const [refreshing, setRefreshing] = useState(false);
+
+    const onRefresh = useCallback(async (): Promise<void> =>
+    {
+        setRefreshing(true);
+        try
+        {
+            await queryClient.invalidateQueries({ queryKey: ["balance"] });
+        }
+        finally
+        {
+            setRefreshing(false);
+        }
+    }, [queryClient]);
 
     return (
-        <View style={styles.container}>
+        <ScrollView
+            contentContainerStyle={styles.scroll}
+            refreshControl={(
+                <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                    enabled={Boolean(account)}
+                />
+            )}
+        >
             <View style={styles.header}>
                 <Text style={styles.title}>seeker-btcfi</Text>
                 <Text style={styles.subtitle}>Solana Seeker · cbBTC</Text>
             </View>
 
-            <View style={styles.body}>
-                {account ? (
-                    <View style={styles.accountBlock}>
-                        <Text style={styles.label}>연결된 지갑</Text>
-                        <Text style={styles.fullAddress} selectable>
-                            {account.publicKey.toBase58()}
-                        </Text>
-                    </View>
-                ) : (
-                    <Text style={styles.placeholder}>
-                        지갑을 연결하면 잔액과 swap을 사용할 수 있습니다.
-                    </Text>
-                )}
+            <View style={styles.cards}>
+                <BalanceCard token={CBBTC} />
+                <BalanceCard token={SOL} />
             </View>
 
             <View style={styles.footer}>
                 <WalletButton />
+                {account && (
+                    <Text style={styles.hint}>아래로 당겨 새로고침</Text>
+                )}
             </View>
-        </View>
+        </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
+    scroll: {
+        flexGrow: 1,
         backgroundColor: "#fff",
-        paddingHorizontal: 24,
-        paddingTop: 80,
+        paddingHorizontal: 20,
+        paddingTop: 72,
         paddingBottom: 48,
     },
     header: {
         alignItems: "center",
-        marginBottom: 32,
+        marginBottom: 24,
     },
     title: {
         fontSize: 28,
@@ -56,38 +76,19 @@ const styles = StyleSheet.create({
     },
     subtitle: {
         marginTop: 4,
-        fontSize: 14,
+        fontSize: 13,
         color: "#888",
     },
-    body: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    accountBlock: {
-        alignItems: "center",
-        gap: 8,
-    },
-    label: {
-        fontSize: 12,
-        color: "#999",
-        textTransform: "uppercase",
-        letterSpacing: 1,
-    },
-    fullAddress: {
-        fontFamily: "Courier",
-        fontSize: 13,
-        color: "#222",
-        textAlign: "center",
-        maxWidth: 320,
-    },
-    placeholder: {
-        fontSize: 14,
-        color: "#666",
-        textAlign: "center",
+    cards: {
+        gap: 12,
+        marginBottom: 32,
     },
     footer: {
         alignItems: "center",
-        marginTop: 16,
+        gap: 8,
+    },
+    hint: {
+        fontSize: 11,
+        color: "#aaa",
     },
 });
