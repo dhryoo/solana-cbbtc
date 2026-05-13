@@ -1,6 +1,6 @@
 import { PublicKey } from "@solana/web3.js";
 
-import { formatTokenAmount, shortenAddress } from "./format";
+import { formatRawAmount, formatTokenAmount, parseTokenAmount, shortenAddress } from "./format";
 
 describe("shortenAddress", () =>
 {
@@ -46,5 +46,49 @@ describe("formatTokenAmount", () =>
     {
         expect(formatTokenAmount(NaN, 8)).toBe("—");
         expect(formatTokenAmount(Infinity, 8)).toBe("—");
+    });
+});
+
+describe("parseTokenAmount", () =>
+{
+    it("converts integer string at given decimals", () =>
+    {
+        expect(parseTokenAmount("1", 8)).toBe(100_000_000n);
+    });
+
+    it("converts decimal string preserving precision", () =>
+    {
+        expect(parseTokenAmount("0.01", 9)).toBe(10_000_000n);
+        expect(parseTokenAmount("0.00012345", 8)).toBe(12_345n);
+    });
+
+    it("truncates fractional digits beyond decimals", () =>
+    {
+        // 9 decimals + extra '5' is dropped
+        expect(parseTokenAmount("0.1234567899", 8)).toBe(12_345_678n);
+    });
+
+    it("returns null for empty or non-numeric input", () =>
+    {
+        expect(parseTokenAmount("", 8)).toBeNull();
+        expect(parseTokenAmount("   ", 8)).toBeNull();
+        expect(parseTokenAmount("abc", 8)).toBeNull();
+        expect(parseTokenAmount("1.2.3", 8)).toBeNull();
+        expect(parseTokenAmount("-1", 8)).toBeNull();
+    });
+
+    it("accepts trailing dot with no fraction", () =>
+    {
+        // "1." pattern: regex requires (?:\.(\d*))?, so "1." → intPart 1, frac ""
+        expect(parseTokenAmount("1.", 8)).toBe(100_000_000n);
+    });
+});
+
+describe("formatRawAmount", () =>
+{
+    it("formats raw bigint to uiAmount string", () =>
+    {
+        expect(formatRawAmount(1175n, 8)).toBe("0.00001175");
+        expect(formatRawAmount("100000000", 8)).toBe("1");
     });
 });

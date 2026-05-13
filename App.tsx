@@ -4,7 +4,7 @@ import { StatusBar } from "expo-status-bar";
 import { ConnectionProvider } from "@/providers/ConnectionProvider";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { WalletProvider } from "@/providers/WalletProvider";
-import { HomeScreen } from "@/screens/HomeScreen";
+import { AppShell } from "@/screens/AppShell";
 
 export default function App(): React.JSX.Element
 {
@@ -12,7 +12,7 @@ export default function App(): React.JSX.Element
         <QueryProvider>
             <ConnectionProvider>
                 <WalletProvider>
-                    <HomeScreen />
+                    <AppShell />
                     <StatusBar style="auto" />
                 </WalletProvider>
             </ConnectionProvider>
