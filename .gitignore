@@ -63,3 +63,7 @@ coverage/
 
 # Jest
 .jest-cache/
+
+# Claude Code session exports
+*-goall.txt
+2026-*-*.txt
