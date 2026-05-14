@@ -13,7 +13,7 @@
 - [x] M4: Swap 실행
 - [ ] M5: UI 폴리시 & i18n (단계 1: i18n 완료, 단계 2: 테마/다크모드 완료, 단계 3: 아이콘/햅틱 보류, 단계 4: 아이콘/스플래시 완료)
 - [x] M6: Release APK 빌드
-- [ ] M7: dApp Store 제출
+- [ ] M7: dApp Store 제출 (Phase A 텍스트/자산 준비 완료, Phase B 사용자 작업 대기)
 
 ---
 
@@ -344,32 +344,52 @@
 - [x] KYC 완료
 - [ ] Publisher 지갑 준비 (별도 데스크탑 확장 지갑, ~0.2 SOL 충전)
 
-### 작업 항목
-- [ ] 앱 메타데이터 작성
-    - [ ] 이름 (예: "Seeker BTCfi" — 사용자와 확정)
-    - [ ] short_description (80자 이내)
-    - [ ] long_description (4000자 이내, 한국어/영어)
-    - [ ] 카테고리: DeFi 또는 Finance
-    - [ ] 키워드: bitcoin, defi, swap, cbbtc, solana
-- [ ] 시각 자산 제작
-    - [ ] 아이콘 512x512 PNG
-    - [ ] 배너 1200x600 PNG
-    - [ ] (선택) Feature graphic 1200x1200 PNG
-    - [ ] 스크린샷 최소 4장 (1920x1080, 한국어 UI 권장)
-    - [ ] (선택) 프로모션 비디오
-- [ ] privacy_policy_url, license_url 호스팅
-    - [ ] 임시로 GitHub Pages 또는 Notion public page도 가능
-- [ ] Publisher Portal에서 "Add a dApp → New dApp"
-- [ ] Top Up Balance로 Arweave 업로드 비용 충전
-- [ ] APK 업로드 + 메타데이터 입력
-- [ ] Publisher / App / Release NFT 민팅 (모든 서명 요청 승인)
-- [ ] 제출 완료 후 status 확인
+### Phase A: 텍스트 / 자산 준비 (완료)
+- [x] **앱 이름**: "Solana cbBTC" (확정)
+- [x] **LICENSE**: MIT (`LICENSE` 파일)
+- [x] **메타데이터 ko/en**: `STORE/metadata/description.{ko,en}.md`
+    - [x] short_description (80자 이내, 한국어 43자 / 영어 67자)
+    - [x] long_description (한국어 ~1700자 / 영어 ~1900자, 4000자 이내)
+    - [x] 카테고리: DeFi
+    - [x] 키워드: bitcoin, cbbtc, defi, swap, solana, wrapped-bitcoin, jupiter, btcfi, seeker, wallet
+- [x] **Privacy Policy**: `STORE/legal/privacy-policy.md` — local-first, no analytics, 데이터 흐름 명시
+- [x] **시각 자산 (1차)**:
+    - [x] 아이콘 512x512 PNG: `STORE/assets/icon-512.png` (1024 원본에서 PIL로 리사이즈)
+    - [ ] 배너 1200x600 PNG: prompt `design/banner-prompt.md` 작성 완료 — **AI 의뢰 필요**
+    - [ ] 스크린샷 ≥4장: 가이드 `STORE/screenshot-guide.md` 작성 완료 — **실기 캡쳐 필요**
+- [x] **제출 체크리스트**: `STORE/submission-checklist.md` — Publisher 지갑부터 NFT 민팅까지 단계별
+
+### Phase B: 사용자 작업 (대기)
+- [ ] **배너 1200×600 PNG 의뢰** — `design/banner-prompt.md`의 prompt를 AI에 전달 → `STORE/assets/banner-1200x600.png` 배치
+- [ ] **스크린샷 4~5장 캡쳐** — `STORE/screenshot-guide.md`대로 자산/Swap견적/Swap확인/설정 + (선택) 다크모드
+- [ ] **privacy_policy_url 호스팅** — `STORE/legal/privacy-policy.md`를 GitHub Pages / Notion / Vercel 등 공개 URL로
+- [ ] **license_url 호스팅** — `LICENSE` 텍스트 (GitHub repo public URL 또는 별도 페이지)
+- [ ] **Publisher 지갑 준비** — 별도 데스크탑 + (권장) Ledger, ~0.2 SOL 충전
+- [ ] **Publisher Portal 작업** (`publish.solanamobile.com`):
+    - [ ] Publisher 지갑 로그인
+    - [ ] (첫 제출 한정) Publisher NFT 민팅
+    - [ ] "Add a dApp → New dApp", `com.seekerbtcfi.app` 식별자로 App NFT 민팅
+    - [ ] Top Up Balance (Arweave 비용, ~0.05 SOL)
+    - [ ] Release 정보 입력 + APK 업로드 (`android/app/build/outputs/apk/release/app-release.apk`)
+    - [ ] 메타데이터 / 자산 업로드 (ko + en locale)
+    - [ ] Release NFT 민팅 (publisher 지갑 서명)
+- [ ] **Submit for Review** → 영업일 2~5일 대기
 
 ### 완료 조건
 - 제출 status가 "Under Review"
 - 리뷰 결과 통보 이메일 수신 (영업일 2~5일)
 - 승인 시: dApp Store에 노출 확인
 - 거부 시: 피드백을 plan.md에 기록 후 수정 사항 작업
+
+### M7 노트 (Phase A)
+- 메타데이터 원본은 `STORE/metadata/`에 markdown으로 유지 — Publisher Portal에는 텍스트 블록만 복사
+- Privacy Policy는 마크다운 그대로 GitHub Pages로 호스팅 권장 (최소 노력으로 공개 URL)
+- 카테고리 "DeFi"는 Solana Mobile dApp Store의 권장 카테고리. Finance도 후보
+- versionCode `1` / versionName `0.1.0`로 첫 release. 이후 업데이트는 versionCode 단조 증가
+- 첫 publisher일 경우 Publisher NFT 민팅이 한 번 더 필요 (App NFT 직전)
+- 디버그 키 서명 APK는 자동 거부되므로 release keystore + `./run.sh`로 빌드한 APK 사용 필수
+- Phase A 산출물은 모두 코드/문서로만 — 외부 비용 0
+- Phase B 예상 비용: ~0.2 SOL (NFT 민팅 + Arweave 업로드) + (선택) 도메인비
 
 ---
 
