@@ -11,6 +11,17 @@ const PUBLIC_RPC_BY_CLUSTER: Readonly<Record<ClusterId, string>> = {
     "testnet": "https://api.testnet.solana.com",
 };
 
+// 폴백용 보조 RPC endpoint들. 기본 endpoint가 429/5xx 등으로 실패 시 순차 시도.
+// 무료 공개 RPC만 포함 — 사용자가 자체 키를 .env로 설정한 경우 그것이 1순위.
+const FALLBACK_RPC_BY_CLUSTER: Readonly<Record<ClusterId, string[]>> = {
+    "mainnet-beta": [
+        "https://solana-rpc.publicnode.com",
+        "https://solana.drpc.org",
+    ],
+    "devnet": [],
+    "testnet": [],
+};
+
 const MWA_CLUSTER_BY_CLUSTER: Readonly<Record<ClusterId, MwaCluster>> = {
     "mainnet-beta": "solana:mainnet",
     "devnet": "solana:devnet",
@@ -35,6 +46,16 @@ export function getRpcEndpoint(): string
         return override;
     }
     return PUBLIC_RPC_BY_CLUSTER[getClusterId()];
+}
+
+// 폴백 후보 — 첫 번째: 주 endpoint, 이후 공개 폴백. 중복 자동 제거.
+export function getRpcEndpoints(): string[]
+{
+    const cluster = getClusterId();
+    const primary = getRpcEndpoint();
+    const fallbacks = FALLBACK_RPC_BY_CLUSTER[cluster];
+    const all = [primary, ...fallbacks];
+    return Array.from(new Set(all));
 }
 
 export function getMwaCluster(): MwaCluster
