@@ -77,6 +77,10 @@
         "language": "Language",
         "ko": "한국어",
         "en": "English",
+        "theme": "Theme",
+        "themeSystem": "Follow system",
+        "themeLight": "Light",
+        "themeDark": "Dark",
         "about": "About",
         "version": "Version",
         "network": "Network"

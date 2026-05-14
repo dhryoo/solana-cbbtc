@@ -5,12 +5,13 @@ import {
     Linking,
     Modal,
     Pressable,
-    StyleSheet,
     Text,
     View,
 } from "react-native";
 
+import type { ThemePalette } from "@/constants/theme";
 import type { TokenInfo } from "@/constants/tokens";
+import { useThemedStyles } from "@/hooks/useThemedStyles";
 import type { QuoteResponse } from "@/types/jupiter";
 import { formatRawAmount } from "@/utils/format";
 
@@ -51,6 +52,8 @@ export function SwapConfirmModal({
     onClose,
 }: SwapConfirmModalProps): React.JSX.Element
 {
+    const styles = useThemedStyles(makeStyles);
+
     return (
         <Modal
             visible={visible}
@@ -102,6 +105,7 @@ function ConfirmStage({
 }): React.JSX.Element
 {
     const { t } = useTranslation();
+    const styles = useThemedStyles(makeStyles);
     return (
         <>
             <Text style={styles.title}>{t("swap.confirmTitle")}</Text>
@@ -165,6 +169,7 @@ function ConfirmStage({
 function PendingStage(): React.JSX.Element
 {
     const { t } = useTranslation();
+    const styles = useThemedStyles(makeStyles);
     return (
         <View style={styles.center}>
             <ActivityIndicator size="large" />
@@ -180,6 +185,7 @@ function SuccessStage({
 }: { signature: string; onClose: () => void }): React.JSX.Element
 {
     const { t } = useTranslation();
+    const styles = useThemedStyles(makeStyles);
     return (
         <>
             <Text style={styles.title}>{t("swap.successTitle")}</Text>
@@ -220,6 +226,7 @@ function ErrorStage({
 }): React.JSX.Element
 {
     const { t } = useTranslation();
+    const styles = useThemedStyles(makeStyles);
     return (
         <>
             <Text style={styles.title}>{t("swap.failureTitle")}</Text>
@@ -247,107 +254,111 @@ function ErrorStage({
     );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t: ThemePalette) => ({
     backdrop: {
         flex: 1,
-        backgroundColor: "rgba(0,0,0,0.5)",
-        justifyContent: "flex-end",
+        backgroundColor: t.overlay,
+        justifyContent: "flex-end" as const,
     },
     sheet: {
-        backgroundColor: "#fff",
+        backgroundColor: t.surface,
         padding: 20,
         paddingBottom: 36,
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
+        borderTopWidth: 1,
+        borderLeftWidth: 1,
+        borderRightWidth: 1,
+        borderColor: t.borderStrong,
         gap: 12,
     },
     title: {
         fontSize: 20,
-        fontWeight: "700",
-        color: "#111",
+        fontWeight: "700" as const,
+        color: t.text,
         marginBottom: 4,
     },
     row: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
+        flexDirection: "row" as const,
+        justifyContent: "space-between" as const,
+        alignItems: "center" as const,
     },
     label: {
-        color: "#777",
+        color: t.textMuted,
         fontSize: 13,
     },
     metric: {
-        color: "#111",
+        color: t.text,
         fontSize: 14,
-        fontWeight: "600",
+        fontWeight: "600" as const,
     },
     warn: {
         marginTop: 4,
         fontSize: 12,
-        color: "#a55",
-        textAlign: "center",
+        color: t.warn,
+        textAlign: "center" as const,
     },
     actions: {
         marginTop: 12,
-        flexDirection: "row",
+        flexDirection: "row" as const,
         gap: 12,
     },
     btn: {
         flex: 1,
         paddingVertical: 14,
         borderRadius: 24,
-        alignItems: "center",
+        alignItems: "center" as const,
     },
     btnPrimary: {
-        backgroundColor: "#111",
+        backgroundColor: t.primary,
     },
     btnPrimaryText: {
-        color: "#fff",
+        color: t.textInverse,
         fontSize: 15,
-        fontWeight: "600",
+        fontWeight: "600" as const,
     },
     btnSecondary: {
-        backgroundColor: "#eee",
+        backgroundColor: t.surfaceMuted,
     },
     btnSecondaryText: {
-        color: "#333",
+        color: t.text,
         fontSize: 15,
-        fontWeight: "500",
+        fontWeight: "500" as const,
     },
     pressed: {
         opacity: 0.7,
     },
     center: {
-        alignItems: "center",
+        alignItems: "center" as const,
         gap: 12,
         paddingVertical: 24,
     },
     pendingText: {
         fontSize: 15,
-        color: "#222",
-        fontWeight: "500",
+        color: t.text,
+        fontWeight: "500" as const,
     },
     pendingHint: {
         fontSize: 12,
-        color: "#888",
+        color: t.textMuted,
     },
     successLine: {
         fontSize: 14,
-        color: "#222",
+        color: t.text,
     },
     sigLabel: {
         marginTop: 8,
         fontSize: 12,
-        color: "#777",
+        color: t.textMuted,
     },
     signature: {
         fontFamily: "Courier",
         fontSize: 12,
-        color: "#111",
+        color: t.text,
     },
     errorMsg: {
         fontSize: 14,
-        color: "#c33",
+        color: t.error,
         lineHeight: 20,
     },
 });

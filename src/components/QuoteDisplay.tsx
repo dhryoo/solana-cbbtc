@@ -1,8 +1,10 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
+import type { ThemePalette } from "@/constants/theme";
 import type { TokenInfo } from "@/constants/tokens";
+import { useThemedStyles } from "@/hooks/useThemedStyles";
 import type { QuoteResponse } from "@/types/jupiter";
 import { formatRawAmount } from "@/utils/format";
 
@@ -32,6 +34,7 @@ export function QuoteDisplay({
 }: QuoteDisplayProps): React.JSX.Element
 {
     const { t } = useTranslation();
+    const styles = useThemedStyles(makeStyles);
     const showSpinner = isLoading || (isFetching && !quote);
 
     return (
@@ -137,60 +140,60 @@ function formatPriceImpact(pct: string): string
     return `${(value * 100).toFixed(3)}%`;
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t: ThemePalette) => ({
     container: {
         gap: 12,
         padding: 16,
         borderWidth: 1,
-        borderColor: "#eee",
+        borderColor: t.border,
         borderRadius: 16,
-        backgroundColor: "#fafafa",
+        backgroundColor: t.surface,
     },
     row: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
+        flexDirection: "row" as const,
+        justifyContent: "space-between" as const,
+        alignItems: "center" as const,
     },
     label: {
-        color: "#777",
+        color: t.textMuted,
         fontSize: 13,
     },
     valueWrap: {
-        alignItems: "flex-end",
+        alignItems: "flex-end" as const,
         minHeight: 22,
     },
     amount: {
         fontSize: 18,
-        fontWeight: "700",
-        color: "#111",
+        fontWeight: "700" as const,
+        color: t.text,
     },
     unit: {
         fontSize: 13,
-        fontWeight: "500",
-        color: "#666",
+        fontWeight: "500" as const,
+        color: t.textMuted,
     },
     metric: {
         fontSize: 13,
-        color: "#222",
+        color: t.text,
     },
     dim: {
-        color: "#888",
+        color: t.textMuted,
     },
     placeholder: {
-        color: "#bbb",
+        color: t.textDim,
         fontSize: 13,
     },
     error: {
-        color: "#c33",
+        color: t.error,
         fontSize: 13,
     },
     slippageRow: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
+        flexDirection: "row" as const,
+        justifyContent: "space-between" as const,
+        alignItems: "center" as const,
     },
     slippageOptions: {
-        flexDirection: "row",
+        flexDirection: "row" as const,
         gap: 6,
     },
     slipChip: {
@@ -198,22 +201,22 @@ const styles = StyleSheet.create({
         paddingVertical: 6,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: "#ddd",
-        backgroundColor: "#fff",
+        borderColor: t.border,
+        backgroundColor: t.background,
     },
     slipChipActive: {
-        borderColor: "#111",
-        backgroundColor: "#111",
+        borderColor: t.primary,
+        backgroundColor: t.primary,
     },
     slipChipPressed: {
         opacity: 0.7,
     },
     slipChipText: {
         fontSize: 12,
-        color: "#555",
-        fontWeight: "500",
+        color: t.textMuted,
+        fontWeight: "500" as const,
     },
     slipChipTextActive: {
-        color: "#fff",
+        color: t.textInverse,
     },
 });

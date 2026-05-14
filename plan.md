@@ -11,7 +11,7 @@
 - [x] M2: cbBTC 잔액 조회
 - [x] M3: Jupiter Swap 견적
 - [x] M4: Swap 실행
-- [ ] M5: UI 폴리시 & i18n (단계 1/2: i18n 완료 — 테마/아이콘은 단계 2에서)
+- [ ] M5: UI 폴리시 & i18n (단계 1: i18n 완료, 단계 2: 테마/다크모드 완료, 단계 3: 아이콘/햅틱 보류)
 - [ ] M6: Release APK 빌드
 - [ ] M7: dApp Store 제출
 
@@ -254,19 +254,26 @@
 - [x] 모든 하드코딩 문자열을 t() 호출로 이동: HomeScreen / SwapScreen / WalletButton / BalanceCard / QuoteDisplay / SwapConfirmModal / AppShell
 - [x] `swapError.ts` → 번역 키 반환 (호출자가 t(key, params)로 렌더링). 테스트도 키 기반으로 갱신.
 
-### 단계 2: 테마 + 아이콘 + 햅틱 (다음 작업)
-- [ ] NativeWind 도입 및 설정
-- [ ] 디자인 토큰 정의 (`src/constants/theme.ts`) — 색상, 폰트, 간격
-- [ ] 다크모드 지원 (`useColorScheme`) + expo-system-ui (M0 노트에서 보류된 항목)
+### 단계 2: 테마 + 다크모드 (완료, Pure JS)
+- [x] `src/constants/theme.ts` — semantic palette (background/surface/text/primary/border/error 등 18개 토큰) × light/dark
+- [x] `src/providers/ThemeProvider.tsx` — System/Light/Dark 3모드, useColorScheme로 시스템 추적
+- [x] `src/utils/themeStorage.ts` — AsyncStorage 영속화, 3 tests
+- [x] `src/hooks/useThemedStyles.ts` — `(palette) => StyleSheet` 시그니처, palette 변경 시 memo invalidate
+- [x] 8개 화면/컴포넌트 색상 변수화: HomeScreen / SwapScreen / SettingsScreen / AppShell / WalletButton / BalanceCard / QuoteDisplay / SwapConfirmModal
+- [x] SettingsScreen에 "테마" 섹션 추가, i18n 키 (settings.themeSystem/themeLight/themeDark)
+- [x] App.tsx에 ThemeProvider 추가, StatusBar style을 palette.mode 추적
+
+### 단계 3: 아이콘 + 햅틱 + safe area (보류)
+- [ ] NativeWind (선택 — 현재 StyleSheet 만족스러우면 도입 비용 > 효익)
+- [ ] 아이콘 통일 (lucide-react-native 또는 expo-symbols) — native 모듈, prebuild 재실행 필요
+- [ ] Safe area 처리 (`react-native-safe-area-context`) — 현재 SafeAreaView 없이 paddingTop으로 처리 중. 노치 디바이스에서 검증 필요
+- [ ] 햅틱 피드백 (expo-haptics) — native 모듈, prebuild 재실행 필요
 - [ ] 일관된 로딩/에러/빈 상태 컴포넌트 (`LoadingView`, `ErrorView`, `EmptyView`)
-- [ ] 아이콘 통일 (lucide-react-native 또는 expo-symbols)
-- [ ] Safe area 처리 (`react-native-safe-area-context`)
-- [ ] 햅틱 피드백 (성공 시 light, 실패 시 error)
 
 ### 완료 조건
 - [x] 모든 텍스트가 한국어/영어 전환 가능 (i18n 단계 1)
-- [ ] 다크/라이트 모드 토글 작동 (단계 2)
-- [ ] 모든 화면에 로딩/에러 상태 처리됨 (단계 2)
+- [x] 다크/라이트 모드 토글 작동 (단계 2 — system/light/dark 3모드)
+- [x] 모든 화면에 로딩/에러 상태 처리됨 (각 컴포넌트 isLoading/isError/data 분기 기존부터 적용 중)
 - [ ] 스플래시 스크린 + 앱 아이콘 적용 (M6 직전 처리)
 
 ### i18n 단계 노트

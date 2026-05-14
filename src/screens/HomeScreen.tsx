@@ -1,11 +1,14 @@
 import { useQueryClient } from "@tanstack/react-query";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { RefreshControl, ScrollView, Text, View } from "react-native";
 
 import { BalanceCard } from "@/components/BalanceCard";
 import { WalletButton } from "@/components/WalletButton";
 import { CBBTC, SOL } from "@/constants/tokens";
+import type { ThemePalette } from "@/constants/theme";
+import { useThemedStyles } from "@/hooks/useThemedStyles";
+import { useTheme } from "@/providers/ThemeProvider";
 import { useWallet } from "@/hooks/useWallet";
 
 export function HomeScreen(): React.JSX.Element
@@ -14,6 +17,8 @@ export function HomeScreen(): React.JSX.Element
     const { account } = useWallet();
     const queryClient = useQueryClient();
     const [refreshing, setRefreshing] = useState(false);
+    const styles = useThemedStyles(makeStyles);
+    const { palette } = useTheme();
 
     const onRefresh = useCallback(async (): Promise<void> =>
     {
@@ -36,6 +41,8 @@ export function HomeScreen(): React.JSX.Element
                     refreshing={refreshing}
                     onRefresh={onRefresh}
                     enabled={Boolean(account)}
+                    tintColor={palette.text}
+                    colors={[palette.text]}
                 />
             )}
         >
@@ -59,38 +66,38 @@ export function HomeScreen(): React.JSX.Element
     );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t: ThemePalette) => ({
     scroll: {
         flexGrow: 1,
-        backgroundColor: "#fff",
+        backgroundColor: t.background,
         paddingHorizontal: 20,
         paddingTop: 72,
         paddingBottom: 48,
     },
     header: {
-        alignItems: "center",
+        alignItems: "center" as const,
         marginBottom: 24,
     },
     title: {
         fontSize: 28,
-        fontWeight: "700",
-        color: "#111",
+        fontWeight: "700" as const,
+        color: t.text,
     },
     subtitle: {
         marginTop: 4,
         fontSize: 13,
-        color: "#888",
+        color: t.textMuted,
     },
     cards: {
         gap: 12,
         marginBottom: 32,
     },
     footer: {
-        alignItems: "center",
+        alignItems: "center" as const,
         gap: 8,
     },
     hint: {
         fontSize: 11,
-        color: "#aaa",
+        color: t.textDim,
     },
 });

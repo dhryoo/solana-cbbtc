@@ -1,7 +1,9 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
+import type { ThemePalette } from "@/constants/theme";
+import { useThemedStyles } from "@/hooks/useThemedStyles";
 import { useWallet } from "@/hooks/useWallet";
 import { shortenAddress } from "@/utils/format";
 
@@ -9,6 +11,7 @@ export function WalletButton(): React.JSX.Element
 {
     const { t } = useTranslation();
     const { status, account, error, connect, disconnect } = useWallet();
+    const styles = useThemedStyles(makeStyles);
 
     const isBusy = status === "connecting" || status === "disconnecting" || status === "restoring";
 
@@ -74,23 +77,23 @@ export function WalletButton(): React.JSX.Element
     );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t: ThemePalette) => ({
     container: {
-        alignItems: "center",
+        alignItems: "center" as const,
         gap: 12,
     },
     row: {
-        flexDirection: "row",
-        alignItems: "center",
+        flexDirection: "row" as const,
+        alignItems: "center" as const,
         gap: 8,
     },
     address: {
         fontSize: 16,
         fontFamily: "Courier",
-        color: "#222",
+        color: t.text,
     },
     muted: {
-        color: "#666",
+        color: t.textMuted,
         fontSize: 14,
     },
     button: {
@@ -98,15 +101,15 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         borderRadius: 24,
         minWidth: 180,
-        alignItems: "center",
+        alignItems: "center" as const,
     },
     buttonPrimary: {
-        backgroundColor: "#111",
+        backgroundColor: t.primary,
     },
     buttonSecondary: {
-        backgroundColor: "#eee",
+        backgroundColor: t.surfaceMuted,
         borderWidth: 1,
-        borderColor: "#ccc",
+        borderColor: t.borderStrong,
     },
     buttonPressed: {
         opacity: 0.7,
@@ -115,19 +118,19 @@ const styles = StyleSheet.create({
         opacity: 0.4,
     },
     buttonPrimaryText: {
-        color: "#fff",
+        color: t.textInverse,
         fontSize: 16,
-        fontWeight: "600",
+        fontWeight: "600" as const,
     },
     buttonSecondaryText: {
-        color: "#333",
+        color: t.text,
         fontSize: 14,
-        fontWeight: "500",
+        fontWeight: "500" as const,
     },
     error: {
-        color: "#c33",
+        color: t.error,
         fontSize: 13,
-        textAlign: "center",
+        textAlign: "center" as const,
         maxWidth: 280,
     },
 });

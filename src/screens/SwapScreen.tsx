@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import {
     Pressable,
     ScrollView,
-    StyleSheet,
     Text,
     TextInput,
     View,
@@ -11,10 +10,13 @@ import {
 
 import { QuoteDisplay } from "@/components/QuoteDisplay";
 import { SwapConfirmModal } from "@/components/SwapConfirmModal";
+import type { ThemePalette } from "@/constants/theme";
 import { CBBTC, SOL, type TokenInfo } from "@/constants/tokens";
 import { useSwap } from "@/hooks/useSwap";
 import { useSwapQuote } from "@/hooks/useSwapQuote";
+import { useThemedStyles } from "@/hooks/useThemedStyles";
 import { useWallet } from "@/hooks/useWallet";
+import { useTheme } from "@/providers/ThemeProvider";
 import { toFriendlySwapError } from "@/utils/swapError";
 
 const DEFAULT_SLIPPAGE_BPS = 50;
@@ -29,6 +31,8 @@ export function SwapScreen(): React.JSX.Element
 {
     const { t } = useTranslation();
     const { account } = useWallet();
+    const styles = useThemedStyles(makeStyles);
+    const { palette } = useTheme();
     const [inputToken, setInputToken] = useState<TokenInfo>(SOL);
     const [outputToken, setOutputToken] = useState<TokenInfo>(CBBTC);
     const [amount, setAmount] = useState("");
@@ -70,11 +74,10 @@ export function SwapScreen(): React.JSX.Element
 
     const closeModal = useCallback((): void =>
     {
-        if (swap.isPending) return; // 진행 중에는 닫기 차단
+        if (swap.isPending) return;
         setModalOpen(false);
         if (modalStatus.kind === "success")
         {
-            // 성공 후 입력 리셋
             setAmount("");
         }
         setModalStatus({ kind: "idle" });
@@ -105,7 +108,6 @@ export function SwapScreen(): React.JSX.Element
 
     useEffect(() =>
     {
-        // 입력이 비거나 지갑이 끊기면 모달 강제 종료
         if (!account && modalOpen && !swap.isPending)
         {
             setModalOpen(false);
@@ -126,7 +128,7 @@ export function SwapScreen(): React.JSX.Element
                     style={styles.amountInput}
                     keyboardType="decimal-pad"
                     placeholder="0.0"
-                    placeholderTextColor="#bbb"
+                    placeholderTextColor={palette.textDim}
                     value={amount}
                     onChangeText={setAmount}
                     autoCorrect={false}
@@ -206,10 +208,10 @@ export function SwapScreen(): React.JSX.Element
     );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t: ThemePalette) => ({
     scroll: {
         flexGrow: 1,
-        backgroundColor: "#fff",
+        backgroundColor: t.background,
         paddingHorizontal: 20,
         paddingTop: 72,
         paddingBottom: 48,
@@ -217,90 +219,90 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 24,
-        fontWeight: "700",
-        color: "#111",
+        fontWeight: "700" as const,
+        color: t.text,
         marginBottom: 8,
     },
     inputCard: {
         borderWidth: 1,
-        borderColor: "#eee",
+        borderColor: t.border,
         borderRadius: 16,
         padding: 16,
         gap: 8,
-        backgroundColor: "#fff",
+        backgroundColor: t.background,
     },
     outputCard: {
         borderWidth: 1,
-        borderColor: "#eee",
+        borderColor: t.border,
         borderRadius: 16,
         padding: 16,
         gap: 8,
-        backgroundColor: "#fafafa",
+        backgroundColor: t.surface,
     },
     headerRow: {
-        flexDirection: "row",
-        alignItems: "baseline",
+        flexDirection: "row" as const,
+        alignItems: "baseline" as const,
         gap: 8,
     },
     tokenSymbol: {
         fontSize: 18,
-        fontWeight: "700",
-        color: "#111",
+        fontWeight: "700" as const,
+        color: t.text,
     },
     tokenName: {
         fontSize: 12,
-        color: "#888",
+        color: t.textMuted,
     },
     amountInput: {
         fontSize: 28,
-        fontWeight: "600",
-        color: "#111",
+        fontWeight: "600" as const,
+        color: t.text,
         paddingVertical: 4,
     },
     placeholderHint: {
         fontSize: 12,
-        color: "#bbb",
+        color: t.textDim,
     },
     flipRow: {
-        alignItems: "center",
+        alignItems: "center" as const,
     },
     flipButton: {
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: "#111",
-        alignItems: "center",
-        justifyContent: "center",
+        backgroundColor: t.primary,
+        alignItems: "center" as const,
+        justifyContent: "center" as const,
     },
     flipPressed: {
         opacity: 0.7,
     },
     flipText: {
-        color: "#fff",
+        color: t.textInverse,
         fontSize: 18,
-        fontWeight: "700",
+        fontWeight: "700" as const,
     },
     swapButton: {
         marginTop: 8,
         paddingVertical: 14,
         borderRadius: 24,
-        alignItems: "center",
+        alignItems: "center" as const,
     },
     swapButtonEnabled: {
-        backgroundColor: "#111",
+        backgroundColor: t.primary,
     },
     swapButtonDisabled: {
-        backgroundColor: "#ddd",
+        backgroundColor: t.disabled,
     },
     swapButtonPressed: {
         opacity: 0.85,
     },
     swapButtonText: {
-        color: "#666",
+        color: t.textMuted,
         fontSize: 15,
-        fontWeight: "600",
+        fontWeight: "600" as const,
     },
     swapButtonTextEnabled: {
-        color: "#fff",
+        color: t.textInverse,
     },
 });

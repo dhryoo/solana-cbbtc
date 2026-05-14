@@ -1,24 +1,40 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 
 import { getClusterId } from "@/constants/cluster";
+import type { ThemeMode, ThemePalette } from "@/constants/theme";
+import { useThemedStyles } from "@/hooks/useThemedStyles";
 import { SUPPORTED_LANGUAGES, type SupportedLanguage } from "@/i18n";
 import { useLanguage } from "@/providers/I18nProvider";
+import { useTheme } from "@/providers/ThemeProvider";
 
-// app.json의 version을 직접 임포트하는 건 Expo bundling 환경에 따라 다름.
-// 가장 호환 좋은 방식: process.env 또는 별도 상수.
 const APP_VERSION = "0.1.0";
+
+const THEME_MODES: ThemeMode[] = ["system", "light", "dark"];
+const THEME_LABEL_KEY: Record<ThemeMode, string> = {
+    system: "settings.themeSystem",
+    light: "settings.themeLight",
+    dark: "settings.themeDark",
+};
 
 export function SettingsScreen(): React.JSX.Element
 {
     const { t } = useTranslation();
     const { language, setLanguage } = useLanguage();
+    const { mode: themeMode, setMode: setThemeMode } = useTheme();
+    const styles = useThemedStyles(makeStyles);
 
-    const onSelect = (next: SupportedLanguage): void =>
+    const onSelectLanguage = (next: SupportedLanguage): void =>
     {
         if (next === language) return;
         void setLanguage(next);
+    };
+
+    const onSelectTheme = (next: ThemeMode): void =>
+    {
+        if (next === themeMode) return;
+        void setThemeMode(next);
     };
 
     return (
@@ -33,7 +49,7 @@ export function SettingsScreen(): React.JSX.Element
                             key={lang}
                             accessibilityRole="button"
                             accessibilityState={{ selected: language === lang }}
-                            onPress={() => onSelect(lang)}
+                            onPress={() => onSelectLanguage(lang)}
                             style={({ pressed }) =>
                                 [
                                     styles.option,
@@ -55,6 +71,35 @@ export function SettingsScreen(): React.JSX.Element
             </View>
 
             <View style={styles.section}>
+                <Text style={styles.sectionLabel}>{t("settings.theme")}</Text>
+                <View style={styles.options}>
+                    {THEME_MODES.map((mode) => (
+                        <Pressable
+                            key={mode}
+                            accessibilityRole="button"
+                            accessibilityState={{ selected: themeMode === mode }}
+                            onPress={() => onSelectTheme(mode)}
+                            style={({ pressed }) =>
+                                [
+                                    styles.option,
+                                    themeMode === mode && styles.optionActive,
+                                    pressed && styles.optionPressed,
+                                ]}
+                        >
+                            <Text
+                                style={[
+                                    styles.optionText,
+                                    themeMode === mode && styles.optionTextActive,
+                                ]}
+                            >
+                                {t(THEME_LABEL_KEY[mode])}
+                            </Text>
+                        </Pressable>
+                    ))}
+                </View>
+            </View>
+
+            <View style={styles.section}>
                 <Text style={styles.sectionLabel}>{t("settings.about")}</Text>
                 <View style={styles.kvRow}>
                     <Text style={styles.kvKey}>{t("settings.version")}</Text>
@@ -69,10 +114,10 @@ export function SettingsScreen(): React.JSX.Element
     );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t: ThemePalette) => ({
     scroll: {
         flexGrow: 1,
-        backgroundColor: "#fff",
+        backgroundColor: t.background,
         paddingHorizontal: 20,
         paddingTop: 72,
         paddingBottom: 48,
@@ -80,8 +125,8 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 24,
-        fontWeight: "700",
-        color: "#111",
+        fontWeight: "700" as const,
+        color: t.text,
         marginBottom: 4,
     },
     section: {
@@ -89,8 +134,8 @@ const styles = StyleSheet.create({
     },
     sectionLabel: {
         fontSize: 12,
-        color: "#888",
-        textTransform: "uppercase",
+        color: t.textMuted,
+        textTransform: "uppercase" as const,
         letterSpacing: 1,
     },
     options: {
@@ -101,37 +146,37 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: "#ddd",
-        backgroundColor: "#fff",
+        borderColor: t.border,
+        backgroundColor: t.background,
     },
     optionActive: {
-        borderColor: "#111",
-        backgroundColor: "#111",
+        borderColor: t.primary,
+        backgroundColor: t.primary,
     },
     optionPressed: {
         opacity: 0.7,
     },
     optionText: {
         fontSize: 15,
-        color: "#333",
-        fontWeight: "500",
+        color: t.text,
+        fontWeight: "500" as const,
     },
     optionTextActive: {
-        color: "#fff",
-        fontWeight: "600",
+        color: t.textInverse,
+        fontWeight: "600" as const,
     },
     kvRow: {
-        flexDirection: "row",
-        justifyContent: "space-between",
+        flexDirection: "row" as const,
+        justifyContent: "space-between" as const,
         paddingVertical: 6,
     },
     kvKey: {
         fontSize: 13,
-        color: "#777",
+        color: t.textMuted,
     },
     kvValue: {
         fontSize: 13,
-        color: "#222",
-        fontWeight: "500",
+        color: t.text,
+        fontWeight: "500" as const,
     },
 });

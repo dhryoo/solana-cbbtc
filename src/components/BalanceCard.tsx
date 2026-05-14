@@ -1,8 +1,10 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Text, View } from "react-native";
 
+import type { ThemePalette } from "@/constants/theme";
 import type { TokenInfo } from "@/constants/tokens";
+import { useThemedStyles } from "@/hooks/useThemedStyles";
 import { useWallet } from "@/hooks/useWallet";
 import { useTokenBalance } from "@/hooks/useTokenBalance";
 import { formatTokenAmount } from "@/utils/format";
@@ -18,6 +20,7 @@ export function BalanceCard({ token }: BalanceCardProps): React.JSX.Element
     const { account } = useWallet();
     const ownerPubkey = account?.publicKey ?? null;
     const query = useTokenBalance(token, ownerPubkey);
+    const styles = useThemedStyles(makeStyles);
 
     return (
         <View style={styles.card}>
@@ -55,65 +58,65 @@ export function BalanceCard({ token }: BalanceCardProps): React.JSX.Element
     );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t: ThemePalette) => ({
     card: {
         borderWidth: 1,
-        borderColor: "#eee",
+        borderColor: t.border,
         borderRadius: 16,
         padding: 16,
-        backgroundColor: "#fafafa",
+        backgroundColor: t.surface,
         gap: 12,
     },
     header: {
-        flexDirection: "row",
-        alignItems: "center",
+        flexDirection: "row" as const,
+        alignItems: "center" as const,
         gap: 12,
     },
     iconPlaceholder: {
         width: 36,
         height: 36,
         borderRadius: 18,
-        backgroundColor: "#111",
-        alignItems: "center",
-        justifyContent: "center",
+        backgroundColor: t.primary,
+        alignItems: "center" as const,
+        justifyContent: "center" as const,
     },
     iconText: {
-        color: "#fff",
+        color: t.textInverse,
         fontSize: 14,
-        fontWeight: "700",
+        fontWeight: "700" as const,
     },
     identity: {
         flex: 1,
     },
     symbol: {
         fontSize: 16,
-        fontWeight: "600",
-        color: "#111",
+        fontWeight: "600" as const,
+        color: t.text,
     },
     name: {
         fontSize: 12,
-        color: "#888",
+        color: t.textMuted,
     },
     body: {
         minHeight: 32,
-        justifyContent: "center",
+        justifyContent: "center" as const,
     },
     placeholder: {
-        color: "#888",
+        color: t.textMuted,
         fontSize: 13,
     },
     amount: {
         fontSize: 22,
-        fontWeight: "700",
-        color: "#111",
+        fontWeight: "700" as const,
+        color: t.text,
     },
     amountUnit: {
         fontSize: 14,
-        fontWeight: "500",
-        color: "#666",
+        fontWeight: "500" as const,
+        color: t.textMuted,
     },
     error: {
-        color: "#c33",
+        color: t.error,
         fontSize: 13,
     },
 });

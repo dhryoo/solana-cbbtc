@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
+import type { ThemePalette } from "@/constants/theme";
+import { useThemedStyles } from "@/hooks/useThemedStyles";
 import { HomeScreen } from "@/screens/HomeScreen";
 import { SettingsScreen } from "@/screens/SettingsScreen";
 import { SwapScreen } from "@/screens/SwapScreen";
@@ -13,6 +15,7 @@ const TABS: TabKey[] = ["home", "swap", "settings"];
 export function AppShell(): React.JSX.Element
 {
     const { t } = useTranslation();
+    const styles = useThemedStyles(makeStyles);
     const [tab, setTab] = useState<TabKey>("home");
 
     return (
@@ -52,25 +55,25 @@ export function AppShell(): React.JSX.Element
     );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t: ThemePalette) => ({
     root: {
         flex: 1,
-        backgroundColor: "#fff",
+        backgroundColor: t.background,
     },
     content: {
         flex: 1,
     },
     tabbar: {
-        flexDirection: "row",
+        flexDirection: "row" as const,
         borderTopWidth: 1,
-        borderTopColor: "#eee",
-        backgroundColor: "#fff",
+        borderTopColor: t.border,
+        backgroundColor: t.background,
         paddingBottom: 24,
         paddingTop: 8,
     },
     tabItem: {
         flex: 1,
-        alignItems: "center",
+        alignItems: "center" as const,
         paddingVertical: 8,
     },
     tabPressed: {
@@ -78,11 +81,11 @@ const styles = StyleSheet.create({
     },
     tabLabel: {
         fontSize: 13,
-        color: "#888",
-        fontWeight: "500",
+        color: t.textMuted,
+        fontWeight: "500" as const,
     },
     tabLabelActive: {
-        color: "#111",
-        fontWeight: "700",
+        color: t.text,
+        fontWeight: "700" as const,
     },
 });
