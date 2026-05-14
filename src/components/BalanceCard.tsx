@@ -1,7 +1,8 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
+import { EmptyView, ErrorView, SkeletonBlock } from "@/components/StateViews";
 import type { ThemePalette } from "@/constants/theme";
 import type { TokenInfo } from "@/constants/tokens";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
@@ -36,15 +37,20 @@ export function BalanceCard({ token }: BalanceCardProps): React.JSX.Element
 
             <View style={styles.body}>
                 {!ownerPubkey && (
-                    <Text style={styles.placeholder}>{t("balance.connectFirst")}</Text>
+                    <EmptyView message={t("balance.connectFirst")} compact />
                 )}
 
                 {ownerPubkey && query.isPending && (
-                    <ActivityIndicator />
+                    <SkeletonBlock width={140} height={26} />
                 )}
 
                 {ownerPubkey && query.isError && (
-                    <Text style={styles.error}>{t("balance.loadError")}</Text>
+                    <ErrorView
+                        message={t("balance.loadError")}
+                        onRetry={() => { void query.refetch(); }}
+                        retryLabel={t("common.retry")}
+                        compact
+                    />
                 )}
 
                 {ownerPubkey && query.data && (
@@ -101,10 +107,6 @@ const makeStyles = (t: ThemePalette) => ({
         minHeight: 32,
         justifyContent: "center" as const,
     },
-    placeholder: {
-        color: t.textMuted,
-        fontSize: 13,
-    },
     amount: {
         fontSize: 22,
         fontWeight: "700" as const,
@@ -114,9 +116,5 @@ const makeStyles = (t: ThemePalette) => ({
         fontSize: 14,
         fontWeight: "500" as const,
         color: t.textMuted,
-    },
-    error: {
-        color: t.error,
-        fontSize: 13,
     },
 });
