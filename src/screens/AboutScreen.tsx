@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Modal, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Modal, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, View } from "react-native";
 /* eslint-disable react-native/no-unused-styles */
 import Markdown from "react-native-markdown-display";
 
@@ -34,7 +34,7 @@ export function AboutScreen({ visible, onClose }: AboutScreenProps): React.JSX.E
             onRequestClose={onClose}
             statusBarTranslucent={false}
         >
-            <SafeAreaView style={styles.container}>
+            <View style={styles.container}>
                 <View style={styles.header}>
                     <Text style={styles.headerTitle}>{t("about.title")}</Text>
                     <Pressable
@@ -52,7 +52,7 @@ export function AboutScreen({ visible, onClose }: AboutScreenProps): React.JSX.E
                         {content}
                     </Markdown>
                 </ScrollView>
-            </SafeAreaView>
+            </View>
         </Modal>
     );
 }
@@ -67,7 +67,9 @@ const makeStyles = (t: ThemePalette) => StyleSheet.create({
         alignItems: "center",
         justifyContent: "space-between",
         paddingHorizontal: 20,
-        paddingVertical: 12,
+        // status bar / 노치 영역 회피. Android는 StatusBar.currentHeight, iOS는 상수 패딩.
+        paddingTop: (Platform.OS === "android" ? (StatusBar.currentHeight ?? 0) : 0) + 12,
+        paddingBottom: 12,
         borderBottomWidth: 1,
         borderBottomColor: t.border,
         backgroundColor: t.background,
