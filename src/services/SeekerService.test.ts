@@ -1,8 +1,9 @@
 import { Connection, PublicKey } from "@solana/web3.js";
+import { Platform } from "react-native";
 
 import { SGT_MINT_AUTHORITY } from "@/constants/seeker";
 
-import { hasGenesisToken } from "./SeekerService";
+import { hasGenesisToken, isLikelySeedVault } from "./SeekerService";
 
 interface ConnectionMock
 {
@@ -121,5 +122,40 @@ describe("SeekerService.hasGenesisToken", () =>
         mock.getParsedTokenAccountsByOwner.mockRejectedValueOnce(new Error("rpc 429"));
 
         await expect(hasGenesisToken(connection, OWNER)).rejects.toThrow("rpc 429");
+    });
+});
+
+describe("isLikelySeedVault", () =>
+{
+    // Platform.constants.Model을 케이스별로 임시 override.
+    function setModel(model: string | undefined): void
+    {
+        (Platform.constants as unknown as { Model?: string }).Model = model;
+        Object.defineProperty(Platform, "OS", { value: "android", configurable: true });
+    }
+
+    const originalModel = (Platform.constants as { Model?: string }).Model;
+    afterEach(() => setModel(originalModel));
+
+    it("true on Seeker with empty walletUriBase", () =>
+    {
+        setModel("Seeker");
+        expect(isLikelySeedVault("")).toBe(true);
+        expect(isLikelySeedVault(undefined)).toBe(true);
+        expect(isLikelySeedVault(null)).toBe(true);
+    });
+
+    it("false on Seeker if a non-empty walletUriBase is provided", () =>
+    {
+        setModel("Seeker");
+        expect(isLikelySeedVault("https://phantom.app")).toBe(false);
+        expect(isLikelySeedVault("seedvault://x")).toBe(false);
+    });
+
+    it("false on non-Seeker devices regardless of walletUriBase", () =>
+    {
+        setModel("Pixel 8");
+        expect(isLikelySeedVault("")).toBe(false);
+        expect(isLikelySeedVault(undefined)).toBe(false);
     });
 });

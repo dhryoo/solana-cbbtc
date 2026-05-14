@@ -3,7 +3,7 @@ import { useMemo } from "react";
 
 import { useConnection } from "@/providers/ConnectionProvider";
 import { useWallet } from "@/hooks/useWallet";
-import { hasGenesisToken, isSeekerDevice } from "@/services/SeekerService";
+import { hasGenesisToken, isLikelySeedVault, isSeekerDevice } from "@/services/SeekerService";
 
 export interface SeekerIdentity
 {
@@ -11,6 +11,8 @@ export interface SeekerIdentity
     isSeekerDevice: boolean;
     /** 지갑이 SGT를 보유했는지 — cryptographic 검증. true일 때만 강한 신호. */
     hasGenesisToken: boolean;
+    /** 연결된 지갑이 Seed Vault일 가능성 (다층 휴리스틱). */
+    isLikelySeedVault: boolean;
     /** Genesis Token 조회 중 여부 */
     isLoading: boolean;
     /** Genesis Token 조회 에러 (있으면 UI에서 무시하고 unverified 처리) */
@@ -43,6 +45,7 @@ export function useSeekerIdentity(): SeekerIdentity
     return {
         isSeekerDevice: deviceFlag,
         hasGenesisToken: query.data ?? false,
+        isLikelySeedVault: account !== null && isLikelySeedVault(account.walletUriBase),
         isLoading: query.isPending && account !== null,
         error: query.error ?? null,
     };

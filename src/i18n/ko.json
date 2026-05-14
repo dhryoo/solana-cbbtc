@@ -130,6 +130,7 @@
     },
     "wallet_card": {
         "connectedTitle": "연결된 지갑",
-        "viewOnSolscan": "Solscan에서 보기"
+        "viewOnSolscan": "Solscan에서 보기",
+        "hardwareSecured": "하드웨어로 보안됨"
     }
 }

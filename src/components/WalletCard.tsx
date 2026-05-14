@@ -6,6 +6,7 @@ import { Linking, Pressable, Text, View } from "react-native";
 
 import { AddressDisplay } from "@/components/AddressDisplay";
 import type { ThemePalette } from "@/constants/theme";
+import { useSeekerIdentity } from "@/hooks/useSeekerIdentity";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
 
 interface WalletCardProps
@@ -13,12 +14,15 @@ interface WalletCardProps
     publicKey: PublicKey;
 }
 
-// 연결된 지갑 정보 카드: 라벨 + 풀 pubkey (long-press 복사 가능) + Solscan 링크 버튼.
-// AddressDisplay를 그대로 활용해 카드 형태로 감쌈.
+// 연결된 지갑 정보 카드:
+// - 라벨 + 풀 pubkey (long-press 복사 가능)
+// - Hardware secured 인디케이터 (Seed Vault 추정 시)
+// - Solscan 링크 버튼
 export function WalletCard({ publicKey }: WalletCardProps): React.JSX.Element
 {
     const { t } = useTranslation();
     const styles = useThemedStyles(makeStyles);
+    const { isLikelySeedVault } = useSeekerIdentity();
     const address = publicKey.toBase58();
 
     const openSolscan = useCallback((): void =>
@@ -30,6 +34,12 @@ export function WalletCard({ publicKey }: WalletCardProps): React.JSX.Element
         <View style={styles.card}>
             <Text style={styles.label}>{t("wallet_card.connectedTitle")}</Text>
             <AddressDisplay address={address} style="full" />
+            {isLikelySeedVault && (
+                <View style={styles.hardwareRow}>
+                    <Ionicons name="lock-closed" size={12} style={styles.hardwareIcon} />
+                    <Text style={styles.hardwareText}>{t("wallet_card.hardwareSecured")}</Text>
+                </View>
+            )}
             <Pressable
                 accessibilityRole="link"
                 accessibilityLabel={t("wallet_card.viewOnSolscan")}
@@ -60,6 +70,21 @@ const makeStyles = (t: ThemePalette) => ({
         color: t.textMuted,
         textTransform: "uppercase" as const,
         letterSpacing: 1,
+    },
+    hardwareRow: {
+        flexDirection: "row" as const,
+        alignItems: "center" as const,
+        gap: 4,
+        marginTop: 2,
+    },
+    hardwareIcon: {
+        color: t.success,
+    },
+    hardwareText: {
+        fontSize: 11,
+        color: t.success,
+        fontWeight: "600" as const,
+        letterSpacing: 0.3,
     },
     solscanButton: {
         marginTop: 4,

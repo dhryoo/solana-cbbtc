@@ -17,6 +17,17 @@ export function isSeekerDevice(): boolean
     return model === SEEKER_DEVICE_MODEL;
 }
 
+// 연결된 지갑이 Seed Vault Wallet일 가능성이 높은지 판정.
+// 실기 관찰: Seeker에서 Seed Vault로 연결하면 wallet_uri_base가 빈 문자열로 옴.
+// 다른 지갑(Phantom 등)은 보통 자체 URI(예: https://phantom.app/...)를 설정.
+// 따라서 (Seeker 디바이스 + walletUriBase가 빈/undefined) 조합을 Seed Vault로 추정.
+// 한계: Seeker 폰에 다른 지갑을 설치하고 그 지갑이 URI를 안 설정하면 false positive 가능.
+export function isLikelySeedVault(walletUriBase: string | undefined | null): boolean
+{
+    const empty = walletUriBase === undefined || walletUriBase === null || walletUriBase === "";
+    return empty && isSeekerDevice();
+}
+
 // 사용자 지갑이 Seeker Genesis Token을 보유하는지 확인.
 // Token-2022 토큰 계정을 모두 조회 후 각 mint의 authority가 SGT_MINT_AUTHORITY와 일치하면 보유.
 // 보유 중인 토큰이 많으면 RPC 호출이 늘어나지만 보통 사용자의 Token-2022 holdings는 매우 적음.
