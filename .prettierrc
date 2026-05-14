@@ -6,5 +6,6 @@
     "semi": true,
     "trailingComma": "all",
     "endOfLine": "lf",
-    "arrowParens": "always"
+    "arrowParens": "always",
+    "embeddedLanguageFormatting": "off"
 }

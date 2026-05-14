@@ -29,8 +29,10 @@ These are enforced by ESLint + a pre-commit hook. CI will reject PRs that violat
 - **Allman braces** — open brace on its own line:
 
 ```ts
-function getBalance(pubkey: PublicKey): Promise<number> {
-    if (!pubkey) {
+function getBalance(pubkey: PublicKey): Promise<number>
+{
+    if (!pubkey)
+    {
         throw new Error("pubkey required");
     }
     return connection.getBalance(pubkey);
