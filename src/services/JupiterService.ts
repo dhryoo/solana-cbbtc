@@ -1,4 +1,12 @@
-import { JupiterApiError, type QuoteParams, type QuoteResponse } from "@/types/jupiter";
+import { PublicKey, VersionedTransaction } from "@solana/web3.js";
+import { Buffer } from "buffer";
+
+import {
+    JupiterApiError,
+    type QuoteParams,
+    type QuoteResponse,
+    type SwapResponse,
+} from "@/types/jupiter";
 
 const DEFAULT_BASE = "https://lite-api.jup.ag";
 
@@ -62,4 +70,73 @@ export async function getQuote(params: QuoteParams): Promise<QuoteResponse>
     }
 
     return await response.json() as QuoteResponse;
+}
+
+export interface GetSwapTransactionParams
+{
+    quote: QuoteResponse;
+    userPublicKey: PublicKey;
+    wrapAndUnwrapSol?: boolean;
+    dynamicComputeUnitLimit?: boolean;
+    prioritizationFeeLamports?: number | "auto";
+}
+
+export interface SwapTransactionResult
+{
+    transaction: VersionedTransaction;
+    lastValidBlockHeight?: number;
+    prioritizationFeeLamports?: number;
+}
+
+export async function getSwapTransaction(
+    params: GetSwapTransactionParams,
+): Promise<SwapTransactionResult>
+{
+    const body = {
+        quoteResponse: params.quote,
+        userPublicKey: params.userPublicKey.toBase58(),
+        wrapAndUnwrapSol: params.wrapAndUnwrapSol ?? true,
+        dynamicComputeUnitLimit: params.dynamicComputeUnitLimit ?? true,
+        // 'auto'면 Jupiter가 적정 priority fee를 산정. MWA 환경에서 우선 false로 둘 수도 있음.
+        prioritizationFeeLamports: params.prioritizationFeeLamports ?? "auto",
+    };
+
+    const response = await fetch(`${getApiBase()}/swap/v1/swap`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+    });
+
+    if (!response.ok)
+    {
+        let errBody: unknown;
+        try
+        {
+            errBody = await response.json();
+        }
+        catch
+        {
+            errBody = await response.text().catch(() => undefined);
+        }
+        throw new JupiterApiError(
+            `Jupiter swap failed (HTTP ${response.status})`,
+            response.status,
+            errBody,
+        );
+    }
+
+    const payload = await response.json() as SwapResponse;
+    if (!payload.swapTransaction)
+    {
+        throw new Error("Jupiter response missing swapTransaction");
+    }
+
+    const txBytes = Buffer.from(payload.swapTransaction, "base64");
+    const transaction = VersionedTransaction.deserialize(txBytes);
+
+    return {
+        transaction,
+        lastValidBlockHeight: payload.lastValidBlockHeight,
+        prioritizationFeeLamports: payload.prioritizationFeeLamports,
+    };
 }

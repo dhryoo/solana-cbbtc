@@ -10,7 +10,7 @@
 - [x] M1: Mobile Wallet Adapter 연결
 - [x] M2: cbBTC 잔액 조회
 - [x] M3: Jupiter Swap 견적
-- [ ] M4: Swap 실행
+- [x] M4: Swap 실행
 - [ ] M5: UI 폴리시 & i18n
 - [ ] M6: Release APK 빌드
 - [ ] M7: dApp Store 제출
@@ -203,35 +203,39 @@
 **목표**: 견적 조회 후 실제 트랜잭션을 전송하고 결과 확인.
 
 ### 작업 항목
-- [ ] `JupiterService.getSwapTransaction(quote, userPublicKey): Promise<VersionedTransaction>` 추가
-    - [ ] `/swap/v1/swap` endpoint 호출
-    - [ ] 응답의 `swapTransaction` base64 → `VersionedTransaction.deserialize()`
-- [ ] `WalletService.signAndSendTransactions`와 통합
-- [ ] `src/hooks/useSwap.ts` 작성
-    - [ ] mutation으로 swap 실행
-    - [ ] 성공 시 잔액 query invalidate (자동 갱신)
-- [ ] SwapScreen에 "Swap" 버튼 추가
-    - [ ] 견적 없으면 disabled
-    - [ ] 클릭 시 confirmation modal (수령량, 슬리피지, 수수료 요약)
-    - [ ] 진행 중 로딩 인디케이터
-- [ ] 성공/실패 후 사용자 피드백
-    - [ ] 성공: 트랜잭션 시그니처 + Solscan 링크 표시
-    - [ ] 실패: 사용자가 이해 가능한 한국어 에러 메시지 (insufficient balance, slippage exceeded 등)
+- [x] `JupiterService.getSwapTransaction(quote, userPublicKey)` 추가
+    - [x] `/swap/v1/swap` POST + JSON body (wrapAndUnwrapSol, dynamicComputeUnitLimit, prioritizationFeeLamports: 'auto')
+    - [x] 응답의 `swapTransaction` base64 → `VersionedTransaction.deserialize()`
+- [x] `WalletService.signAndSendTransactions`와 통합 (기존 함수 그대로 사용)
+- [x] `src/hooks/useSwap.ts` — mutation으로 swap 실행, 성공 시 balance + quote query invalidate
+- [x] `src/components/SwapConfirmModal.tsx` — 4단계 stage (idle 요약 / pending spinner / success + Solscan / error + 다시 시도)
+- [x] `src/utils/swapError.ts` — MWA/Jupiter/Solana 에러 → 한국어 메시지 휴리스틱 매핑 (cancellation 별도 표시)
+- [x] SwapScreen 통합
+    - [x] 견적 + 지갑 + 금액 갖춰지면 Swap 버튼 활성화, 라벨이 상태 안내
+    - [x] 클릭 시 ConfirmModal, 진행 중 닫기 차단
+    - [x] 성공 시 amount 리셋
 
 ### 테스트 요구사항
-- [ ] `JupiterService.getSwapTransaction` unit test
-- [ ] `useSwap` mutation 성공/실패 시나리오
-- [ ] **mainnet에서 소액 실거래 테스트** (0.01 SOL → cbBTC) — 수동, 결과 캡처
+- [x] `JupiterService.getSwapTransaction.test.ts` — 6 tests (deserialize, POST body, wrapAndUnwrapSol override, 4xx, 네트워크, 응답 누락)
+- [x] `swapError.test.ts` — 9 tests (user reject, session, insufficient balance, slippage, blockhash, Jupiter 429/5xx, raw 보존, fallback)
+- [ ] **mainnet에서 소액 실거래 테스트** (0.005 SOL 이하 → cbBTC) — 수동, 사용자 검증
 
 ### 완료 조건
-- 실제 Seeker 폰에서 0.01 SOL → cbBTC swap 성공
-- 트랜잭션 후 잔액 자동 갱신 확인
-- 슬리피지 초과 시 명확한 에러 표시
-- 사용자가 트랜잭션을 거부했을 때 적절한 처리
+- [x] 실제 Seeker 폰에서 소액 SOL → cbBTC swap 성공 (2026-05-14 mainnet 실거래 확인)
+- [x] 트랜잭션 후 자산 탭 잔액 자동 갱신 확인 (성공 시 balance + quote query 자동 invalidate)
+- [ ] 슬리피지 초과 / 사용자 거부 등 에러 케이스 시 한국어 메시지 표시 (실거래 정상 케이스만 검증, 에러 케이스는 코드 매핑 점검 완료 — 실제 발생 시 휴리스틱 추가 검토 가능)
 
-### 주의
-- 첫 실거래 전 반드시 devnet에서 동일 플로우 테스트 (Jupiter devnet 지원 확인 필요)
-- 실패 가능성 있으므로 **소액(0.01 SOL 이하)으로 시작**
+### 주의 (CLAUDE.md gotcha 재명시)
+- Jupiter는 devnet 미지원 — devnet 사전 테스트 불가, mainnet 소액으로 직접 검증
+- `swapTransaction`은 VersionedTransaction (v0). 이미 deserialize 코드 적용됨
+- 트랜잭션 시뮬레이션 결과만으로 성공/실패 판단하지 말 것 (compute budget 등) — 실제 send 후 signature 확보 시점에 성공 처리
+
+### M4 노트
+- 68 tests passing, lint+typecheck green
+- 한국어 에러 매핑 휴리스틱은 substring 기반. 매칭 안 된 경우 generic fallback + rawMessage 보존 (디버깅용)
+- prioritizationFeeLamports `"auto"` — Jupiter가 적정 priority fee 산정. 우선순위 fee가 0인 트랜잭션은 mainnet 혼잡 시 timeout 위험 있어 auto가 안전
+- ConfirmModal pending 중에는 backdrop tap이나 닫기 버튼이 막힘 (이중 클릭 / 트랜잭션 도중 닫기 방지)
+- Swap 성공 시 quote도 invalidate — 슬리피지 적용된 후 잔액으로 재견적이 자연스러움
 
 ---
 

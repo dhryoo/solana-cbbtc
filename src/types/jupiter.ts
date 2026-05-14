@@ -55,3 +55,19 @@ export class JupiterApiError extends Error
         this.name = "JupiterApiError";
     }
 }
+
+export interface SwapRequest
+{
+    quoteResponse: QuoteResponse;
+    userPublicKey: string;       // base58
+    wrapAndUnwrapSol?: boolean;  // 기본 true
+    dynamicComputeUnitLimit?: boolean;
+    prioritizationFeeLamports?: number | "auto";
+}
+
+export interface SwapResponse
+{
+    swapTransaction: string;     // base64 직렬화된 VersionedTransaction
+    lastValidBlockHeight?: number;
+    prioritizationFeeLamports?: number;
+}

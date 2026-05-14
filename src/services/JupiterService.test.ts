@@ -1,9 +1,16 @@
+import {
+    PublicKey,
+    TransactionMessage,
+    VersionedTransaction,
+} from "@solana/web3.js";
+
 import { JupiterApiError, type QuoteResponse } from "@/types/jupiter";
 
-import { getQuote } from "./JupiterService";
+import { getQuote, getSwapTransaction } from "./JupiterService";
 
 const SOL_MINT = "So11111111111111111111111111111111111111112";
 const CBBTC_MINT = "cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij";
+const USER = new PublicKey(new Uint8Array(32).fill(1));
 
 function mockOkResponse(payload: unknown): Response
 {
@@ -36,6 +43,21 @@ const SUCCESS_QUOTE: QuoteResponse = {
     priceImpactPct: "0",
     routePlan: [],
 };
+
+function makeFakeVersionedTx(): VersionedTransaction
+{
+    const message = new TransactionMessage({
+        payerKey: USER,
+        recentBlockhash: "11111111111111111111111111111111",
+        instructions: [],
+    }).compileToV0Message();
+    return new VersionedTransaction(message);
+}
+
+function txToBase64(tx: VersionedTransaction): string
+{
+    return Buffer.from(tx.serialize()).toString("base64");
+}
 
 describe("JupiterService.getQuote", () =>
 {
@@ -176,5 +198,107 @@ describe("JupiterService.getQuote", () =>
             amount: 1_000n,
             slippageBps: 50,
         })).rejects.toThrow(/network request failed/i);
+    });
+});
+
+describe("JupiterService.getSwapTransaction", () =>
+{
+    let fetchSpy: jest.SpyInstance;
+    let fakeTx: VersionedTransaction;
+    let fakeBase64: string;
+
+    beforeEach(() =>
+    {
+        fakeTx = makeFakeVersionedTx();
+        fakeBase64 = txToBase64(fakeTx);
+        fetchSpy = jest.spyOn(global, "fetch").mockResolvedValue(
+            mockOkResponse({ swapTransaction: fakeBase64, lastValidBlockHeight: 12345 }),
+        );
+    });
+
+    afterEach(() =>
+    {
+        fetchSpy.mockRestore();
+    });
+
+    it("returns a deserialized VersionedTransaction", async () =>
+    {
+        const result = await getSwapTransaction({
+            quote: SUCCESS_QUOTE,
+            userPublicKey: USER,
+        });
+
+        expect(result.transaction).toBeInstanceOf(VersionedTransaction);
+        expect(txToBase64(result.transaction)).toBe(fakeBase64);
+        expect(result.lastValidBlockHeight).toBe(12345);
+    });
+
+    it("POSTs JSON body with quoteResponse and userPublicKey", async () =>
+    {
+        await getSwapTransaction({
+            quote: SUCCESS_QUOTE,
+            userPublicKey: USER,
+        });
+
+        const [url, init] = fetchSpy.mock.calls[0] ?? [];
+        expect(String(url)).toContain("/swap/v1/swap");
+        expect(init?.method).toBe("POST");
+        const headers = (init?.headers ?? {}) as Record<string, string>;
+        expect(headers["Content-Type"] ?? headers["content-type"]).toMatch(/json/i);
+
+        const body = JSON.parse(String(init?.body ?? "{}"));
+        expect(body.userPublicKey).toBe(USER.toBase58());
+        expect(body.quoteResponse).toMatchObject({
+            inputMint: SOL_MINT,
+            outputMint: CBBTC_MINT,
+        });
+        // 기본값으로 wrap/unwrap SOL true
+        expect(body.wrapAndUnwrapSol).toBe(true);
+    });
+
+    it("respects wrapAndUnwrapSol override", async () =>
+    {
+        await getSwapTransaction({
+            quote: SUCCESS_QUOTE,
+            userPublicKey: USER,
+            wrapAndUnwrapSol: false,
+        });
+
+        const [, init] = fetchSpy.mock.calls[0] ?? [];
+        const body = JSON.parse(String(init?.body ?? "{}"));
+        expect(body.wrapAndUnwrapSol).toBe(false);
+    });
+
+    it("throws JupiterApiError on HTTP failure", async () =>
+    {
+        fetchSpy.mockResolvedValueOnce(mockErrorResponse(429, { error: "rate limit" }));
+
+        await expect(getSwapTransaction({
+            quote: SUCCESS_QUOTE,
+            userPublicKey: USER,
+        })).rejects.toMatchObject({
+            name: "JupiterApiError",
+            status: 429,
+        });
+    });
+
+    it("propagates network errors", async () =>
+    {
+        fetchSpy.mockRejectedValueOnce(new TypeError("Network request failed"));
+
+        await expect(getSwapTransaction({
+            quote: SUCCESS_QUOTE,
+            userPublicKey: USER,
+        })).rejects.toThrow(/network request failed/i);
+    });
+
+    it("throws if swapTransaction is missing in the response", async () =>
+    {
+        fetchSpy.mockResolvedValueOnce(mockOkResponse({ lastValidBlockHeight: 1 }));
+
+        await expect(getSwapTransaction({
+            quote: SUCCESS_QUOTE,
+            userPublicKey: USER,
+        })).rejects.toThrow(/swapTransaction/i);
     });
 });

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
     Pressable,
     ScrollView,
@@ -9,24 +9,39 @@ import {
 } from "react-native";
 
 import { QuoteDisplay } from "@/components/QuoteDisplay";
+import { SwapConfirmModal } from "@/components/SwapConfirmModal";
 import { CBBTC, SOL, type TokenInfo } from "@/constants/tokens";
+import { useSwap } from "@/hooks/useSwap";
 import { useSwapQuote } from "@/hooks/useSwapQuote";
+import { useWallet } from "@/hooks/useWallet";
+import { toFriendlySwapError } from "@/utils/swapError";
 
 const DEFAULT_SLIPPAGE_BPS = 50;
 
+type ModalStatus =
+    | { kind: "idle" }
+    | { kind: "pending" }
+    | { kind: "success"; signature: string }
+    | { kind: "error"; message: string };
+
 export function SwapScreen(): React.JSX.Element
 {
+    const { account } = useWallet();
     const [inputToken, setInputToken] = useState<TokenInfo>(SOL);
     const [outputToken, setOutputToken] = useState<TokenInfo>(CBBTC);
     const [amount, setAmount] = useState("");
     const [slippageBps, setSlippageBps] = useState<number>(DEFAULT_SLIPPAGE_BPS);
 
-    const quote = useSwapQuote({
+    const [modalOpen, setModalOpen] = useState(false);
+    const [modalStatus, setModalStatus] = useState<ModalStatus>({ kind: "idle" });
+
+    const quoteQuery = useSwapQuote({
         input: inputToken,
         output: outputToken,
         uiAmount: amount,
         slippageBps,
     });
+    const swap = useSwap();
 
     const onFlip = useCallback((): void =>
     {
@@ -34,6 +49,64 @@ export function SwapScreen(): React.JSX.Element
         setOutputToken(inputToken);
         setAmount("");
     }, [inputToken, outputToken]);
+
+    const canSwap = useMemo(() =>
+    {
+        if (!account) return false;
+        if (!quoteQuery.data) return false;
+        if (amount.trim() === "") return false;
+        if (swap.isPending) return false;
+        return true;
+    }, [account, quoteQuery.data, amount, swap.isPending]);
+
+    const openConfirm = useCallback((): void =>
+    {
+        if (!canSwap) return;
+        setModalStatus({ kind: "idle" });
+        setModalOpen(true);
+    }, [canSwap]);
+
+    const closeModal = useCallback((): void =>
+    {
+        if (swap.isPending) return; // 진행 중에는 닫기 차단
+        setModalOpen(false);
+        if (modalStatus.kind === "success")
+        {
+            // 성공 후 입력 리셋
+            setAmount("");
+        }
+        setModalStatus({ kind: "idle" });
+    }, [swap.isPending, modalStatus]);
+
+    const confirmSwap = useCallback((): void =>
+    {
+        if (!quoteQuery.data) return;
+        setModalStatus({ kind: "pending" });
+        swap.mutate(
+            { quote: quoteQuery.data },
+            {
+                onSuccess: (data) =>
+                {
+                    setModalStatus({ kind: "success", signature: data.signature });
+                },
+                onError: (err) =>
+                {
+                    const friendly = toFriendlySwapError(err);
+                    setModalStatus({ kind: "error", message: friendly.message });
+                },
+            },
+        );
+    }, [quoteQuery.data, swap]);
+
+    useEffect(() =>
+    {
+        // 입력이 비거나 지갑이 끊기면 모달 강제 종료
+        if (!account && modalOpen && !swap.isPending)
+        {
+            setModalOpen(false);
+            setModalStatus({ kind: "idle" });
+        }
+    }, [account, modalOpen, swap.isPending]);
 
     return (
         <ScrollView contentContainerStyle={styles.scroll}>
@@ -78,10 +151,10 @@ export function SwapScreen(): React.JSX.Element
 
             <QuoteDisplay
                 outputToken={outputToken}
-                quote={quote.data}
-                isLoading={quote.isLoading}
-                isFetching={quote.isFetching}
-                error={quote.error}
+                quote={quoteQuery.data}
+                isLoading={quoteQuery.isLoading}
+                isFetching={quoteQuery.isFetching}
+                error={quoteQuery.error}
                 slippageBps={slippageBps}
                 onSlippageChange={setSlippageBps}
                 inputIsEmpty={amount.trim() === ""}
@@ -90,13 +163,40 @@ export function SwapScreen(): React.JSX.Element
             <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="swap 실행"
-                disabled
-                style={[styles.swapButton, styles.swapButtonDisabled]}
+                disabled={!canSwap}
+                onPress={openConfirm}
+                style={({ pressed }) =>
+                    [
+                        styles.swapButton,
+                        canSwap ? styles.swapButtonEnabled : styles.swapButtonDisabled,
+                        pressed && canSwap && styles.swapButtonPressed,
+                    ]}
             >
-                <Text style={styles.swapButtonText}>
-                    Swap (M4에서 활성화)
+                <Text
+                    style={[
+                        styles.swapButtonText,
+                        canSwap && styles.swapButtonTextEnabled,
+                    ]}
+                >
+                    {!account
+                        ? "지갑 연결 후 사용 가능"
+                        : amount.trim() === ""
+                            ? "금액을 입력하세요"
+                            : !quoteQuery.data
+                                ? "견적 조회 중…"
+                                : "Swap 실행"}
                 </Text>
             </Pressable>
+
+            <SwapConfirmModal
+                visible={modalOpen}
+                inputToken={inputToken}
+                outputToken={outputToken}
+                quote={quoteQuery.data}
+                status={modalStatus}
+                onConfirm={confirmSwap}
+                onClose={closeModal}
+            />
         </ScrollView>
     );
 }
@@ -181,12 +281,21 @@ const styles = StyleSheet.create({
         borderRadius: 24,
         alignItems: "center",
     },
+    swapButtonEnabled: {
+        backgroundColor: "#111",
+    },
     swapButtonDisabled: {
         backgroundColor: "#ddd",
+    },
+    swapButtonPressed: {
+        opacity: 0.85,
     },
     swapButtonText: {
         color: "#666",
         fontSize: 15,
         fontWeight: "600",
+    },
+    swapButtonTextEnabled: {
+        color: "#fff",
     },
 });
