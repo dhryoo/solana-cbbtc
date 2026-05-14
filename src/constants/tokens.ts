@@ -1,9 +1,11 @@
 import { PublicKey } from "@solana/web3.js";
+import type { ImageSourcePropType } from "react-native";
 
 // 토큰 메타데이터.
 // mint는 base58 string으로 저장, PublicKey는 lazy-instantiate.
 // cbBTC mint는 on-chain 검증 완료 (getTokenSupply → decimals: 8).
 // 출처: CoinGecko + Solana mainnet RPC (2026-05-13 시점).
+// 로고는 scripts/fetch_token_icons.py로 한 번 다운로드 후 assets/tokens/에 보관.
 
 export interface TokenInfo
 {
@@ -12,14 +14,23 @@ export interface TokenInfo
     decimals: number;
     mint: string;            // base58. 'native'면 SOL.
     logoURI?: string;
+    logoSource?: ImageSourcePropType;
     isNative: boolean;
 }
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const LOGO_CBBTC = require("../../assets/tokens/cbbtc.png");
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const LOGO_SOL = require("../../assets/tokens/sol.png");
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const LOGO_SKR = require("../../assets/tokens/skr.png");
 
 export const CBBTC: TokenInfo = {
     symbol: "cbBTC",
     name: "Coinbase Wrapped BTC",
     decimals: 8,
     mint: "cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij",
+    logoSource: LOGO_CBBTC,
     isNative: false,
 };
 
@@ -28,6 +39,7 @@ export const SOL: TokenInfo = {
     name: "Solana",
     decimals: 9,
     mint: "native",
+    logoSource: LOGO_SOL,
     isNative: true,
 };
 
@@ -56,6 +68,7 @@ export const SKR: TokenInfo = {
     name: "Solana Mobile",
     decimals: 6,
     mint: "SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3",
+    logoSource: LOGO_SKR,
     isNative: false,
 };
 

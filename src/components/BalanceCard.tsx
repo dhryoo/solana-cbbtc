@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Text, View } from "react-native";
+import { Image, Text, View } from "react-native";
 
 import { EmptyView, ErrorView, SkeletonBlock } from "@/components/StateViews";
 import type { ThemePalette } from "@/constants/theme";
@@ -34,9 +34,13 @@ export function BalanceCard({ token }: BalanceCardProps): React.JSX.Element
         <View style={styles.card}>
             <View style={styles.header}>
                 <View style={styles.iconContainer}>
-                    <View style={styles.iconPlaceholder}>
-                        <Text style={styles.iconText}>{token.symbol.slice(0, 1)}</Text>
-                    </View>
+                    {token.logoSource ? (
+                        <Image source={token.logoSource} style={styles.iconImage} resizeMode="contain" />
+                    ) : (
+                        <View style={styles.iconPlaceholder}>
+                            <Text style={styles.iconText}>{token.symbol.slice(0, 1)}</Text>
+                        </View>
+                    )}
                     {hasGenesisToken && (
                         <View style={styles.verifiedAccent}>
                             <Ionicons name="checkmark" size={10} color="#ffffff" />
@@ -110,6 +114,11 @@ const makeStyles = (t: ThemePalette) => ({
         backgroundColor: t.primary,
         alignItems: "center" as const,
         justifyContent: "center" as const,
+    },
+    iconImage: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
     },
     verifiedAccent: {
         position: "absolute" as const,
