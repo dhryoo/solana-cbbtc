@@ -6,9 +6,11 @@ import { getClusterId } from "@/constants/cluster";
 import type { ThemeMode, ThemePalette } from "@/constants/theme";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
 import { SUPPORTED_LANGUAGES, type SupportedLanguage } from "@/i18n";
+import { useAppLock } from "@/providers/AppLockProvider";
 import { useLanguage } from "@/providers/I18nProvider";
 import { useNotifications } from "@/providers/NotificationProvider";
 import { useTheme } from "@/providers/ThemeProvider";
+import { useToast } from "@/providers/ToastProvider";
 import { hapticSelection } from "@/services/HapticsService";
 import { useSeekerIdentity } from "@/hooks/useSeekerIdentity";
 import { useWallet } from "@/hooks/useWallet";
@@ -32,6 +34,8 @@ export function SettingsScreen(): React.JSX.Element
     const { palette } = useTheme();
     const seeker = useSeekerIdentity();
     const { account } = useWallet();
+    const appLock = useAppLock();
+    const { showToast } = useToast();
 
     const onSelectLanguage = (next: SupportedLanguage): void =>
     {
@@ -52,6 +56,20 @@ export function SettingsScreen(): React.JSX.Element
         void hapticSelection();
         void notifications.setEnabled(next);
     };
+
+    const onToggleAppLock = async (next: boolean): Promise<void> =>
+    {
+        void hapticSelection();
+        const ok = await appLock.setEnabled(next);
+        if (!ok && next)
+        {
+            showToast(t("settings.appLockUnavailable"), { variant: "error" });
+        }
+    };
+
+    const appLockUsable =
+        (appLock.capability?.hasHardware ?? false)
+        && (appLock.capability?.isEnrolled ?? false);
 
     return (
         <ScrollView contentContainerStyle={styles.scroll}>
@@ -112,6 +130,27 @@ export function SettingsScreen(): React.JSX.Element
                             </Text>
                         </Pressable>
                     ))}
+                </View>
+            </View>
+
+            <View style={styles.section}>
+                <Text style={styles.sectionLabel}>{t("settings.appLock")}</Text>
+                <View style={styles.toggleRow}>
+                    <View style={styles.toggleText}>
+                        <Text style={styles.toggleTitle}>{t("settings.appLockToggle")}</Text>
+                        <Text style={styles.toggleDesc}>{t("settings.appLockDescription")}</Text>
+                        {!appLockUsable && appLock.capability !== null && (
+                            <Text style={styles.toggleWarn}>{t("settings.appLockUnavailable")}</Text>
+                        )}
+                    </View>
+                    <Switch
+                        accessibilityLabel={t("settings.appLockToggle")}
+                        value={appLock.enabled}
+                        onValueChange={(next) => { void onToggleAppLock(next); }}
+                        disabled={!appLockUsable && !appLock.enabled}
+                        trackColor={{ false: palette.borderStrong, true: "#9945FF" }}
+                        thumbColor="#ffffff"
+                    />
                 </View>
             </View>
 
