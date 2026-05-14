@@ -8,6 +8,7 @@ import { SplashOverlay } from "@/components/SplashOverlay";
 import { AppLockProvider } from "@/providers/AppLockProvider";
 import { ConnectionProvider } from "@/providers/ConnectionProvider";
 import { I18nProvider } from "@/providers/I18nProvider";
+import { NetworkProvider } from "@/providers/NetworkProvider";
 import { NotificationProvider } from "@/providers/NotificationProvider";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { ThemeProvider, useTheme } from "@/providers/ThemeProvider";
@@ -33,20 +34,22 @@ export default function App(): React.JSX.Element
         <ThemeProvider>
             <I18nProvider>
                 <ToastProvider>
-                    <QueryProvider>
-                        <ConnectionProvider>
-                            <NotificationProvider>
-                                <WalletProvider>
-                                    <AppLockProvider>
-                                        <AppShell />
-                                        <ThemedStatusBar />
-                                        <SplashOverlay />
-                                        <LockScreen />
-                                    </AppLockProvider>
-                                </WalletProvider>
-                            </NotificationProvider>
-                        </ConnectionProvider>
-                    </QueryProvider>
+                    <NetworkProvider>
+                        <QueryProvider>
+                            <ConnectionProvider>
+                                <NotificationProvider>
+                                    <WalletProvider>
+                                        <AppLockProvider>
+                                            <AppShell />
+                                            <ThemedStatusBar />
+                                            <SplashOverlay />
+                                            <LockScreen />
+                                        </AppLockProvider>
+                                    </WalletProvider>
+                                </NotificationProvider>
+                            </ConnectionProvider>
+                        </QueryProvider>
+                    </NetworkProvider>
                 </ToastProvider>
             </I18nProvider>
         </ThemeProvider>

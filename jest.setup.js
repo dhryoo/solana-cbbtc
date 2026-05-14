@@ -32,6 +32,23 @@ jest.mock("expo-haptics", () => ({
     NotificationFeedbackType: { Success: "success", Warning: "warning", Error: "error" },
 }));
 
+// expo-network mock — native bridge 없이도 useNetworkState 호출 가능하도록.
+// 테스트는 기본적으로 online 상태로 동작 (isConnected/isInternetReachable=true)
+jest.mock("expo-network", () => ({
+    useNetworkState: jest.fn(() => ({
+        type: "WIFI",
+        isConnected: true,
+        isInternetReachable: true,
+    })),
+    getNetworkStateAsync: jest.fn().mockResolvedValue({
+        type: "WIFI",
+        isConnected: true,
+        isInternetReachable: true,
+    }),
+    addNetworkStateListener: jest.fn(() => ({ remove: jest.fn() })),
+    NetworkStateType: { NONE: "NONE", UNKNOWN: "UNKNOWN", WIFI: "WIFI", CELLULAR: "CELLULAR" },
+}));
+
 // expo-local-authentication mock
 jest.mock("expo-local-authentication", () => ({
     hasHardwareAsync: jest.fn().mockResolvedValue(true),

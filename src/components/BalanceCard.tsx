@@ -10,6 +10,7 @@ import { useSeekerIdentity } from "@/hooks/useSeekerIdentity";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
 import { useWallet } from "@/hooks/useWallet";
 import { useTokenBalance } from "@/hooks/useTokenBalance";
+import { useNetworkStatus } from "@/providers/NetworkProvider";
 import { classifyBalanceError } from "@/utils/balanceError";
 import { formatTokenAmount } from "@/utils/format";
 import { relativeTime } from "@/utils/relativeTime";
@@ -27,11 +28,36 @@ export function BalanceCard({ token }: BalanceCardProps): React.JSX.Element
     const query = useTokenBalance(token, ownerPubkey);
     const styles = useThemedStyles(makeStyles);
     const { hasGenesisToken } = useSeekerIdentity();
+    const { isOnline } = useNetworkStatus();
 
     const updated = relativeTime(query.dataUpdatedAt || null);
 
+    // 오프라인 상태에서는 query가 disabled되어 isLoading=false. 캐시 데이터가 있으면 그대로 표시,
+    // 없으면 offline 안내. (isPending은 disabled + no-data 케이스에도 true이므로 isLoading 사용)
+    const showOffline = !isOnline && !query.data && Boolean(ownerPubkey);
+
+    // 카드 전체를 단일 a11y 그룹으로 묶어 screen reader가 의미 단위로 읽도록.
+    const a11yLabel = (() =>
+    {
+        if (!ownerPubkey) return t("balance.a11yCardEmpty", { symbol: token.symbol });
+        if (showOffline) return `${token.symbol} ${t("offline.balance")}`;
+        if (query.isLoading) return t("balance.a11yCardLoading", { symbol: token.symbol });
+        if (query.isError) return t("balance.a11yCardError", { symbol: token.symbol });
+        if (query.data)
+        {
+            const formatted = formatTokenAmount(query.data.uiAmount, query.data.decimals);
+            return t("balance.a11yCardData", { symbol: token.symbol, amount: `${formatted} ${token.symbol}` });
+        }
+        return token.symbol;
+    })();
+
     return (
-        <View style={styles.card}>
+        <View
+            style={styles.card}
+            accessible={true}
+            accessibilityLabel={a11yLabel}
+            accessibilityRole="summary"
+        >
             <View style={styles.header}>
                 <View style={styles.iconContainer}>
                     {token.logoSource ? (
@@ -61,11 +87,18 @@ export function BalanceCard({ token }: BalanceCardProps): React.JSX.Element
                     />
                 )}
 
-                {ownerPubkey && query.isPending && (
+                {showOffline && (
+                    <EmptyView
+                        icon="cloud-offline-outline"
+                        message={t("offline.balance")}
+                    />
+                )}
+
+                {ownerPubkey && !showOffline && query.isLoading && (
                     <SkeletonBlock width={140} height={26} />
                 )}
 
-                {ownerPubkey && query.isError && (
+                {ownerPubkey && !showOffline && query.isError && (
                     <ErrorView
                         message={t(classifyBalanceError(query.error).key)}
                         onRetry={() => { void query.refetch(); }}
@@ -76,7 +109,7 @@ export function BalanceCard({ token }: BalanceCardProps): React.JSX.Element
 
                 {ownerPubkey && query.data && (
                     <>
-                        <Text style={styles.amount}>
+                        <Text style={styles.amount} maxFontSizeMultiplier={1.4} numberOfLines={1}>
                             {formatTokenAmount(query.data.uiAmount, query.data.decimals)}
                             <Text style={styles.amountUnit}> {token.symbol}</Text>
                         </Text>

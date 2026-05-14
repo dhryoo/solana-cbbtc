@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Animated, Pressable, Text, View } from "react-native";
 
+import { OfflineBanner } from "@/components/OfflineBanner";
 import type { ThemePalette } from "@/constants/theme";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
 import { HomeScreen } from "@/screens/HomeScreen";
@@ -41,6 +42,7 @@ export function AppShell(): React.JSX.Element
 
     return (
         <View style={styles.root}>
+            <OfflineBanner />
             <View style={styles.content}>
                 <TabContent activeKey={tab} />
             </View>

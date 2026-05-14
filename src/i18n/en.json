@@ -8,6 +8,13 @@
         "copyAddressHint": "Long-press to copy to clipboard",
         "copied": "Copied!"
     },
+    "offline": {
+        "banner": "No internet connection",
+        "bannerHint": "Wallet, balances, and swaps require a connection",
+        "swapBlocked": "Offline",
+        "balance": "You are offline",
+        "quote": "Quote unavailable while offline"
+    },
     "tabs": {
         "home": "Assets",
         "swap": "Swap",
@@ -28,7 +35,11 @@
     },
     "balance": {
         "connectFirst": "Connect wallet to view balance",
-        "loadError": "Failed to load balance"
+        "loadError": "Failed to load balance",
+        "a11yCardEmpty": "{{symbol}} balance, wallet not connected",
+        "a11yCardLoading": "Loading {{symbol}} balance",
+        "a11yCardError": "Failed to load {{symbol}} balance",
+        "a11yCardData": "{{symbol}} balance {{amount}}"
     },
     "swap": {
         "title": "Swap",
@@ -39,6 +50,7 @@
         "btnConnectFirst": "Connect wallet to use",
         "btnAmountFirst": "Enter an amount",
         "btnQuoteLoading": "Fetching quote…",
+        "btnInsufficientGas": "Insufficient SOL for fees",
         "expected": "Expected receive",
         "priceImpact": "Price impact",
         "route": "Route",
@@ -55,6 +67,9 @@
         "successLine": "Transaction was broadcast to the network.",
         "signatureLabel": "Signature",
         "openSolscan": "Open on Solscan",
+        "share": "Share",
+        "shareText": "Swapped {{inputAmount}} {{inputSymbol}} → {{outputAmount}} {{outputSymbol}}",
+        "shareVia": "Shared from Solana cbBTC",
         "failureTitle": "Swap failed",
         "pendingText": "Broadcasting transaction after wallet approval…",
         "pendingHint": "May take a few seconds depending on network."
@@ -108,7 +123,10 @@
         "appLock": "App lock",
         "appLockToggle": "Lock with fingerprint / PIN",
         "appLockDescription": "Require unlock on app open and on returning from background.",
-        "appLockUnavailable": "Biometric or device PIN is not enrolled on this device."
+        "appLockUnavailable": "Biometric or device PIN is not enrolled on this device.",
+        "feedback": "Feedback",
+        "feedbackHint": "Report bugs or share suggestions via email",
+        "openFailed": "Could not open external app"
     },
     "notifications": {
         "swapSuccessTitle": "Swap completed",
@@ -146,6 +164,9 @@
     },
     "wallet_card": {
         "connectedTitle": "Connected wallet",
-        "viewOnSolscan": "View on Solscan"
+        "viewOnSolscan": "View on Solscan",
+        "hardwareSecured": "Hardware secured",
+        "a11yCard": "Connected wallet {{address}}",
+        "a11ySeedVault": "Secured by hardware Seed Vault"
     }
 }

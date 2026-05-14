@@ -60,6 +60,15 @@ export const USDC: TokenInfo = {
     isNative: false,
 };
 
+// Swap 시 사용자가 가스비로 남겨두어야 할 최소 SOL.
+// 측정 근거:
+//   - Jupiter swap 평균 priority fee + signature: ~0.0005~0.001 SOL
+//   - ATA 미존재 시 rent 발생: ~0.00204 SOL
+//   - 합산 + 안전 margin = 0.002 SOL
+// 이 값 미만이면 "swap이 가스 부족으로 실패할 가능성이 매우 높음"으로 간주.
+// (사용자 입력 토큰이 SOL일 경우, amount + 이 reserve 합계로 검증)
+export const MIN_SOL_GAS_RESERVE_SOL = 0.002;
+
 // SKR — Solana Mobile 생태계 보상 토큰.
 // 출처: https://docs.solanamobile.com/solana-mobile-stack/skr
 // On-chain 검증 완료 (2026-05-14): decimals=6, live with 10.3B supply.

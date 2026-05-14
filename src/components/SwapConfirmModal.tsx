@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import React, { useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -6,6 +7,7 @@ import {
     Linking,
     Modal,
     Pressable,
+    Share,
     Text,
     View,
 } from "react-native";
@@ -80,8 +82,14 @@ export function SwapConfirmModal({
                         <PendingStage />
                     )}
 
-                    {status.kind === "success" && (
-                        <SuccessStage signature={status.signature} onClose={onClose} />
+                    {status.kind === "success" && quote && (
+                        <SuccessStage
+                            signature={status.signature}
+                            inputToken={inputToken}
+                            outputToken={outputToken}
+                            quote={quote}
+                            onClose={onClose}
+                        />
                     )}
 
                     {status.kind === "error" && (
@@ -111,7 +119,7 @@ function ConfirmStage({
     const styles = useThemedStyles(makeStyles);
     return (
         <>
-            <Text style={styles.title}>{t("swap.confirmTitle")}</Text>
+            <Text style={styles.title} maxFontSizeMultiplier={1.4}>{t("swap.confirmTitle")}</Text>
 
             <View style={styles.row}>
                 <Text style={styles.label}>{t("swap.confirmInput")}</Text>
@@ -184,8 +192,17 @@ function PendingStage(): React.JSX.Element
 
 function SuccessStage({
     signature,
+    inputToken,
+    outputToken,
+    quote,
     onClose,
-}: { signature: string; onClose: () => void }): React.JSX.Element
+}: {
+    signature: string;
+    inputToken: TokenInfo;
+    outputToken: TokenInfo;
+    quote: QuoteResponse;
+    onClose: () => void;
+}): React.JSX.Element
 {
     const { t } = useTranslation();
     const styles = useThemedStyles(makeStyles);
@@ -207,9 +224,40 @@ function SuccessStage({
         catch { /* ignore */ }
     }, [signature, showToast, t]);
 
+    const onShare = useCallback(async (): Promise<void> =>
+    {
+        void hapticLight();
+        const inputAmount = formatRawAmount(quote.inAmount, inputToken.decimals);
+        const outputAmount = formatRawAmount(quote.outAmount, outputToken.decimals);
+        const url = `https://solscan.io/tx/${signature}`;
+        // 본문에 URL 포함 — Android/iOS 모두 Share sheet에서 본문 그대로 노출.
+        const message = [
+            t("swap.shareText", {
+                inputAmount,
+                inputSymbol: inputToken.symbol,
+                outputAmount,
+                outputSymbol: outputToken.symbol,
+            }),
+            url,
+            t("swap.shareVia"),
+        ].join("\n");
+        try
+        {
+            await Share.share({
+                message,
+                url, // iOS 전용 필드 — Share sheet에서 별도 link card로 렌더링
+                title: t("swap.successTitle"),
+            });
+        }
+        catch
+        {
+            // 사용자가 dismiss 한 경우 등은 무시
+        }
+    }, [signature, inputToken, outputToken, quote, t]);
+
     return (
         <>
-            <Text style={styles.title}>{t("swap.successTitle")}</Text>
+            <Text style={styles.title} maxFontSizeMultiplier={1.4}>{t("swap.successTitle")}</Text>
             <Text style={styles.successLine}>{t("swap.successLine")}</Text>
             <Text style={styles.sigLabel}>{t("swap.signatureLabel")}</Text>
             <Pressable
@@ -225,12 +273,26 @@ function SuccessStage({
             <View style={styles.actions}>
                 <Pressable
                     accessibilityRole="link"
+                    accessibilityLabel={t("swap.openSolscan")}
                     onPress={() => openSolscan(signature)}
                     style={({ pressed }) =>
                         [styles.btn, styles.btnSecondary, pressed && styles.pressed]}
                 >
+                    <Ionicons name="open-outline" size={14} style={styles.iconSecondary} />
                     <Text style={styles.btnSecondaryText}>{t("swap.openSolscan")}</Text>
                 </Pressable>
+                <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t("swap.share")}
+                    onPress={() => { void onShare(); }}
+                    style={({ pressed }) =>
+                        [styles.btn, styles.btnSecondary, pressed && styles.pressed]}
+                >
+                    <Ionicons name="share-social-outline" size={14} style={styles.iconSecondary} />
+                    <Text style={styles.btnSecondaryText}>{t("swap.share")}</Text>
+                </Pressable>
+            </View>
+            <View style={styles.actions}>
                 <Pressable
                     accessibilityRole="button"
                     onPress={onClose}
@@ -264,7 +326,7 @@ function ErrorStage({
 
     return (
         <>
-            <Text style={styles.title}>{t("swap.failureTitle")}</Text>
+            <Text style={styles.title} maxFontSizeMultiplier={1.4}>{t("swap.failureTitle")}</Text>
             <Text style={styles.errorMsg}>{message}</Text>
 
             <View style={styles.actions}>
@@ -343,6 +405,12 @@ const makeStyles = (t: ThemePalette) => ({
         paddingVertical: 14,
         borderRadius: 24,
         alignItems: "center" as const,
+        flexDirection: "row" as const,
+        justifyContent: "center" as const,
+        gap: 6,
+    },
+    iconSecondary: {
+        color: t.text,
     },
     btnPrimary: {
         backgroundColor: t.primary,

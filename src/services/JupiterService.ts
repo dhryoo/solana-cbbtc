@@ -3,12 +3,25 @@ import { Buffer } from "buffer";
 
 import {
     JupiterApiError,
+    type PrioritizationFeeLamports,
     type QuoteParams,
     type QuoteResponse,
     type SwapResponse,
 } from "@/types/jupiter";
 
 const DEFAULT_BASE = "https://lite-api.jup.ag";
+
+// Swap 트랜잭션의 priority fee 기본값.
+// "auto"(Jupiter 자유 재량, 상한 없음) 대신 priority="high" + 1.0M lamports(0.001 SOL) cap.
+// - 혼잡 시 swap이 빠르게 land 하도록 high 우선순위 부여
+// - 동시에 사용자가 과한 가스를 지불하지 않도록 상한 고정
+// 이 값은 MIN_SOL_GAS_RESERVE_SOL(0.002)과 ATA rent(~0.002)를 고려한 보수적 cap.
+const DEFAULT_PRIORITY_FEE: PrioritizationFeeLamports = {
+    priorityLevelWithMaxLamports: {
+        priorityLevel: "high",
+        maxLamports: 1_000_000,
+    },
+};
 
 function getApiBase(): string
 {
@@ -78,7 +91,7 @@ export interface GetSwapTransactionParams
     userPublicKey: PublicKey;
     wrapAndUnwrapSol?: boolean;
     dynamicComputeUnitLimit?: boolean;
-    prioritizationFeeLamports?: number | "auto";
+    prioritizationFeeLamports?: PrioritizationFeeLamports;
 }
 
 export interface SwapTransactionResult
@@ -97,8 +110,7 @@ export async function getSwapTransaction(
         userPublicKey: params.userPublicKey.toBase58(),
         wrapAndUnwrapSol: params.wrapAndUnwrapSol ?? true,
         dynamicComputeUnitLimit: params.dynamicComputeUnitLimit ?? true,
-        // 'auto'면 Jupiter가 적정 priority fee를 산정. MWA 환경에서 우선 false로 둘 수도 있음.
-        prioritizationFeeLamports: params.prioritizationFeeLamports ?? "auto",
+        prioritizationFeeLamports: params.prioritizationFeeLamports ?? DEFAULT_PRIORITY_FEE,
     };
 
     const response = await fetch(`${getApiBase()}/swap/v1/swap`, {

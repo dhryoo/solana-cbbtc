@@ -1,16 +1,12 @@
 #!/usr/bin/env python3
 """
-adaptive-icon.png에 원형 마스크를 적용해 코인 영역 밖의 모든 잔여 노이즈
-(faint haze, sparkle, anti-alias 잔재)를 완전히 제거한다.
+adaptive-icon.png에서 ₿ 심볼만 남기고 ring을 완전히 제거.
 
-전제: 코인은 정확히 캔버스 중앙에 위치하며 외곽 ring을 포함한 전체 반경이
-캔버스 반폭의 약 85% 이하이다.
+전략 (이중 마스킹):
+1. HSV hue/sat 마스크: B의 녹색-보라 그라데이션 보존, 흰색 영역 제거
+2. 원형 공간 마스크: B의 반경(~260px) 밖은 모두 투명, ring (반경 ~370px) 제거
 
-알고리즘:
-- 중심에서의 거리 d 계산
-- d <= INNER_RADIUS: 원본 alpha 그대로 (코인 본체)
-- INNER_RADIUS < d < OUTER_RADIUS: 선형 falloff (anti-alias)
-- d >= OUTER_RADIUS: alpha = 0 (모든 잔여 노이즈 제거)
+두 마스크의 AND 결과로 alpha 결정.
 """
 
 from __future__ import annotations
@@ -24,38 +20,81 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parent.parent
 TARGET = ROOT / "assets" / "adaptive-icon.png"
 
+# HSV 영역: 녹색(~140°) ~ 보라(~280°)
+HUE_MIN = 120.0
+HUE_MAX = 290.0
+SAT_MIN = 0.15
+
+# 공간: B 본체 반경 (캔버스 크기 비율)
+# 측정 결과 (x=512 수직 슬라이스):
+#   - B 본체 최대 반경: ~218px (y=294~407, y=615~728)
+#   - Ring 영역: 반경 278~294px (분리된 보라 band)
+# Ring을 완전히 제거하려면 r_out < 278 필요.
+R_INNER_RATIO = 0.22   # B 본체 안전 영역 (≈ 225px)
+R_OUTER_RATIO = 0.25   # 그 후 falloff 끝 (≈ 256px). Ring(278+)은 완전 컷.
+
+
+def rgb_to_hsv(arr: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    r = arr[..., 0] / 255.0
+    g = arr[..., 1] / 255.0
+    b = arr[..., 2] / 255.0
+    max_c = np.maximum(np.maximum(r, g), b)
+    min_c = np.minimum(np.minimum(r, g), b)
+    delta = max_c - min_c
+
+    h = np.zeros_like(max_c)
+    safe = delta > 1e-6
+    rmax = (max_c == r) & safe
+    gmax = (max_c == g) & safe
+    bmax = (max_c == b) & safe
+    h[rmax] = ((g[rmax] - b[rmax]) / delta[rmax]) % 6
+    h[gmax] = ((b[gmax] - r[gmax]) / delta[gmax]) + 2
+    h[bmax] = ((r[bmax] - g[bmax]) / delta[bmax]) + 4
+    h = h * 60.0
+
+    s = np.where(max_c > 0, delta / np.where(max_c > 0, max_c, 1), 0.0)
+    return h, s, max_c
+
 
 def main() -> int:
     img = Image.open(TARGET).convert("RGBA")
-    w, h = img.size
-    cx, cy = w / 2, h / 2
-
-    # 코인은 캔버스의 80% 안에 들어감 가정. ring 외곽까지 포함.
-    inner_r = min(w, h) * 0.43   # 코인 본체 끝까지
-    outer_r = min(w, h) * 0.48   # falloff 종료 지점
-
+    w, h_dim = img.size
     arr = np.array(img, dtype=np.float32)
     a = arr[..., 3]
 
-    # 거리 grid
-    yy, xx = np.mgrid[0:h, 0:w]
-    dist = np.sqrt((xx - cx) ** 2 + (yy - cy) ** 2)
+    # 1) HSV 마스크
+    h, s, _ = rgb_to_hsv(arr[..., :3])
+    hue_ok = (h >= HUE_MIN) & (h <= HUE_MAX)
+    sat_falloff = np.clip((s - SAT_MIN) / 0.15, 0.0, 1.0)
+    hsv_mask = np.where(hue_ok, sat_falloff, 0.0)
 
-    # alpha multiplier: 1.0 inside inner_r, linear 1→0 between inner/outer, 0 outside
-    multiplier = np.where(
-        dist <= inner_r,
+    # 2) 공간 (원형) 마스크
+    cx, cy = w / 2, h_dim / 2
+    r_in = min(w, h_dim) * R_INNER_RATIO
+    r_out = min(w, h_dim) * R_OUTER_RATIO
+    yy, xx = np.mgrid[0:h_dim, 0:w]
+    dist = np.sqrt((xx - cx) ** 2 + (yy - cy) ** 2)
+    spatial_mask = np.where(
+        dist <= r_in,
         1.0,
         np.where(
-            dist >= outer_r,
+            dist >= r_out,
             0.0,
-            (outer_r - dist) / (outer_r - inner_r),
+            (r_out - dist) / (r_out - r_in),
         ),
     )
 
-    arr[..., 3] = (a * multiplier).clip(0, 255)
+    # 두 마스크의 곱: B 영역 안 AND HSV 조건 충족
+    multiplier = hsv_mask * spatial_mask
 
+    arr[..., 3] = (a * multiplier).clip(0, 255)
     Image.fromarray(arr.astype(np.uint8), "RGBA").save(TARGET, "PNG", optimize=True)
-    print(f"  applied circular mask (r_in={inner_r:.0f}, r_out={outer_r:.0f})")
+
+    kept = int((arr[..., 3] > 0).sum())
+    total = arr.shape[0] * arr.shape[1]
+    print(f"  HSV mask: hue {HUE_MIN}-{HUE_MAX}°, sat >= {SAT_MIN}")
+    print(f"  spatial: r_in={r_in:.0f}, r_out={r_out:.0f}")
+    print(f"  visible pixels: {kept:,} / {total:,} ({100*kept//total}%)")
     print(f"  output: {TARGET.stat().st_size:,} bytes")
     return 0
 

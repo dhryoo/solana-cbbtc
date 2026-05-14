@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
     Pressable,
@@ -11,15 +11,18 @@ import {
 import { QuoteDisplay } from "@/components/QuoteDisplay";
 import { SwapConfirmModal } from "@/components/SwapConfirmModal";
 import type { ThemePalette } from "@/constants/theme";
-import { CBBTC, SOL, type TokenInfo } from "@/constants/tokens";
+import { CBBTC, MIN_SOL_GAS_RESERVE_SOL, SOL, type TokenInfo } from "@/constants/tokens";
 import { useSwap } from "@/hooks/useSwap";
 import { useSwapQuote } from "@/hooks/useSwapQuote";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
+import { useTokenBalance } from "@/hooks/useTokenBalance";
 import { useWallet } from "@/hooks/useWallet";
+import { useNetworkStatus } from "@/providers/NetworkProvider";
 import { useTheme } from "@/providers/ThemeProvider";
 import { toFriendlySwapError } from "@/utils/swapError";
 
 const DEFAULT_SLIPPAGE_BPS = 50;
+const AMOUNT_MAX_LENGTH = 24;
 
 type ModalStatus =
     | { kind: "idle" }
@@ -48,6 +51,12 @@ export function SwapScreen(): React.JSX.Element
         slippageBps,
     });
     const swap = useSwap();
+    const { isOnline } = useNetworkStatus();
+    // 가스비용 SOL 잔액 검증. 가스 reserve는 ATA 생성/priority fee를 합산한 보수적 floor.
+    const solBalance = useTokenBalance(SOL, account?.publicKey ?? null);
+
+    // 재진입 가드 (React state 업데이트는 비동기라 같은 frame에 두 번 onPress 가능).
+    const inFlightRef = useRef(false);
 
     const onFlip = useCallback((): void =>
     {
@@ -56,14 +65,30 @@ export function SwapScreen(): React.JSX.Element
         setAmount("");
     }, [inputToken, outputToken]);
 
+    const insufficientGas = useMemo((): boolean =>
+    {
+        if (!solBalance.data) return false; // 잔액 로딩 전엔 막지 않음
+        const solUi = solBalance.data.uiAmount;
+        const amountNum = Number(amount);
+        if (inputToken.isNative)
+        {
+            // SOL 입력: 입력량 + 가스 reserve 가 잔액 이하여야 함.
+            if (!Number.isFinite(amountNum)) return false;
+            return amountNum + MIN_SOL_GAS_RESERVE_SOL > solUi;
+        }
+        return solUi < MIN_SOL_GAS_RESERVE_SOL;
+    }, [solBalance.data, amount, inputToken.isNative]);
+
     const canSwap = useMemo(() =>
     {
+        if (!isOnline) return false;
         if (!account) return false;
         if (!quoteQuery.data) return false;
         if (amount.trim() === "") return false;
         if (swap.isPending) return false;
+        if (insufficientGas) return false;
         return true;
-    }, [account, quoteQuery.data, amount, swap.isPending]);
+    }, [isOnline, account, quoteQuery.data, amount, swap.isPending, insufficientGas]);
 
     const openConfirm = useCallback((): void =>
     {
@@ -85,17 +110,23 @@ export function SwapScreen(): React.JSX.Element
 
     const confirmSwap = useCallback((): void =>
     {
+        // 동일 frame 내 중복 호출 방지. setState로 stage 전환이 일어나기 전에
+        // 두 번째 onPress가 들어와도 두 번 mutate 되지 않게 막는다.
+        if (inFlightRef.current) return;
         if (!quoteQuery.data) return;
+        inFlightRef.current = true;
         setModalStatus({ kind: "pending" });
         swap.mutate(
             { quote: quoteQuery.data, inputToken, outputToken },
             {
                 onSuccess: (data) =>
                 {
+                    inFlightRef.current = false;
                     setModalStatus({ kind: "success", signature: data.signature });
                 },
                 onError: (err) =>
                 {
+                    inFlightRef.current = false;
                     const friendly = toFriendlySwapError(err);
                     setModalStatus({
                         kind: "error",
@@ -117,7 +148,7 @@ export function SwapScreen(): React.JSX.Element
 
     return (
         <ScrollView contentContainerStyle={styles.scroll}>
-            <Text style={styles.title}>{t("swap.title")}</Text>
+            <Text style={styles.title} maxFontSizeMultiplier={1.4}>{t("swap.title")}</Text>
 
             <View style={styles.inputCard}>
                 <View style={styles.headerRow}>
@@ -132,6 +163,8 @@ export function SwapScreen(): React.JSX.Element
                     value={amount}
                     onChangeText={setAmount}
                     autoCorrect={false}
+                    maxLength={AMOUNT_MAX_LENGTH}
+                    maxFontSizeMultiplier={1.4}
                     accessibilityLabel={t("swap.amountAccessibility")}
                 />
             </View>
@@ -153,7 +186,10 @@ export function SwapScreen(): React.JSX.Element
                     <Text style={styles.tokenSymbol}>{outputToken.symbol}</Text>
                     <Text style={styles.tokenName}>{outputToken.name}</Text>
                 </View>
-                <Text style={styles.placeholderHint}>{t("swap.outputHint")}</Text>
+                {/* 견적이 도착했으면 아래 QuoteDisplay가 수치를 표시하므로 힌트는 숨김 */}
+                {!quoteQuery.data && (
+                    <Text style={styles.placeholderHint}>{t("swap.outputHint")}</Text>
+                )}
             </View>
 
             <QuoteDisplay
@@ -172,6 +208,7 @@ export function SwapScreen(): React.JSX.Element
             <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={t("swap.swapButton")}
+                accessibilityState={{ disabled: !canSwap, busy: swap.isPending }}
                 disabled={!canSwap}
                 onPress={openConfirm}
                 style={({ pressed }) =>
@@ -187,13 +224,17 @@ export function SwapScreen(): React.JSX.Element
                         canSwap && styles.swapButtonTextEnabled,
                     ]}
                 >
-                    {!account
-                        ? t("swap.btnConnectFirst")
-                        : amount.trim() === ""
-                            ? t("swap.btnAmountFirst")
-                            : !quoteQuery.data
-                                ? t("swap.btnQuoteLoading")
-                                : t("swap.swapButton")}
+                    {!isOnline
+                        ? t("offline.swapBlocked")
+                        : !account
+                            ? t("swap.btnConnectFirst")
+                            : amount.trim() === ""
+                                ? t("swap.btnAmountFirst")
+                                : !quoteQuery.data
+                                    ? t("swap.btnQuoteLoading")
+                                    : insufficientGas
+                                        ? t("swap.btnInsufficientGas")
+                                        : t("swap.swapButton")}
                 </Text>
             </Pressable>
 

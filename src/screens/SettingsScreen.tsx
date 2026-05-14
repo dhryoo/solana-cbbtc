@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, ScrollView, Switch, Text, View } from "react-native";
+import { Linking, Platform, Pressable, ScrollView, Switch, Text, View } from "react-native";
 
 import { AboutScreen } from "@/screens/AboutScreen";
 import { getClusterId } from "@/constants/cluster";
@@ -18,6 +18,7 @@ import { useSeekerIdentity } from "@/hooks/useSeekerIdentity";
 import { useWallet } from "@/hooks/useWallet";
 
 const APP_VERSION = "0.1.0";
+const FEEDBACK_EMAIL = "idfeelme@gmail.com";
 
 const THEME_MODES: ThemeMode[] = ["system", "light", "dark"];
 const THEME_LABEL_KEY: Record<ThemeMode, string> = {
@@ -69,6 +70,32 @@ export function SettingsScreen(): React.JSX.Element
             showToast(t("settings.appLockUnavailable"), { variant: "error" });
         }
     };
+
+    // 메일 클라이언트로 사용자 환경(앱 버전 + 플랫폼)을 자동 첨부.
+    // reviewer/사용자가 본문에 상황을 적기 쉽게 prefilled.
+    const onPressFeedback = useCallback(async (): Promise<void> =>
+    {
+        void hapticSelection();
+        const subject = `Solana cbBTC feedback (v${APP_VERSION})`;
+        const body = [
+            "",
+            "—",
+            `App: Solana cbBTC v${APP_VERSION}`,
+            `Platform: ${Platform.OS} ${Platform.Version}`,
+        ].join("\n");
+        const url =
+            `mailto:${FEEDBACK_EMAIL}`
+            + `?subject=${encodeURIComponent(subject)}`
+            + `&body=${encodeURIComponent(body)}`;
+        try
+        {
+            await Linking.openURL(url);
+        }
+        catch
+        {
+            showToast(t("settings.openFailed"), { variant: "error" });
+        }
+    }, [showToast, t]);
 
     const appLockUsable =
         (appLock.capability?.hasHardware ?? false)
@@ -193,6 +220,20 @@ export function SettingsScreen(): React.JSX.Element
                 >
                     <Text style={styles.aboutRowLabel}>{t("about.rowLabel")}</Text>
                     <Ionicons name="chevron-forward" size={18} color={palette.textMuted} />
+                </Pressable>
+                <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t("settings.feedback")}
+                    accessibilityHint={t("settings.feedbackHint")}
+                    onPress={() => { void onPressFeedback(); }}
+                    style={({ pressed }) =>
+                        [styles.aboutRow, pressed && styles.aboutRowPressed]}
+                >
+                    <View style={styles.feedbackText}>
+                        <Text style={styles.aboutRowLabel}>{t("settings.feedback")}</Text>
+                        <Text style={styles.feedbackHint}>{t("settings.feedbackHint")}</Text>
+                    </View>
+                    <Ionicons name="mail-outline" size={18} color={palette.textMuted} />
                 </Pressable>
                 <View style={styles.kvRow}>
                     <Text style={styles.kvKey}>{t("settings.version")}</Text>
@@ -365,5 +406,13 @@ const makeStyles = (t: ThemePalette) => ({
         fontSize: 15,
         color: t.text,
         fontWeight: "600" as const,
+    },
+    feedbackText: {
+        flex: 1,
+        gap: 2,
+    },
+    feedbackHint: {
+        fontSize: 12,
+        color: t.textMuted,
     },
 });

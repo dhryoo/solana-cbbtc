@@ -56,13 +56,27 @@ export class JupiterApiError extends Error
     }
 }
 
+// Jupiter v6 priority fee 설정. 다음 셋 중 하나:
+//   - number: 고정 lamports
+//   - "auto": Jupiter가 결정 (상한 없음)
+//   - 객체: priority level + max lamports cap
+export type PrioritizationFeeLamports =
+    | number
+    | "auto"
+    | {
+        priorityLevelWithMaxLamports: {
+            priorityLevel: "medium" | "high" | "veryHigh";
+            maxLamports: number;
+        };
+    };
+
 export interface SwapRequest
 {
     quoteResponse: QuoteResponse;
     userPublicKey: string;       // base58
     wrapAndUnwrapSol?: boolean;  // 기본 true
     dynamicComputeUnitLimit?: boolean;
-    prioritizationFeeLamports?: number | "auto";
+    prioritizationFeeLamports?: PrioritizationFeeLamports;
 }
 
 export interface SwapResponse

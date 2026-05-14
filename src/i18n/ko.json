@@ -8,6 +8,13 @@
         "copyAddressHint": "길게 눌러 클립보드에 복사",
         "copied": "복사됨!"
     },
+    "offline": {
+        "banner": "인터넷에 연결되어 있지 않습니다",
+        "bannerHint": "지갑·잔액·Swap을 사용하려면 연결이 필요합니다",
+        "swapBlocked": "오프라인 상태",
+        "balance": "오프라인 상태입니다",
+        "quote": "오프라인 상태에서는 견적을 가져올 수 없습니다"
+    },
     "tabs": {
         "home": "자산",
         "swap": "Swap",
@@ -28,7 +35,11 @@
     },
     "balance": {
         "connectFirst": "지갑 연결 후 표시됩니다",
-        "loadError": "잔액을 불러오지 못했습니다"
+        "loadError": "잔액을 불러오지 못했습니다",
+        "a11yCardEmpty": "{{symbol}} 잔액, 지갑 미연결",
+        "a11yCardLoading": "{{symbol}} 잔액 불러오는 중",
+        "a11yCardError": "{{symbol}} 잔액 불러오기 실패",
+        "a11yCardData": "{{symbol}} 잔액 {{amount}}"
     },
     "swap": {
         "title": "Swap",
@@ -39,6 +50,7 @@
         "btnConnectFirst": "지갑 연결 후 사용 가능",
         "btnAmountFirst": "금액을 입력하세요",
         "btnQuoteLoading": "견적 조회 중…",
+        "btnInsufficientGas": "가스비용 SOL이 부족합니다",
         "expected": "예상 수령량",
         "priceImpact": "가격 영향",
         "route": "라우트",
@@ -55,6 +67,9 @@
         "successLine": "트랜잭션이 네트워크에 전송됐습니다.",
         "signatureLabel": "Signature",
         "openSolscan": "Solscan 열기",
+        "share": "공유",
+        "shareText": "{{inputAmount}} {{inputSymbol}} → {{outputAmount}} {{outputSymbol}} 교환 완료",
+        "shareVia": "Solana cbBTC 앱에서 공유",
         "failureTitle": "Swap 실패",
         "pendingText": "지갑 승인 후 트랜잭션을 전송 중…",
         "pendingHint": "네트워크 상황에 따라 수 초 걸릴 수 있습니다."
@@ -108,7 +123,10 @@
         "appLock": "앱 잠금",
         "appLockToggle": "지문/PIN으로 잠금",
         "appLockDescription": "앱을 열거나 백그라운드에서 돌아올 때 잠금을 요구합니다.",
-        "appLockUnavailable": "이 디바이스는 지문/PIN 잠금이 등록되어 있지 않습니다."
+        "appLockUnavailable": "이 디바이스는 지문/PIN 잠금이 등록되어 있지 않습니다.",
+        "feedback": "문의 / 제보",
+        "feedbackHint": "이메일로 버그 또는 제안을 알려주세요",
+        "openFailed": "외부 앱을 열 수 없습니다"
     },
     "notifications": {
         "swapSuccessTitle": "Swap 완료",
@@ -147,6 +165,8 @@
     "wallet_card": {
         "connectedTitle": "연결된 지갑",
         "viewOnSolscan": "Solscan에서 보기",
-        "hardwareSecured": "하드웨어로 보안됨"
+        "hardwareSecured": "하드웨어로 보안됨",
+        "a11yCard": "연결된 지갑 {{address}}",
+        "a11ySeedVault": "하드웨어 Seed Vault로 보안됨"
     }
 }

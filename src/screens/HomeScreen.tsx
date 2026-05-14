@@ -51,7 +51,7 @@ export function HomeScreen(): React.JSX.Element
         >
             <View style={styles.header}>
                 <View style={styles.titleRow}>
-                    <Text style={styles.title}>Solana cbBTC</Text>
+                    <Text style={styles.title} maxFontSizeMultiplier={1.4}>Solana cbBTC</Text>
                     <NetworkBadge />
                 </View>
                 <Text style={styles.subtitle}>{t("home.subtitle")}</Text>

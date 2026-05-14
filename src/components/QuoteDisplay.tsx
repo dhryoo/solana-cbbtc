@@ -6,12 +6,11 @@ import { ErrorView } from "@/components/StateViews";
 import type { ThemePalette } from "@/constants/theme";
 import type { TokenInfo } from "@/constants/tokens";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
+import { QUOTE_STALE_SECONDS } from "@/hooks/useSwapQuote";
+import { useNetworkStatus } from "@/providers/NetworkProvider";
 import type { QuoteResponse } from "@/types/jupiter";
 import { formatRawAmount } from "@/utils/format";
 import { isStale } from "@/utils/relativeTime";
-
-// 견적이 12초 넘으면 stale 표시 (Jupiter 가격 변동성 고려)
-const STALE_THRESHOLD_SEC = 12;
 
 export const SLIPPAGE_OPTIONS_BPS = [10, 50, 100] as const;
 
@@ -44,8 +43,11 @@ export function QuoteDisplay({
 {
     const { t } = useTranslation();
     const styles = useThemedStyles(makeStyles);
+    const { isOnline } = useNetworkStatus();
     const showSpinner = isLoading || (isFetching && !quote);
-    const stale = quote ? isStale(dataUpdatedAt ?? null, STALE_THRESHOLD_SEC) : false;
+    const stale = quote ? isStale(dataUpdatedAt ?? null, QUOTE_STALE_SECONDS) : false;
+    // 오프라인 상태에서 quote가 없으면 offline 안내 우선 표시. 캐시된 quote가 있으면 그대로.
+    const showOffline = !isOnline && !quote && !inputIsEmpty;
 
     return (
         <View style={styles.container}>
@@ -55,8 +57,11 @@ export function QuoteDisplay({
                     {inputIsEmpty && (
                         <Text style={styles.placeholder}>{t("swap.amountPlaceholder")}</Text>
                     )}
-                    {!inputIsEmpty && showSpinner && <ActivityIndicator />}
-                    {!inputIsEmpty && !showSpinner && error && (
+                    {showOffline && (
+                        <Text style={styles.placeholder}>{t("offline.quote")}</Text>
+                    )}
+                    {!inputIsEmpty && !showOffline && showSpinner && <ActivityIndicator />}
+                    {!inputIsEmpty && !showOffline && !showSpinner && error && (
                         <ErrorView
                             message={t("swap.quoteFailed")}
                             onRetry={onRetry}
@@ -65,7 +70,7 @@ export function QuoteDisplay({
                         />
                     )}
                     {!inputIsEmpty && !showSpinner && !error && quote && (
-                        <Text style={styles.amount}>
+                        <Text style={styles.amount} maxFontSizeMultiplier={1.4} numberOfLines={1}>
                             {formatRawAmount(quote.outAmount, outputToken.decimals)}
                             <Text style={styles.unit}> {outputToken.symbol}</Text>
                         </Text>
@@ -119,6 +124,8 @@ export function QuoteDisplay({
                         <Pressable
                             key={bps}
                             accessibilityRole="button"
+                            accessibilityLabel={`${t("swap.slippage")} ${bpsToPercent(bps)}`}
+                            accessibilityState={{ selected: bps === slippageBps }}
                             onPress={() => onSlippageChange(bps)}
                             style={({ pressed }) =>
                                 [
