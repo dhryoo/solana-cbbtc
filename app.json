@@ -7,6 +7,16 @@
                 {
                     "color": "#9945FF"
                 }
+            ],
+            [
+                "expo-build-properties",
+                {
+                    "android": {
+                        "enableProguardInReleaseBuilds": true,
+                        "enableShrinkResourcesInReleaseBuilds": true,
+                        "extraProguardRules": "# Keep Solana / web3.js classes that may use reflection\n-keep class org.p2p.solanaj.** { *; }\n-keep class com.solana.** { *; }\n-keepclassmembers class * { @com.facebook.react.uimanager.annotations.ReactProp *; }\n# Conservative: don't obfuscate to avoid breaking native libs that lookup classes by name\n-dontobfuscate\n# Suppress warnings for known reflection users in JS libs\n-dontwarn org.jetbrains.annotations.**\n-dontwarn com.google.errorprone.annotations.**"
+                    }
+                }
             ]
         ],
         "name": "Solana cbBTC",
