@@ -8,7 +8,7 @@ import { NetworkBadge } from "@/components/NetworkBadge";
 import { SeekerBadge } from "@/components/SeekerBadge";
 import { WalletButton } from "@/components/WalletButton";
 import { WalletCard } from "@/components/WalletCard";
-import { CBBTC, SOL } from "@/constants/tokens";
+import { CBBTC, SKR, SOL } from "@/constants/tokens";
 import type { ThemePalette } from "@/constants/theme";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
 import { useTheme } from "@/providers/ThemeProvider";
@@ -63,6 +63,7 @@ export function HomeScreen(): React.JSX.Element
             <View style={styles.cards}>
                 <BalanceCard token={CBBTC} />
                 <BalanceCard token={SOL} />
+                <BalanceCard token={SKR} />
             </View>
 
             {account && (

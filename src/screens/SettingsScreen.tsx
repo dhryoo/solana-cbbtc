@@ -166,11 +166,13 @@ export function SettingsScreen(): React.JSX.Element
                         <Text style={styles.kvValue}>{t("settings.seekerDevice")}</Text>
                     </View>
                 )}
-                {account?.walletUriBase !== undefined && account.walletUriBase !== "" && (
+                {account && (
                     <View style={styles.kvRow}>
                         <Text style={styles.kvKey}>{t("settings.walletId")}</Text>
                         <Text style={styles.kvValueMono} selectable>
-                            {account.walletUriBase}
+                            {account.walletUriBase === "" || account.walletUriBase === undefined
+                                ? "(empty)"
+                                : account.walletUriBase}
                         </Text>
                     </View>
                 )}
