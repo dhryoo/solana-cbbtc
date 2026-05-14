@@ -21,6 +21,7 @@ expo-env.d.ts
 *.jks
 release-key.*
 seeker-btcfi-release.*
+keystores/
 
 # EAS Build artifacts
 eas-build-*/
