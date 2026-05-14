@@ -102,7 +102,9 @@
         "seekerNo": "Not holding",
         "deviceModel": "Device",
         "seekerDevice": "Seeker (no Genesis Token)",
-        "walletId": "Wallet ID"
+        "walletType": "Wallet type",
+        "walletTypeSeedVault": "Seed Vault (Seeker)",
+        "walletTypeUnknown": "External wallet"
     },
     "notifications": {
         "swapSuccessTitle": "Swap completed",

@@ -168,11 +168,17 @@ export function SettingsScreen(): React.JSX.Element
                 )}
                 {account && (
                     <View style={styles.kvRow}>
-                        <Text style={styles.kvKey}>{t("settings.walletId")}</Text>
-                        <Text style={styles.kvValueMono} selectable>
-                            {account.walletUriBase === "" || account.walletUriBase === undefined
-                                ? "(empty)"
-                                : account.walletUriBase}
+                        <Text style={styles.kvKey}>{t("settings.walletType")}</Text>
+                        <Text
+                            style={[
+                                styles.kvValue,
+                                seeker.isLikelySeedVault && styles.kvValueAccent,
+                            ]}
+                            selectable
+                        >
+                            {seeker.isLikelySeedVault
+                                ? t("settings.walletTypeSeedVault")
+                                : (account.walletUriBase || t("settings.walletTypeUnknown"))}
                         </Text>
                     </View>
                 )}
@@ -281,12 +287,5 @@ const makeStyles = (t: ThemePalette) => ({
     kvValueAccent: {
         color: "#9945FF",
         fontWeight: "700" as const,
-    },
-    kvValueMono: {
-        fontSize: 11,
-        color: t.textMuted,
-        fontFamily: "Courier",
-        maxWidth: 200,
-        textAlign: "right" as const,
     },
 });

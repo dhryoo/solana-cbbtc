@@ -102,7 +102,9 @@
         "seekerNo": "미보유",
         "deviceModel": "디바이스",
         "seekerDevice": "Seeker (인증 NFT 미보유)",
-        "walletId": "지갑 ID"
+        "walletType": "지갑 종류",
+        "walletTypeSeedVault": "Seed Vault (Seeker)",
+        "walletTypeUnknown": "외부 지갑"
     },
     "notifications": {
         "swapSuccessTitle": "Swap 완료",
