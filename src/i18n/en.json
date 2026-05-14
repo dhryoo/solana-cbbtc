@@ -11,7 +11,7 @@
         "settings": "Settings"
     },
     "home": {
-        "subtitle": "Solana Seeker · cbBTC",
+        "subtitle": "Bitcoin on Solana",
         "connectPrompt": "Connect your wallet to view balances and swap.",
         "connectedLabel": "Connected wallet",
         "pullToRefresh": "Pull down to refresh"
@@ -81,8 +81,20 @@
         "themeSystem": "Follow system",
         "themeLight": "Light",
         "themeDark": "Dark",
+        "notifications": "Notifications",
+        "notificationsToggle": "Swap completion alert",
+        "notificationsDescription": "We'll send a system notification when a swap succeeds.",
+        "notificationsDenied": "OS permission was denied. Please allow notifications in system settings.",
         "about": "About",
         "version": "Version",
         "network": "Network"
+    },
+    "notifications": {
+        "swapSuccessTitle": "Swap completed",
+        "swapSuccessBody": "{{inputAmount}} {{inputSymbol}} → {{outputAmount}} {{outputSymbol}}"
+    },
+    "seeker": {
+        "verified": "Seeker Verified",
+        "device": "Seeker device"
     }
 }

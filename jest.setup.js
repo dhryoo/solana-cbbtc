@@ -5,3 +5,14 @@ jest.mock(
     "@react-native-async-storage/async-storage",
     () => require("@react-native-async-storage/async-storage/jest/async-storage-mock"),
 );
+
+// expo-notifications: native module 의존이라 jest 환경에서는 mock 처리.
+jest.mock("expo-notifications", () => ({
+    setNotificationHandler: jest.fn(),
+    setNotificationChannelAsync: jest.fn().mockResolvedValue(undefined),
+    getPermissionsAsync: jest.fn().mockResolvedValue({ status: "undetermined" }),
+    requestPermissionsAsync: jest.fn().mockResolvedValue({ status: "granted" }),
+    scheduleNotificationAsync: jest.fn().mockResolvedValue("notif-id"),
+    addNotificationResponseReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
+    AndroidImportance: { HIGH: 4 },
+}));

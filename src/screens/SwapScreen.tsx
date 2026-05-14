@@ -88,7 +88,7 @@ export function SwapScreen(): React.JSX.Element
         if (!quoteQuery.data) return;
         setModalStatus({ kind: "pending" });
         swap.mutate(
-            { quote: quoteQuery.data },
+            { quote: quoteQuery.data, inputToken, outputToken },
             {
                 onSuccess: (data) =>
                 {
@@ -104,7 +104,7 @@ export function SwapScreen(): React.JSX.Element
                 },
             },
         );
-    }, [quoteQuery.data, swap, t]);
+    }, [quoteQuery.data, swap, t, inputToken, outputToken]);
 
     useEffect(() =>
     {

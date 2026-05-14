@@ -1,12 +1,13 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Switch, Text, View } from "react-native";
 
 import { getClusterId } from "@/constants/cluster";
 import type { ThemeMode, ThemePalette } from "@/constants/theme";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
 import { SUPPORTED_LANGUAGES, type SupportedLanguage } from "@/i18n";
 import { useLanguage } from "@/providers/I18nProvider";
+import { useNotifications } from "@/providers/NotificationProvider";
 import { useTheme } from "@/providers/ThemeProvider";
 
 const APP_VERSION = "0.1.0";
@@ -23,7 +24,9 @@ export function SettingsScreen(): React.JSX.Element
     const { t } = useTranslation();
     const { language, setLanguage } = useLanguage();
     const { mode: themeMode, setMode: setThemeMode } = useTheme();
+    const notifications = useNotifications();
     const styles = useThemedStyles(makeStyles);
+    const { palette } = useTheme();
 
     const onSelectLanguage = (next: SupportedLanguage): void =>
     {
@@ -35,6 +38,11 @@ export function SettingsScreen(): React.JSX.Element
     {
         if (next === themeMode) return;
         void setThemeMode(next);
+    };
+
+    const onToggleNotifications = (next: boolean): void =>
+    {
+        void notifications.setEnabled(next);
     };
 
     return (
@@ -96,6 +104,26 @@ export function SettingsScreen(): React.JSX.Element
                             </Text>
                         </Pressable>
                     ))}
+                </View>
+            </View>
+
+            <View style={styles.section}>
+                <Text style={styles.sectionLabel}>{t("settings.notifications")}</Text>
+                <View style={styles.toggleRow}>
+                    <View style={styles.toggleText}>
+                        <Text style={styles.toggleTitle}>{t("settings.notificationsToggle")}</Text>
+                        <Text style={styles.toggleDesc}>{t("settings.notificationsDescription")}</Text>
+                        {notifications.permissionStatus === "denied" && !notifications.enabled && (
+                            <Text style={styles.toggleWarn}>{t("settings.notificationsDenied")}</Text>
+                        )}
+                    </View>
+                    <Switch
+                        accessibilityLabel={t("settings.notificationsToggle")}
+                        value={notifications.enabled}
+                        onValueChange={onToggleNotifications}
+                        trackColor={{ false: palette.borderStrong, true: "#9945FF" }}
+                        thumbColor="#ffffff"
+                    />
                 </View>
             </View>
 
@@ -164,6 +192,38 @@ const makeStyles = (t: ThemePalette) => ({
     optionTextActive: {
         color: t.textInverse,
         fontWeight: "600" as const,
+    },
+    toggleRow: {
+        flexDirection: "row" as const,
+        alignItems: "center" as const,
+        justifyContent: "space-between" as const,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: t.border,
+        backgroundColor: t.background,
+        gap: 16,
+    },
+    toggleText: {
+        flex: 1,
+        gap: 4,
+    },
+    toggleTitle: {
+        fontSize: 15,
+        color: t.text,
+        fontWeight: "600" as const,
+    },
+    toggleDesc: {
+        fontSize: 12,
+        color: t.textMuted,
+        lineHeight: 16,
+    },
+    toggleWarn: {
+        fontSize: 12,
+        color: t.warn,
+        lineHeight: 16,
+        marginTop: 4,
     },
     kvRow: {
         flexDirection: "row" as const,

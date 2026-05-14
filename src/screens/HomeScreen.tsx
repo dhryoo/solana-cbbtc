@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { RefreshControl, ScrollView, Text, View } from "react-native";
 
 import { BalanceCard } from "@/components/BalanceCard";
+import { SeekerBadge } from "@/components/SeekerBadge";
 import { WalletButton } from "@/components/WalletButton";
 import { CBBTC, SOL } from "@/constants/tokens";
 import type { ThemePalette } from "@/constants/theme";
@@ -47,8 +48,11 @@ export function HomeScreen(): React.JSX.Element
             )}
         >
             <View style={styles.header}>
-                <Text style={styles.title}>seeker-btcfi</Text>
+                <Text style={styles.title}>Solana cbBTC</Text>
                 <Text style={styles.subtitle}>{t("home.subtitle")}</Text>
+                <View style={styles.badgeRow}>
+                    <SeekerBadge />
+                </View>
             </View>
 
             <View style={styles.cards}>
@@ -77,6 +81,9 @@ const makeStyles = (t: ThemePalette) => ({
     header: {
         alignItems: "center" as const,
         marginBottom: 24,
+    },
+    badgeRow: {
+        marginTop: 10,
     },
     title: {
         fontSize: 28,

@@ -28,6 +28,8 @@
     "buffer": "^6.0.3",
     "expo": "~54.0.33",
     "expo-dev-client": "~6.0.21",
+    "expo-notifications": "~0.32.17",
+    "expo-splash-screen": "~31.0.13",
     "expo-status-bar": "~3.0.9",
     "i18next": "^26.1.0",
     "react": "19.1.0",

@@ -1,17 +1,24 @@
 #!/usr/bin/env python3
 """
-Generate app icon assets for seeker-btcfi.
+Generate PLACEHOLDER app icon assets for seeker-btcfi.
 
-Design: White "S" on Solana purple (#9945FF) background.
+⚠️  실제 디자인 아이콘은 assets/icon.png, adaptive-icon.png, splash.png 등으로 이미
+    배치되어 있습니다. 본 스크립트는 placeholder 재생성용이며 출력 경로를
+    assets/placeholders/로 분리해 실제 디자인을 덮어쓰지 않습니다.
 
-Outputs (overwrites existing files in assets/):
-  - icon.png            1024x1024  Solana purple bg + white S (iOS + fallback)
-  - adaptive-icon.png   1024x1024  Transparent bg + white S (Android adaptive foreground)
-  - splash-icon.png      400x 400  Transparent bg + white S (rendered centered on splash bgColor)
-  - favicon.png           48x  48  Solid icon for web
+Design (placeholder): White "S" on Solana purple (#9945FF) background.
+
+Outputs (in assets/placeholders/):
+  - icon.png            1024x1024  Solana purple bg + white S
+  - adaptive-icon.png   1024x1024  Transparent bg + white S
+  - splash-icon.png      400x 400  Transparent bg + white S
+  - favicon.png           48x  48  Solid icon
 
 Usage:
   python3 scripts/generate_icons.py
+
+본 스크립트의 산출물을 assets/ 직속에 배치하려면 수동으로 cp 하세요 —
+실수 방지를 위해 자동 복사는 안 합니다.
 """
 
 from __future__ import annotations
@@ -23,7 +30,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parent.parent
-ASSETS = ROOT / "assets"
+ASSETS = ROOT / "assets" / "placeholders"
 
 SOLANA_PURPLE = (153, 69, 255, 255)   # #9945FF
 WHITE = (255, 255, 255, 255)

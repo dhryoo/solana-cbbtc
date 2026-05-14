@@ -1,9 +1,15 @@
 {
     "expo": {
         "plugins": [
-            "./plugins/withReleaseSigning"
+            "./plugins/withReleaseSigning",
+            [
+                "expo-notifications",
+                {
+                    "color": "#9945FF"
+                }
+            ]
         ],
-        "name": "seeker-btcfi",
+        "name": "Solana cbBTC",
         "slug": "seeker-btcfi",
         "version": "0.1.0",
         "orientation": "portrait",
@@ -11,9 +17,13 @@
         "userInterfaceStyle": "automatic",
         "newArchEnabled": true,
         "splash": {
-            "image": "./assets/splash-icon.png",
+            "image": "./assets/adaptive-icon.png",
             "resizeMode": "contain",
-            "backgroundColor": "#9945FF"
+            "backgroundColor": "#9945FF",
+            "dark": {
+                "image": "./assets/adaptive-icon.png",
+                "backgroundColor": "#0E0E10"
+            }
         },
         "ios": {
             "supportsTablet": false,
