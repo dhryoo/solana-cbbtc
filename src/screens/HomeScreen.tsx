@@ -3,10 +3,11 @@ import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { RefreshControl, ScrollView, Text, View } from "react-native";
 
-import { AddressDisplay } from "@/components/AddressDisplay";
 import { BalanceCard } from "@/components/BalanceCard";
+import { NetworkBadge } from "@/components/NetworkBadge";
 import { SeekerBadge } from "@/components/SeekerBadge";
 import { WalletButton } from "@/components/WalletButton";
+import { WalletCard } from "@/components/WalletCard";
 import { CBBTC, SOL } from "@/constants/tokens";
 import type { ThemePalette } from "@/constants/theme";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
@@ -49,7 +50,10 @@ export function HomeScreen(): React.JSX.Element
             )}
         >
             <View style={styles.header}>
-                <Text style={styles.title}>Solana cbBTC</Text>
+                <View style={styles.titleRow}>
+                    <Text style={styles.title}>Solana cbBTC</Text>
+                    <NetworkBadge />
+                </View>
                 <Text style={styles.subtitle}>{t("home.subtitle")}</Text>
                 <View style={styles.badgeRow}>
                     <SeekerBadge />
@@ -62,9 +66,8 @@ export function HomeScreen(): React.JSX.Element
             </View>
 
             {account && (
-                <View style={styles.addressBlock}>
-                    <Text style={styles.addressLabel}>{t("home.connectedLabel")}</Text>
-                    <AddressDisplay address={account.publicKey.toBase58()} style="full" />
+                <View style={styles.walletBlock}>
+                    <WalletCard publicKey={account.publicKey} />
                 </View>
             )}
 
@@ -90,6 +93,11 @@ const makeStyles = (t: ThemePalette) => ({
         alignItems: "center" as const,
         marginBottom: 24,
     },
+    titleRow: {
+        flexDirection: "row" as const,
+        alignItems: "center" as const,
+        gap: 10,
+    },
     badgeRow: {
         marginTop: 10,
     },
@@ -107,17 +115,8 @@ const makeStyles = (t: ThemePalette) => ({
         gap: 12,
         marginBottom: 16,
     },
-    addressBlock: {
-        alignItems: "center" as const,
-        gap: 4,
+    walletBlock: {
         marginBottom: 24,
-        paddingHorizontal: 16,
-    },
-    addressLabel: {
-        fontSize: 11,
-        color: t.textMuted,
-        textTransform: "uppercase" as const,
-        letterSpacing: 1,
     },
     footer: {
         alignItems: "center" as const,

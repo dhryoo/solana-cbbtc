@@ -8,7 +8,9 @@ import type { TokenInfo } from "@/constants/tokens";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
 import { useWallet } from "@/hooks/useWallet";
 import { useTokenBalance } from "@/hooks/useTokenBalance";
+import { classifyBalanceError } from "@/utils/balanceError";
 import { formatTokenAmount } from "@/utils/format";
+import { relativeTime } from "@/utils/relativeTime";
 
 interface BalanceCardProps
 {
@@ -22,6 +24,8 @@ export function BalanceCard({ token }: BalanceCardProps): React.JSX.Element
     const ownerPubkey = account?.publicKey ?? null;
     const query = useTokenBalance(token, ownerPubkey);
     const styles = useThemedStyles(makeStyles);
+
+    const updated = relativeTime(query.dataUpdatedAt || null);
 
     return (
         <View style={styles.card}>
@@ -37,7 +41,10 @@ export function BalanceCard({ token }: BalanceCardProps): React.JSX.Element
 
             <View style={styles.body}>
                 {!ownerPubkey && (
-                    <EmptyView message={t("balance.connectFirst")} compact />
+                    <EmptyView
+                        icon="wallet-outline"
+                        message={t("balance.connectFirst")}
+                    />
                 )}
 
                 {ownerPubkey && query.isPending && (
@@ -46,7 +53,7 @@ export function BalanceCard({ token }: BalanceCardProps): React.JSX.Element
 
                 {ownerPubkey && query.isError && (
                     <ErrorView
-                        message={t("balance.loadError")}
+                        message={t(classifyBalanceError(query.error).key)}
                         onRetry={() => { void query.refetch(); }}
                         retryLabel={t("common.retry")}
                         compact
@@ -54,10 +61,15 @@ export function BalanceCard({ token }: BalanceCardProps): React.JSX.Element
                 )}
 
                 {ownerPubkey && query.data && (
-                    <Text style={styles.amount}>
-                        {formatTokenAmount(query.data.uiAmount, query.data.decimals)}
-                        <Text style={styles.amountUnit}> {token.symbol}</Text>
-                    </Text>
+                    <>
+                        <Text style={styles.amount}>
+                            {formatTokenAmount(query.data.uiAmount, query.data.decimals)}
+                            <Text style={styles.amountUnit}> {token.symbol}</Text>
+                        </Text>
+                        <Text style={styles.timestamp}>
+                            {t("relative.updated", { when: t(updated.key, updated.params ?? {}) })}
+                        </Text>
+                    </>
                 )}
             </View>
         </View>
@@ -116,5 +128,10 @@ const makeStyles = (t: ThemePalette) => ({
         fontSize: 14,
         fontWeight: "500" as const,
         color: t.textMuted,
+    },
+    timestamp: {
+        marginTop: 4,
+        fontSize: 11,
+        color: t.textDim,
     },
 });

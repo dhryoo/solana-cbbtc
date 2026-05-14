@@ -162,6 +162,8 @@ export function SwapScreen(): React.JSX.Element
                 isLoading={quoteQuery.isLoading}
                 isFetching={quoteQuery.isFetching}
                 error={quoteQuery.error}
+                dataUpdatedAt={quoteQuery.dataUpdatedAt}
+                onRetry={() => { void quoteQuery.refetch(); }}
                 slippageBps={slippageBps}
                 onSlippageChange={setSlippageBps}
                 inputIsEmpty={amount.trim() === ""}

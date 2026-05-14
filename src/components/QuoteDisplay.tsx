@@ -2,11 +2,16 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
+import { ErrorView } from "@/components/StateViews";
 import type { ThemePalette } from "@/constants/theme";
 import type { TokenInfo } from "@/constants/tokens";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
 import type { QuoteResponse } from "@/types/jupiter";
 import { formatRawAmount } from "@/utils/format";
+import { isStale } from "@/utils/relativeTime";
+
+// 견적이 12초 넘으면 stale 표시 (Jupiter 가격 변동성 고려)
+const STALE_THRESHOLD_SEC = 12;
 
 export const SLIPPAGE_OPTIONS_BPS = [10, 50, 100] as const;
 
@@ -17,6 +22,8 @@ interface QuoteDisplayProps
     isLoading: boolean;
     isFetching: boolean;
     error: Error | null;
+    dataUpdatedAt?: number;
+    onRetry?: () => void;
     slippageBps: number;
     onSlippageChange: (bps: number) => void;
     inputIsEmpty: boolean;
@@ -28,6 +35,8 @@ export function QuoteDisplay({
     isLoading,
     isFetching,
     error,
+    dataUpdatedAt,
+    onRetry,
     slippageBps,
     onSlippageChange,
     inputIsEmpty,
@@ -36,6 +45,7 @@ export function QuoteDisplay({
     const { t } = useTranslation();
     const styles = useThemedStyles(makeStyles);
     const showSpinner = isLoading || (isFetching && !quote);
+    const stale = quote ? isStale(dataUpdatedAt ?? null, STALE_THRESHOLD_SEC) : false;
 
     return (
         <View style={styles.container}>
@@ -47,7 +57,12 @@ export function QuoteDisplay({
                     )}
                     {!inputIsEmpty && showSpinner && <ActivityIndicator />}
                     {!inputIsEmpty && !showSpinner && error && (
-                        <Text style={styles.error}>{t("swap.quoteFailed")}</Text>
+                        <ErrorView
+                            message={t("swap.quoteFailed")}
+                            onRetry={onRetry}
+                            retryLabel={t("common.retry")}
+                            compact
+                        />
                     )}
                     {!inputIsEmpty && !showSpinner && !error && quote && (
                         <Text style={styles.amount}>
@@ -60,6 +75,13 @@ export function QuoteDisplay({
 
             {quote && !inputIsEmpty && (
                 <>
+                    <View style={styles.freshnessRow}>
+                        <View style={[styles.freshnessDot, stale ? styles.freshnessDotStale : styles.freshnessDotFresh]} />
+                        <Text style={[styles.freshnessText, stale && styles.freshnessTextStale]}>
+                            {stale ? t("relative.quoteStale") : t("relative.quoteFresh")}
+                        </Text>
+                        {isFetching && <ActivityIndicator size="small" style={styles.freshnessSpinner} />}
+                    </View>
                     <View style={styles.row}>
                         <Text style={styles.label}>{t("swap.priceImpact")}</Text>
                         <Text style={styles.metric}>
@@ -218,5 +240,34 @@ const makeStyles = (t: ThemePalette) => ({
     },
     slipChipTextActive: {
         color: t.textInverse,
+    },
+    freshnessRow: {
+        flexDirection: "row" as const,
+        alignItems: "center" as const,
+        gap: 6,
+        marginTop: -4,
+    },
+    freshnessDot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+    },
+    freshnessDotFresh: {
+        backgroundColor: t.success,
+    },
+    freshnessDotStale: {
+        backgroundColor: t.warn,
+    },
+    freshnessText: {
+        fontSize: 11,
+        color: t.textMuted,
+        fontWeight: "500" as const,
+    },
+    freshnessTextStale: {
+        color: t.warn,
+    },
+    freshnessSpinner: {
+        marginLeft: 4,
+        transform: [{ scale: 0.7 }],
     },
 });

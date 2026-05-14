@@ -73,7 +73,13 @@
         "jupiterClient": "Jupiter request rejected (HTTP {{status}}). Check your inputs.",
         "generic": "Transaction failed. Please try again shortly.",
         "missingSignature": "No transaction signature was returned.",
-        "walletNotConnected": "Wallet is not connected."
+        "walletNotConnected": "Wallet is not connected.",
+        "balanceRateLimit": "RPC rate limit hit. Please try again in a moment.",
+        "balanceNetwork": "Network error. Couldn't load balance.",
+        "balanceRpc4xx": "Bad RPC request. Couldn't load balance.",
+        "balanceRpc5xx": "RPC server is temporarily unavailable.",
+        "balanceAuth": "RPC authentication failed. Couldn't load balance.",
+        "balanceUnknown": "Couldn't load balance."
     },
     "settings": {
         "title": "Settings",
@@ -99,5 +105,25 @@
     "seeker": {
         "verified": "Seeker Verified",
         "device": "Seeker device"
+    },
+    "network": {
+        "mainnet-beta": "Mainnet",
+        "devnet": "Devnet",
+        "testnet": "Testnet"
+    },
+    "relative": {
+        "never": "—",
+        "justNow": "Just now",
+        "secondsAgo": "{{count}}s ago",
+        "minutesAgo": "{{count}}m ago",
+        "hoursAgo": "{{count}}h ago",
+        "daysAgo": "{{count}}d ago",
+        "updated": "Updated {{when}}",
+        "quoteFresh": "Fresh quote",
+        "quoteStale": "Quote may be stale"
+    },
+    "wallet_card": {
+        "connectedTitle": "Connected wallet",
+        "viewOnSolscan": "View on Solscan"
     }
 }

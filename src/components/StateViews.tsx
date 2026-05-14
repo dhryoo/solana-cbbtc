@@ -1,8 +1,10 @@
+import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useRef } from "react";
 import { ActivityIndicator, Animated, Pressable, Text, View } from "react-native";
 
 import type { ThemePalette } from "@/constants/theme";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
+import { useTheme } from "@/providers/ThemeProvider";
 
 // 공통 상태 표현 컴포넌트.
 // 모든 데이터 표시 영역(BalanceCard, QuoteDisplay 등)에서 동일 패턴 사용해 일관성 보장.
@@ -56,14 +58,19 @@ export function ErrorView({ message, onRetry, retryLabel, compact }: ErrorViewPr
 interface EmptyViewProps
 {
     message: string;
+    icon?: keyof typeof Ionicons.glyphMap;
     compact?: boolean;
 }
 
-export function EmptyView({ message, compact }: EmptyViewProps): React.JSX.Element
+export function EmptyView({ message, icon, compact }: EmptyViewProps): React.JSX.Element
 {
     const styles = useThemedStyles(makeStyles);
+    const { palette } = useTheme();
     return (
         <View style={compact ? styles.compactCenter : styles.center}>
+            {icon && !compact && (
+                <Ionicons name={icon} size={36} color={palette.textDim} style={styles.emptyIcon} />
+            )}
             <Text style={styles.emptyText}>{message}</Text>
         </View>
     );
@@ -146,6 +153,10 @@ const makeStyles = (t: ThemePalette) => ({
         color: t.textMuted,
         fontSize: 13,
         textAlign: "center" as const,
+    },
+    emptyIcon: {
+        marginBottom: 4,
+        opacity: 0.6,
     },
     retryButton: {
         marginTop: 4,

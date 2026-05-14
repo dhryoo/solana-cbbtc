@@ -73,7 +73,13 @@
         "jupiterClient": "Jupiter 요청이 거부됐습니다 (HTTP {{status}}). 입력값을 확인해 주세요.",
         "generic": "트랜잭션이 실패했습니다. 잠시 후 다시 시도해 주세요.",
         "missingSignature": "트랜잭션 시그니처를 받지 못했습니다.",
-        "walletNotConnected": "지갑이 연결되어 있지 않습니다."
+        "walletNotConnected": "지갑이 연결되어 있지 않습니다.",
+        "balanceRateLimit": "RPC 요청이 너무 잦습니다. 잠시 후 다시 시도해 주세요.",
+        "balanceNetwork": "네트워크 오류로 잔액을 불러오지 못했습니다.",
+        "balanceRpc4xx": "잘못된 요청으로 잔액을 불러오지 못했습니다.",
+        "balanceRpc5xx": "RPC 서버가 일시적으로 응답하지 않습니다.",
+        "balanceAuth": "RPC 인증 문제로 잔액을 불러오지 못했습니다.",
+        "balanceUnknown": "잔액을 불러오지 못했습니다."
     },
     "settings": {
         "title": "설정",
@@ -99,5 +105,25 @@
     "seeker": {
         "verified": "Seeker Verified",
         "device": "Seeker 디바이스"
+    },
+    "network": {
+        "mainnet-beta": "Mainnet",
+        "devnet": "Devnet",
+        "testnet": "Testnet"
+    },
+    "relative": {
+        "never": "—",
+        "justNow": "방금",
+        "secondsAgo": "{{count}}초 전",
+        "minutesAgo": "{{count}}분 전",
+        "hoursAgo": "{{count}}시간 전",
+        "daysAgo": "{{count}}일 전",
+        "updated": "{{when}} 갱신",
+        "quoteFresh": "방금 견적",
+        "quoteStale": "견적이 오래됨"
+    },
+    "wallet_card": {
+        "connectedTitle": "연결된 지갑",
+        "viewOnSolscan": "Solscan에서 보기"
     }
 }
