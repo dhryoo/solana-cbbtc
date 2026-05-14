@@ -101,7 +101,8 @@
         "seekerYes": "Verified",
         "seekerNo": "Not holding",
         "deviceModel": "Device",
-        "seekerDevice": "Seeker (no Genesis Token)"
+        "seekerDevice": "Seeker (no Genesis Token)",
+        "walletId": "Wallet ID"
     },
     "notifications": {
         "swapSuccessTitle": "Swap completed",

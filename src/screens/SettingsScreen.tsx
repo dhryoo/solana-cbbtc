@@ -11,6 +11,7 @@ import { useNotifications } from "@/providers/NotificationProvider";
 import { useTheme } from "@/providers/ThemeProvider";
 import { hapticSelection } from "@/services/HapticsService";
 import { useSeekerIdentity } from "@/hooks/useSeekerIdentity";
+import { useWallet } from "@/hooks/useWallet";
 
 const APP_VERSION = "0.1.0";
 
@@ -30,6 +31,7 @@ export function SettingsScreen(): React.JSX.Element
     const styles = useThemedStyles(makeStyles);
     const { palette } = useTheme();
     const seeker = useSeekerIdentity();
+    const { account } = useWallet();
 
     const onSelectLanguage = (next: SupportedLanguage): void =>
     {
@@ -164,6 +166,14 @@ export function SettingsScreen(): React.JSX.Element
                         <Text style={styles.kvValue}>{t("settings.seekerDevice")}</Text>
                     </View>
                 )}
+                {account?.walletUriBase !== undefined && account.walletUriBase !== "" && (
+                    <View style={styles.kvRow}>
+                        <Text style={styles.kvKey}>{t("settings.walletId")}</Text>
+                        <Text style={styles.kvValueMono} selectable>
+                            {account.walletUriBase}
+                        </Text>
+                    </View>
+                )}
             </View>
         </ScrollView>
     );
@@ -269,5 +279,12 @@ const makeStyles = (t: ThemePalette) => ({
     kvValueAccent: {
         color: "#9945FF",
         fontWeight: "700" as const,
+    },
+    kvValueMono: {
+        fontSize: 11,
+        color: t.textMuted,
+        fontFamily: "Courier",
+        maxWidth: 200,
+        textAlign: "right" as const,
     },
 });

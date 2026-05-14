@@ -48,6 +48,17 @@ export const USDC: TokenInfo = {
     isNative: false,
 };
 
+// SKR — Solana Mobile 생태계 보상 토큰.
+// 출처: https://docs.solanamobile.com/solana-mobile-stack/skr
+// On-chain 검증 완료 (2026-05-14): decimals=6, live with 10.3B supply.
+export const SKR: TokenInfo = {
+    symbol: "SKR",
+    name: "Solana Mobile",
+    decimals: 6,
+    mint: "SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3",
+    isNative: false,
+};
+
 export function mintPublicKey(token: TokenInfo): PublicKey
 {
     if (token.isNative)

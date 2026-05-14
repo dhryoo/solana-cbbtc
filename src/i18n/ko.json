@@ -101,7 +101,8 @@
         "seekerYes": "확인됨",
         "seekerNo": "미보유",
         "deviceModel": "디바이스",
-        "seekerDevice": "Seeker (인증 NFT 미보유)"
+        "seekerDevice": "Seeker (인증 NFT 미보유)",
+        "walletId": "지갑 ID"
     },
     "notifications": {
         "swapSuccessTitle": "Swap 완료",
