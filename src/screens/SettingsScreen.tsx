@@ -10,6 +10,7 @@ import { useLanguage } from "@/providers/I18nProvider";
 import { useNotifications } from "@/providers/NotificationProvider";
 import { useTheme } from "@/providers/ThemeProvider";
 import { hapticSelection } from "@/services/HapticsService";
+import { useSeekerIdentity } from "@/hooks/useSeekerIdentity";
 
 const APP_VERSION = "0.1.0";
 
@@ -28,6 +29,7 @@ export function SettingsScreen(): React.JSX.Element
     const notifications = useNotifications();
     const styles = useThemedStyles(makeStyles);
     const { palette } = useTheme();
+    const seeker = useSeekerIdentity();
 
     const onSelectLanguage = (next: SupportedLanguage): void =>
     {
@@ -141,6 +143,27 @@ export function SettingsScreen(): React.JSX.Element
                     <Text style={styles.kvKey}>{t("settings.network")}</Text>
                     <Text style={styles.kvValue}>{getClusterId()}</Text>
                 </View>
+                <View style={styles.kvRow}>
+                    <Text style={styles.kvKey}>{t("settings.seekerVerified")}</Text>
+                    <Text
+                        style={[
+                            styles.kvValue,
+                            seeker.hasGenesisToken && styles.kvValueAccent,
+                        ]}
+                    >
+                        {seeker.isLoading
+                            ? "…"
+                            : seeker.hasGenesisToken
+                                ? `✓ ${t("settings.seekerYes")}`
+                                : t("settings.seekerNo")}
+                    </Text>
+                </View>
+                {seeker.isSeekerDevice && !seeker.hasGenesisToken && (
+                    <View style={styles.kvRow}>
+                        <Text style={styles.kvKey}>{t("settings.deviceModel")}</Text>
+                        <Text style={styles.kvValue}>{t("settings.seekerDevice")}</Text>
+                    </View>
+                )}
             </View>
         </ScrollView>
     );
@@ -242,5 +265,9 @@ const makeStyles = (t: ThemePalette) => ({
         fontSize: 13,
         color: t.text,
         fontWeight: "500" as const,
+    },
+    kvValueAccent: {
+        color: "#9945FF",
+        fontWeight: "700" as const,
     },
 });

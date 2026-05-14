@@ -96,7 +96,12 @@
         "notificationsDenied": "OS 권한이 거부됐습니다. 시스템 설정에서 알림을 허용해 주세요.",
         "about": "정보",
         "version": "버전",
-        "network": "네트워크"
+        "network": "네트워크",
+        "seekerVerified": "Seeker 인증",
+        "seekerYes": "확인됨",
+        "seekerNo": "미보유",
+        "deviceModel": "디바이스",
+        "seekerDevice": "Seeker (인증 NFT 미보유)"
     },
     "notifications": {
         "swapSuccessTitle": "Swap 완료",

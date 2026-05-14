@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
@@ -5,6 +6,7 @@ import { Text, View } from "react-native";
 import { EmptyView, ErrorView, SkeletonBlock } from "@/components/StateViews";
 import type { ThemePalette } from "@/constants/theme";
 import type { TokenInfo } from "@/constants/tokens";
+import { useSeekerIdentity } from "@/hooks/useSeekerIdentity";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
 import { useWallet } from "@/hooks/useWallet";
 import { useTokenBalance } from "@/hooks/useTokenBalance";
@@ -24,14 +26,22 @@ export function BalanceCard({ token }: BalanceCardProps): React.JSX.Element
     const ownerPubkey = account?.publicKey ?? null;
     const query = useTokenBalance(token, ownerPubkey);
     const styles = useThemedStyles(makeStyles);
+    const { hasGenesisToken } = useSeekerIdentity();
 
     const updated = relativeTime(query.dataUpdatedAt || null);
 
     return (
         <View style={styles.card}>
             <View style={styles.header}>
-                <View style={styles.iconPlaceholder}>
-                    <Text style={styles.iconText}>{token.symbol.slice(0, 1)}</Text>
+                <View style={styles.iconContainer}>
+                    <View style={styles.iconPlaceholder}>
+                        <Text style={styles.iconText}>{token.symbol.slice(0, 1)}</Text>
+                    </View>
+                    {hasGenesisToken && (
+                        <View style={styles.verifiedAccent}>
+                            <Ionicons name="checkmark" size={10} color="#ffffff" />
+                        </View>
+                    )}
                 </View>
                 <View style={styles.identity}>
                     <Text style={styles.symbol}>{token.symbol}</Text>
@@ -90,11 +100,27 @@ const makeStyles = (t: ThemePalette) => ({
         alignItems: "center" as const,
         gap: 12,
     },
+    iconContainer: {
+        position: "relative" as const,
+    },
     iconPlaceholder: {
         width: 36,
         height: 36,
         borderRadius: 18,
         backgroundColor: t.primary,
+        alignItems: "center" as const,
+        justifyContent: "center" as const,
+    },
+    verifiedAccent: {
+        position: "absolute" as const,
+        right: -2,
+        bottom: -2,
+        width: 16,
+        height: 16,
+        borderRadius: 8,
+        backgroundColor: "#9945FF",
+        borderWidth: 2,
+        borderColor: t.surface,
         alignItems: "center" as const,
         justifyContent: "center" as const,
     },

@@ -96,7 +96,12 @@
         "notificationsDenied": "OS permission was denied. Please allow notifications in system settings.",
         "about": "About",
         "version": "Version",
-        "network": "Network"
+        "network": "Network",
+        "seekerVerified": "Seeker verified",
+        "seekerYes": "Verified",
+        "seekerNo": "Not holding",
+        "deviceModel": "Device",
+        "seekerDevice": "Seeker (no Genesis Token)"
     },
     "notifications": {
         "swapSuccessTitle": "Swap completed",
