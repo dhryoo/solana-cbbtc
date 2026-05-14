@@ -3,7 +3,10 @@
         "ok": "OK",
         "cancel": "Cancel",
         "close": "Close",
-        "retry": "Retry"
+        "retry": "Retry",
+        "copyAddress": "Copy address",
+        "copyAddressHint": "Long-press to copy to clipboard",
+        "copied": "Copied!"
     },
     "tabs": {
         "home": "Assets",

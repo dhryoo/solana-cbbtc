@@ -3,7 +3,10 @@
         "ok": "확인",
         "cancel": "취소",
         "close": "닫기",
-        "retry": "다시 시도"
+        "retry": "다시 시도",
+        "copyAddress": "주소 복사",
+        "copyAddressHint": "길게 눌러 클립보드에 복사",
+        "copied": "복사됨!"
     },
     "tabs": {
         "home": "자산",

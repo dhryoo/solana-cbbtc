@@ -3,6 +3,7 @@ import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { RefreshControl, ScrollView, Text, View } from "react-native";
 
+import { AddressDisplay } from "@/components/AddressDisplay";
 import { BalanceCard } from "@/components/BalanceCard";
 import { SeekerBadge } from "@/components/SeekerBadge";
 import { WalletButton } from "@/components/WalletButton";
@@ -60,6 +61,13 @@ export function HomeScreen(): React.JSX.Element
                 <BalanceCard token={SOL} />
             </View>
 
+            {account && (
+                <View style={styles.addressBlock}>
+                    <Text style={styles.addressLabel}>{t("home.connectedLabel")}</Text>
+                    <AddressDisplay address={account.publicKey.toBase58()} style="full" />
+                </View>
+            )}
+
             <View style={styles.footer}>
                 <WalletButton />
                 {account && (
@@ -97,7 +105,19 @@ const makeStyles = (t: ThemePalette) => ({
     },
     cards: {
         gap: 12,
-        marginBottom: 32,
+        marginBottom: 16,
+    },
+    addressBlock: {
+        alignItems: "center" as const,
+        gap: 4,
+        marginBottom: 24,
+        paddingHorizontal: 16,
+    },
+    addressLabel: {
+        fontSize: 11,
+        color: t.textMuted,
+        textTransform: "uppercase" as const,
+        letterSpacing: 1,
     },
     footer: {
         alignItems: "center" as const,

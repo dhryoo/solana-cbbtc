@@ -42,6 +42,12 @@ describe("formatTokenAmount", () =>
         expect(formatTokenAmount(0.123456789, 9)).toBe("0.12345679");
     });
 
+    it("groups thousands with commas", () =>
+    {
+        expect(formatTokenAmount(12345.6789, 4)).toBe("12,345.6789");
+        expect(formatTokenAmount(1_000_000, 0)).toBe("1,000,000");
+    });
+
     it("falls back to dash for non-finite numbers", () =>
     {
         expect(formatTokenAmount(NaN, 8)).toBe("—");

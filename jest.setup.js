@@ -16,3 +16,9 @@ jest.mock("expo-notifications", () => ({
     addNotificationResponseReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
     AndroidImportance: { HIGH: 4 },
 }));
+
+// expo-clipboard mock — jest 환경에서 native binding 없음
+jest.mock("expo-clipboard", () => ({
+    setStringAsync: jest.fn().mockResolvedValue(true),
+    getStringAsync: jest.fn().mockResolvedValue(""),
+}));
