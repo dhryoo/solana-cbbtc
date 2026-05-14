@@ -54,7 +54,8 @@
         "react-i18next": "^17.0.7",
         "react-native": "0.81.5",
         "react-native-bundle-visualizer": "^4.0.0",
-        "react-native-get-random-values": "~1.11.0"
+        "react-native-get-random-values": "~1.11.0",
+        "react-native-markdown-display": "^7.0.2"
     },
     "devDependencies": {
         "@stylistic/eslint-plugin": "^2.13.0",

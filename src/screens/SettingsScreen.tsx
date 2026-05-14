@@ -1,7 +1,9 @@
-import React from "react";
+import { Ionicons } from "@expo/vector-icons";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, Switch, Text, View } from "react-native";
 
+import { AboutScreen } from "@/screens/AboutScreen";
 import { getClusterId } from "@/constants/cluster";
 import type { ThemeMode, ThemePalette } from "@/constants/theme";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
@@ -36,6 +38,7 @@ export function SettingsScreen(): React.JSX.Element
     const { account } = useWallet();
     const appLock = useAppLock();
     const { showToast } = useToast();
+    const [aboutOpen, setAboutOpen] = useState(false);
 
     const onSelectLanguage = (next: SupportedLanguage): void =>
     {
@@ -72,6 +75,7 @@ export function SettingsScreen(): React.JSX.Element
         && (appLock.capability?.isEnrolled ?? false);
 
     return (
+        <>
         <ScrollView contentContainerStyle={styles.scroll}>
             <Text style={styles.title}>{t("settings.title")}</Text>
 
@@ -176,6 +180,20 @@ export function SettingsScreen(): React.JSX.Element
 
             <View style={styles.section}>
                 <Text style={styles.sectionLabel}>{t("settings.about")}</Text>
+                <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t("about.rowLabel")}
+                    onPress={() =>
+                    {
+                        void hapticSelection();
+                        setAboutOpen(true);
+                    }}
+                    style={({ pressed }) =>
+                        [styles.aboutRow, pressed && styles.aboutRowPressed]}
+                >
+                    <Text style={styles.aboutRowLabel}>{t("about.rowLabel")}</Text>
+                    <Ionicons name="chevron-forward" size={18} color={palette.textMuted} />
+                </Pressable>
                 <View style={styles.kvRow}>
                     <Text style={styles.kvKey}>{t("settings.version")}</Text>
                     <Text style={styles.kvValue}>{APP_VERSION}</Text>
@@ -223,6 +241,8 @@ export function SettingsScreen(): React.JSX.Element
                 )}
             </View>
         </ScrollView>
+        <AboutScreen visible={aboutOpen} onClose={() => setAboutOpen(false)} />
+        </>
     );
 }
 
@@ -326,5 +346,24 @@ const makeStyles = (t: ThemePalette) => ({
     kvValueAccent: {
         color: "#9945FF",
         fontWeight: "700" as const,
+    },
+    aboutRow: {
+        flexDirection: "row" as const,
+        justifyContent: "space-between" as const,
+        alignItems: "center" as const,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: t.border,
+        backgroundColor: t.surface,
+    },
+    aboutRowPressed: {
+        opacity: 0.7,
+    },
+    aboutRowLabel: {
+        fontSize: 15,
+        color: t.text,
+        fontWeight: "600" as const,
     },
 });

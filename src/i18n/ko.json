@@ -124,6 +124,10 @@
         "authenticating": "인증 중…",
         "unlockAction": "잠금 해제"
     },
+    "about": {
+        "title": "앱 소개",
+        "rowLabel": "앱 소개"
+    },
     "network": {
         "mainnet-beta": "Mainnet",
         "devnet": "Devnet",

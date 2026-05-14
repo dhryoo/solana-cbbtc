@@ -124,6 +124,10 @@
         "authenticating": "Authenticating…",
         "unlockAction": "Unlock"
     },
+    "about": {
+        "title": "About",
+        "rowLabel": "About this app"
+    },
     "network": {
         "mainnet-beta": "Mainnet",
         "devnet": "Devnet",
