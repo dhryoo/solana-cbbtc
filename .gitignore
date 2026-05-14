@@ -67,3 +67,10 @@ coverage/
 # Claude Code session exports
 *-goall.txt
 2026-*-*.txt
+
+# Internal working docs (not for public repo)
+CLAUDE.md
+plan.md
+
+# Stray Finder duplicates
+*\ copy.*
