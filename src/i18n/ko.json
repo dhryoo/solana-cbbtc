@@ -104,7 +104,11 @@
         "seekerDevice": "Seeker (인증 NFT 미보유)",
         "walletType": "지갑 종류",
         "walletTypeSeedVault": "Seed Vault (Seeker)",
-        "walletTypeUnknown": "외부 지갑"
+        "walletTypeUnknown": "외부 지갑",
+        "appLock": "앱 잠금",
+        "appLockToggle": "지문/PIN으로 잠금",
+        "appLockDescription": "앱을 열거나 백그라운드에서 돌아올 때 잠금을 요구합니다.",
+        "appLockUnavailable": "이 디바이스는 지문/PIN 잠금이 등록되어 있지 않습니다."
     },
     "notifications": {
         "swapSuccessTitle": "Swap 완료",
@@ -113,6 +117,12 @@
     "seeker": {
         "verified": "Seeker Verified",
         "device": "Seeker 디바이스"
+    },
+    "lock": {
+        "title": "Solana cbBTC 잠김",
+        "subtitle": "지문 또는 PIN으로 잠금을 해제해 주세요.",
+        "authenticating": "인증 중…",
+        "unlockAction": "잠금 해제"
     },
     "network": {
         "mainnet-beta": "Mainnet",

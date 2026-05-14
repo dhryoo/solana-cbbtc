@@ -5,6 +5,7 @@ import * as SplashScreen from "expo-splash-screen";
 import "@/i18n";
 
 import { SplashOverlay } from "@/components/SplashOverlay";
+import { AppLockProvider } from "@/providers/AppLockProvider";
 import { ConnectionProvider } from "@/providers/ConnectionProvider";
 import { I18nProvider } from "@/providers/I18nProvider";
 import { NotificationProvider } from "@/providers/NotificationProvider";
@@ -12,6 +13,7 @@ import { QueryProvider } from "@/providers/QueryProvider";
 import { ThemeProvider, useTheme } from "@/providers/ThemeProvider";
 import { ToastProvider } from "@/providers/ToastProvider";
 import { WalletProvider } from "@/providers/WalletProvider";
+import { LockScreen } from "@/screens/LockScreen";
 import { AppShell } from "@/screens/AppShell";
 
 // Native splash auto-hide 방지 — React가 mount해서 SplashOverlay를 띄울 때까지 유지.
@@ -35,9 +37,12 @@ export default function App(): React.JSX.Element
                         <ConnectionProvider>
                             <NotificationProvider>
                                 <WalletProvider>
-                                    <AppShell />
-                                    <ThemedStatusBar />
-                                    <SplashOverlay />
+                                    <AppLockProvider>
+                                        <AppShell />
+                                        <ThemedStatusBar />
+                                        <SplashOverlay />
+                                        <LockScreen />
+                                    </AppLockProvider>
                                 </WalletProvider>
                             </NotificationProvider>
                         </ConnectionProvider>

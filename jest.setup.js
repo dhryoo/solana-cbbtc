@@ -31,3 +31,12 @@ jest.mock("expo-haptics", () => ({
     ImpactFeedbackStyle: { Light: "light", Medium: "medium", Heavy: "heavy" },
     NotificationFeedbackType: { Success: "success", Warning: "warning", Error: "error" },
 }));
+
+// expo-local-authentication mock
+jest.mock("expo-local-authentication", () => ({
+    hasHardwareAsync: jest.fn().mockResolvedValue(true),
+    isEnrolledAsync: jest.fn().mockResolvedValue(true),
+    supportedAuthenticationTypesAsync: jest.fn().mockResolvedValue([1]),
+    authenticateAsync: jest.fn().mockResolvedValue({ success: true }),
+    AuthenticationType: { FINGERPRINT: 1, FACIAL_RECOGNITION: 2, IRIS: 3 },
+}));

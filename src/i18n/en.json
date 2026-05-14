@@ -104,7 +104,11 @@
         "seekerDevice": "Seeker (no Genesis Token)",
         "walletType": "Wallet type",
         "walletTypeSeedVault": "Seed Vault (Seeker)",
-        "walletTypeUnknown": "External wallet"
+        "walletTypeUnknown": "External wallet",
+        "appLock": "App lock",
+        "appLockToggle": "Lock with fingerprint / PIN",
+        "appLockDescription": "Require unlock on app open and on returning from background.",
+        "appLockUnavailable": "Biometric or device PIN is not enrolled on this device."
     },
     "notifications": {
         "swapSuccessTitle": "Swap completed",
@@ -113,6 +117,12 @@
     "seeker": {
         "verified": "Seeker Verified",
         "device": "Seeker device"
+    },
+    "lock": {
+        "title": "Solana cbBTC locked",
+        "subtitle": "Unlock with fingerprint or device PIN.",
+        "authenticating": "Authenticating…",
+        "unlockAction": "Unlock"
     },
     "network": {
         "mainnet-beta": "Mainnet",
