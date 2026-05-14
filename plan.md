@@ -11,8 +11,8 @@
 - [x] M2: cbBTC 잔액 조회
 - [x] M3: Jupiter Swap 견적
 - [x] M4: Swap 실행
-- [ ] M5: UI 폴리시 & i18n (단계 1: i18n 완료, 단계 2: 테마/다크모드 완료, 단계 3: 아이콘/햅틱 보류)
-- [ ] M6: Release APK 빌드
+- [ ] M5: UI 폴리시 & i18n (단계 1: i18n 완료, 단계 2: 테마/다크모드 완료, 단계 3: 아이콘/햅틱 보류, 단계 4: 아이콘/스플래시 완료)
+- [x] M6: Release APK 빌드
 - [ ] M7: dApp Store 제출
 
 ---
@@ -265,10 +265,15 @@
 
 ### 단계 3: 아이콘 + 햅틱 + safe area (보류)
 - [ ] NativeWind (선택 — 현재 StyleSheet 만족스러우면 도입 비용 > 효익)
-- [ ] 아이콘 통일 (lucide-react-native 또는 expo-symbols) — native 모듈, prebuild 재실행 필요
 - [ ] Safe area 처리 (`react-native-safe-area-context`) — 현재 SafeAreaView 없이 paddingTop으로 처리 중. 노치 디바이스에서 검증 필요
 - [ ] 햅틱 피드백 (expo-haptics) — native 모듈, prebuild 재실행 필요
 - [ ] 일관된 로딩/에러/빈 상태 컴포넌트 (`LoadingView`, `ErrorView`, `EmptyView`)
+
+### 단계 4: 앱 아이콘 + 스플래시 + 탭 아이콘 (완료)
+- [x] 아이콘 디자인: 흰색 "S" + Solana purple (#9945FF) 배경
+- [x] `scripts/generate_icons.py` — Python + PIL로 4종 PNG 생성 (icon.png 1024², adaptive-icon.png 1024² 투명, splash-icon.png 400² 투명, favicon.png 48²)
+- [x] `app.json` splash.backgroundColor + android.adaptiveIcon.backgroundColor = #9945FF
+- [x] 탭 아이콘: @expo/vector-icons (Ionicons) outline/filled — wallet, swap-horizontal, settings
 
 ### 완료 조건
 - [x] 모든 텍스트가 한국어/영어 전환 가능 (i18n 단계 1)
@@ -294,35 +299,39 @@
 
 **목표**: dApp Store 제출 가능한 signed release APK 확보.
 
-### 작업 항목
-- [ ] **dApp Store 전용 keystore 생성** (Google Play 키와 분리 필수)
-    - [ ] `keytool -genkey -v -keystore seeker-btcfi-release.keystore ...`
-    - [ ] keystore 비밀번호 + key alias를 1Password에 저장
-    - [ ] keystore 파일을 외장 저장소에 백업 (분실 시 영원히 업데이트 불가)
-- [ ] `eas.json`의 production 프로파일 설정
-    - [ ] 자체 keystore 사용 (`credentialsSource: "local"`)
-    - [ ] `buildType: "apk"` (aab 아님)
-    - [ ] versionCode 1, versionName 0.1.0
-- [ ] `eas build --profile production --platform android`
-- [ ] 빌드된 APK 다운로드
-- [ ] **실제 Seeker 폰에 sideload 설치 후 전체 플로우 테스트**
-    - [ ] 지갑 연결
-    - [ ] 잔액 조회
-    - [ ] 견적 조회
-    - [ ] 소액 swap 실행
-    - [ ] 한국어/영어 전환
-    - [ ] 다크모드 전환
-    - [ ] 앱 재시작 후 상태 복원
+### 작업 항목 (EAS 미사용 — 로컬 gradle 빌드 선택)
+- [x] **dApp Store 전용 keystore 생성** (사용자가 keytool로 직접 생성)
+    - [x] `android/app/seeker-btcfi-release.keystore` 생성
+    - [x] keystore 비밀번호 + key alias를 1Password에 저장 (사용자 책임)
+    - [x] keystore 파일을 외장 저장소에 백업 (사용자 책임)
+- [x] `plugins/withReleaseSigning.js` — Expo config plugin으로 android/app/build.gradle에 release signing config 주입 (prebuild 재실행 안전)
+- [x] `~/.gradle/gradle.properties` 등록 (SEEKER_BTCFI_RELEASE_* 4개 키, 사용자 홈 영속)
+- [x] `npx expo run:android --variant release --device` 빌드 + Seeker 설치
+- [x] **실제 Seeker 폰에서 전체 플로우 검증 완료**
+    - [x] 지갑 연결
+    - [x] 잔액 조회 + pull-to-refresh
+    - [x] 견적 조회
+    - [x] 소액 swap 실행 (mainnet)
+    - [x] 한국어/영어 전환
+    - [x] 라이트/다크모드 전환
+    - [x] 앱 재시작 후 상태 복원
 
 ### 완료 조건
-- 서명된 release APK 파일 (`.apk`) 확보
-- 실기에서 위 모든 시나리오 정상 작동
-- keystore 백업 2곳 이상 (1Password + 물리적 저장)
-- 빌드 재현 가능 (동일 keystore로 versionCode 증가 시 재빌드 성공)
+- [x] 서명된 release APK 확보 (`android/app/build/outputs/apk/release/app-release.apk`)
+- [x] 실기에서 위 모든 시나리오 정상 작동
+- [ ] keystore 백업 2곳 이상 — **사용자가 1Password + 외장 저장소 확보 필요**
 
-### 주의
-- **디버그 키로 서명된 APK는 dApp Store 심사에서 거부됨**
-- versionCode는 단조 증가 (이후 업데이트 시 항상 +1)
+### M6 노트
+- EAS 미사용: 사용자 선택으로 expo run:android --variant release로 로컬 gradle 빌드
+- Keystore 파일: `android/app/seeker-btcfi-release.keystore` (android/는 gitignored — 백업 필수)
+- 자격증명: ~/.gradle/gradle.properties의 SEEKER_BTCFI_RELEASE_* 네 키 (HOME에 있어 prebuild 영향 없음)
+- `plugins/withReleaseSigning.js`: prebuild 시 build.gradle에 release signing config 자동 주입. 정규식 매칭으로 `signingConfigs`에 release 블록 추가 + `buildTypes.release.signingConfig`를 `signingConfigs.release`로 교체.
+- 첫 install 시 기존 dev client(debug 서명)와 keystore 다르면 `INSTALL_FAILED_UPDATE_INCOMPATIBLE` 발생 → `adb uninstall com.seekerbtcfi.app` 후 재설치
+- 빌드 재현: keystore + gradle.properties 보존된 상태에서 `npx expo run:android --variant release --device` 한 줄로 재빌드. versionCode는 매 업데이트 +1.
+
+### 주의 (CLAUDE.md gotcha 재명시)
+- **디버그 키로 서명된 APK는 dApp Store 심사에서 거부됨** — withReleaseSigning 플러그인이 ~/.gradle/gradle.properties 누락 시 경고 출력하고 debug 폴백 → production 빌드 전 빌드 출력에서 "⚠️" 메시지 부재 확인 필수
+- versionCode는 단조 증가 (이후 업데이트 시 always +1)
 
 ---
 

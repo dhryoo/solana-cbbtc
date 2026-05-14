@@ -1,5 +1,8 @@
 {
     "expo": {
+        "plugins": [
+            "./plugins/withReleaseSigning"
+        ],
         "name": "seeker-btcfi",
         "slug": "seeker-btcfi",
         "version": "0.1.0",
@@ -10,7 +13,7 @@
         "splash": {
             "image": "./assets/splash-icon.png",
             "resizeMode": "contain",
-            "backgroundColor": "#ffffff"
+            "backgroundColor": "#9945FF"
         },
         "ios": {
             "supportsTablet": false,
@@ -21,7 +24,7 @@
             "versionCode": 1,
             "adaptiveIcon": {
                 "foregroundImage": "./assets/adaptive-icon.png",
-                "backgroundColor": "#ffffff"
+                "backgroundColor": "#9945FF"
             },
             "edgeToEdgeEnabled": true,
             "predictiveBackGestureEnabled": false
