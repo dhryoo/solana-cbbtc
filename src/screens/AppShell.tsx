@@ -1,24 +1,18 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { HomeScreen } from "@/screens/HomeScreen";
+import { SettingsScreen } from "@/screens/SettingsScreen";
 import { SwapScreen } from "@/screens/SwapScreen";
 
-type TabKey = "home" | "swap";
+type TabKey = "home" | "swap" | "settings";
 
-interface TabSpec
-{
-    key: TabKey;
-    label: string;
-}
-
-const TABS: TabSpec[] = [
-    { key: "home", label: "자산" },
-    { key: "swap", label: "Swap" },
-];
+const TABS: TabKey[] = ["home", "swap", "settings"];
 
 export function AppShell(): React.JSX.Element
 {
+    const { t } = useTranslation();
     const [tab, setTab] = useState<TabKey>("home");
 
     return (
@@ -26,16 +20,17 @@ export function AppShell(): React.JSX.Element
             <View style={styles.content}>
                 {tab === "home" && <HomeScreen />}
                 {tab === "swap" && <SwapScreen />}
+                {tab === "settings" && <SettingsScreen />}
             </View>
 
             <View style={styles.tabbar}>
-                {TABS.map((spec) => (
+                {TABS.map((key) => (
                     <Pressable
-                        key={spec.key}
+                        key={key}
                         accessibilityRole="tab"
-                        accessibilityLabel={spec.label}
-                        accessibilityState={{ selected: tab === spec.key }}
-                        onPress={() => setTab(spec.key)}
+                        accessibilityLabel={t(`tabs.${key}`)}
+                        accessibilityState={{ selected: tab === key }}
+                        onPress={() => setTab(key)}
                         style={({ pressed }) =>
                             [
                                 styles.tabItem,
@@ -45,10 +40,10 @@ export function AppShell(): React.JSX.Element
                         <Text
                             style={[
                                 styles.tabLabel,
-                                tab === spec.key && styles.tabLabelActive,
+                                tab === key && styles.tabLabelActive,
                             ]}
                         >
-                            {spec.label}
+                            {t(`tabs.${key}`)}
                         </Text>
                     </Pressable>
                 ))}

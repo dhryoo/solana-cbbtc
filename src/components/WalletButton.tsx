@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useWallet } from "@/hooks/useWallet";
@@ -6,6 +7,7 @@ import { shortenAddress } from "@/utils/format";
 
 export function WalletButton(): React.JSX.Element
 {
+    const { t } = useTranslation();
     const { status, account, error, connect, disconnect } = useWallet();
 
     const isBusy = status === "connecting" || status === "disconnecting" || status === "restoring";
@@ -15,7 +17,7 @@ export function WalletButton(): React.JSX.Element
         return (
             <View style={styles.row}>
                 <ActivityIndicator />
-                <Text style={styles.muted}>지갑 상태 확인 중…</Text>
+                <Text style={styles.muted}>{t("wallet.restoring")}</Text>
             </View>
         );
     }
@@ -27,7 +29,7 @@ export function WalletButton(): React.JSX.Element
                 <Text style={styles.address}>{shortenAddress(account.publicKey)}</Text>
                 <Pressable
                     accessibilityRole="button"
-                    accessibilityLabel="지갑 연결 해제"
+                    accessibilityLabel={t("wallet.disconnect")}
                     onPress={() => { void disconnect(); }}
                     disabled={isBusy}
                     style={({ pressed }) =>
@@ -39,7 +41,7 @@ export function WalletButton(): React.JSX.Element
                         ]}
                 >
                     <Text style={styles.buttonSecondaryText}>
-                        {status === "disconnecting" ? "해제 중…" : "연결 해제"}
+                        {status === "disconnecting" ? t("wallet.disconnecting") : t("wallet.disconnect")}
                     </Text>
                 </Pressable>
             </View>
@@ -50,7 +52,7 @@ export function WalletButton(): React.JSX.Element
         <View style={styles.container}>
             <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="지갑 연결"
+                accessibilityLabel={t("wallet.connect")}
                 onPress={() => { void connect(); }}
                 disabled={isBusy}
                 style={({ pressed }) =>
@@ -62,7 +64,7 @@ export function WalletButton(): React.JSX.Element
                     ]}
             >
                 <Text style={styles.buttonPrimaryText}>
-                    {status === "connecting" ? "연결 중…" : "지갑 연결"}
+                    {status === "connecting" ? t("wallet.connecting") : t("wallet.connect")}
                 </Text>
             </Pressable>
             {status === "error" && error && (

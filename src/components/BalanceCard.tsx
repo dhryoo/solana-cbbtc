@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 import type { TokenInfo } from "@/constants/tokens";
@@ -13,6 +14,7 @@ interface BalanceCardProps
 
 export function BalanceCard({ token }: BalanceCardProps): React.JSX.Element
 {
+    const { t } = useTranslation();
     const { account } = useWallet();
     const ownerPubkey = account?.publicKey ?? null;
     const query = useTokenBalance(token, ownerPubkey);
@@ -31,7 +33,7 @@ export function BalanceCard({ token }: BalanceCardProps): React.JSX.Element
 
             <View style={styles.body}>
                 {!ownerPubkey && (
-                    <Text style={styles.placeholder}>지갑 연결 후 표시됩니다</Text>
+                    <Text style={styles.placeholder}>{t("balance.connectFirst")}</Text>
                 )}
 
                 {ownerPubkey && query.isPending && (
@@ -39,7 +41,7 @@ export function BalanceCard({ token }: BalanceCardProps): React.JSX.Element
                 )}
 
                 {ownerPubkey && query.isError && (
-                    <Text style={styles.error}>잔액을 불러오지 못했습니다</Text>
+                    <Text style={styles.error}>{t("balance.loadError")}</Text>
                 )}
 
                 {ownerPubkey && query.data && (

@@ -11,7 +11,7 @@
 - [x] M2: cbBTC 잔액 조회
 - [x] M3: Jupiter Swap 견적
 - [x] M4: Swap 실행
-- [ ] M5: UI 폴리시 & i18n
+- [ ] M5: UI 폴리시 & i18n (단계 1/2: i18n 완료 — 테마/아이콘은 단계 2에서)
 - [ ] M6: Release APK 빌드
 - [ ] M7: dApp Store 제출
 
@@ -243,25 +243,38 @@
 
 **목표**: 실사용 가능한 수준의 UI/UX. 한국어 1차 지원.
 
-### 작업 항목
+### 단계 1: i18n (완료)
+- [x] i18next ^26 + react-i18next ^17 설치 (pure JS, native 모듈 없음 → APK 재빌드 불필요)
+- [x] `src/i18n/ko.json`, `src/i18n/en.json` — common/tabs/home/wallet/balance/swap/errors/settings 카테고리
+- [x] `src/i18n/index.ts` — i18next 초기화 + `SupportedLanguage` 타입 가드
+- [x] 디바이스 로케일 자동 감지: **의도적으로 미적용** (expo-localization native 모듈 prebuild 비용 회피). 기본값 ko + 수동 토글.
+- [x] `src/providers/I18nProvider.tsx` + useLanguage hook
+- [x] `src/utils/languageStorage.ts` — AsyncStorage 영속화, 4 tests
+- [x] `src/screens/SettingsScreen.tsx` + "설정" 탭 (AppShell에 세 번째 탭 추가)
+- [x] 모든 하드코딩 문자열을 t() 호출로 이동: HomeScreen / SwapScreen / WalletButton / BalanceCard / QuoteDisplay / SwapConfirmModal / AppShell
+- [x] `swapError.ts` → 번역 키 반환 (호출자가 t(key, params)로 렌더링). 테스트도 키 기반으로 갱신.
+
+### 단계 2: 테마 + 아이콘 + 햅틱 (다음 작업)
 - [ ] NativeWind 도입 및 설정
 - [ ] 디자인 토큰 정의 (`src/constants/theme.ts`) — 색상, 폰트, 간격
-- [ ] 다크모드 지원 (`useColorScheme`)
-- [ ] i18next + react-i18next 설치
-    - [ ] `src/i18n/ko.json`, `src/i18n/en.json`
-    - [ ] 디바이스 로케일 자동 감지
-    - [ ] 설정 화면에서 수동 전환 가능
+- [ ] 다크모드 지원 (`useColorScheme`) + expo-system-ui (M0 노트에서 보류된 항목)
 - [ ] 일관된 로딩/에러/빈 상태 컴포넌트 (`LoadingView`, `ErrorView`, `EmptyView`)
-- [ ] 모든 하드코딩 문자열을 i18n으로 이동
 - [ ] 아이콘 통일 (lucide-react-native 또는 expo-symbols)
 - [ ] Safe area 처리 (`react-native-safe-area-context`)
 - [ ] 햅틱 피드백 (성공 시 light, 실패 시 error)
 
 ### 완료 조건
-- 모든 텍스트가 한국어/영어 전환 가능
-- 다크/라이트 모드 토글 작동 및 시스템 설정 반영
-- 모든 화면에 로딩/에러 상태 처리됨
-- 스플래시 스크린 + 앱 아이콘 적용
+- [x] 모든 텍스트가 한국어/영어 전환 가능 (i18n 단계 1)
+- [ ] 다크/라이트 모드 토글 작동 (단계 2)
+- [ ] 모든 화면에 로딩/에러 상태 처리됨 (단계 2)
+- [ ] 스플래시 스크린 + 앱 아이콘 적용 (M6 직전 처리)
+
+### i18n 단계 노트
+- 72 tests passing (M4 68개 + languageStorage 4개 + swapError 키 기반 재작성)
+- Provider 계층: `I18nProvider > QueryProvider > ConnectionProvider > WalletProvider > AppShell`
+- 번역 키 네임스페이스: tabs / home / wallet / balance / swap / errors / settings / common
+- swapError 휴리스틱은 키 반환으로 변경 — 새 에러 패턴 추가 시 키만 정의하면 됨
+- 신규 패키지(i18next, react-i18next)는 pure JS → **APK 재빌드 불필요, Metro reload만으로 검증 가능**
 
 ### 산출물
 - 한국어 모드 스크린샷 (HomeScreen, SwapScreen)

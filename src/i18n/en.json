@@ -1,0 +1,84 @@
+{
+    "common": {
+        "ok": "OK",
+        "cancel": "Cancel",
+        "close": "Close",
+        "retry": "Retry"
+    },
+    "tabs": {
+        "home": "Assets",
+        "swap": "Swap",
+        "settings": "Settings"
+    },
+    "home": {
+        "subtitle": "Solana Seeker · cbBTC",
+        "connectPrompt": "Connect your wallet to view balances and swap.",
+        "connectedLabel": "Connected wallet",
+        "pullToRefresh": "Pull down to refresh"
+    },
+    "wallet": {
+        "connect": "Connect wallet",
+        "disconnect": "Disconnect",
+        "restoring": "Checking wallet…",
+        "connecting": "Connecting…",
+        "disconnecting": "Disconnecting…"
+    },
+    "balance": {
+        "connectFirst": "Connect wallet to view balance",
+        "loadError": "Failed to load balance"
+    },
+    "swap": {
+        "title": "Swap",
+        "outputHint": "↓ Quote will appear below",
+        "amountAccessibility": "Input amount",
+        "flipAccessibility": "Flip token direction",
+        "swapButton": "Execute swap",
+        "btnConnectFirst": "Connect wallet to use",
+        "btnAmountFirst": "Enter an amount",
+        "btnQuoteLoading": "Fetching quote…",
+        "expected": "Expected receive",
+        "priceImpact": "Price impact",
+        "route": "Route",
+        "hopSingular": "{{count}} hop",
+        "hopPlural": "{{count}} hops",
+        "minReceive": "Min receive",
+        "slippage": "Slippage tolerance",
+        "quoteFailed": "Quote failed",
+        "amountPlaceholder": "Enter amount",
+        "confirmTitle": "Confirm swap",
+        "confirmInput": "Input",
+        "mainnetWarn": "Wallet will ask for one more approval. This is a mainnet transaction.",
+        "successTitle": "Swap successful",
+        "successLine": "Transaction was broadcast to the network.",
+        "signatureLabel": "Signature",
+        "openSolscan": "Open on Solscan",
+        "failureTitle": "Swap failed",
+        "pendingText": "Broadcasting transaction after wallet approval…",
+        "pendingHint": "May take a few seconds depending on network."
+    },
+    "errors": {
+        "userCancelled": "Transaction approval was cancelled.",
+        "sessionTerminated": "Wallet session ended. Please try again.",
+        "authExpired": "Wallet authorization expired. Reconnect your wallet and try again.",
+        "insufficientBalance": "Insufficient balance. Check SOL and input token balances.",
+        "slippageExceeded": "Price moved beyond your slippage tolerance. Raise slippage and retry.",
+        "blockhashExpired": "Transaction was rejected due to a stale blockhash. Please try again.",
+        "computeBudget": "Transaction is too complex (compute budget exceeded). Try again shortly.",
+        "rateLimit": "Jupiter API rate-limited. Please try again in a moment.",
+        "network": "Network error. Check your connection and try again.",
+        "jupiter5xx": "Jupiter service is temporarily unavailable. Please try again later.",
+        "jupiterClient": "Jupiter request rejected (HTTP {{status}}). Check your inputs.",
+        "generic": "Transaction failed. Please try again shortly.",
+        "missingSignature": "No transaction signature was returned.",
+        "walletNotConnected": "Wallet is not connected."
+    },
+    "settings": {
+        "title": "Settings",
+        "language": "Language",
+        "ko": "한국어",
+        "en": "English",
+        "about": "About",
+        "version": "Version",
+        "network": "Network"
+    }
+}

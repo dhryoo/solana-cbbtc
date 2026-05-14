@@ -15,6 +15,25 @@ export interface SwapMutationResult
     signature: string;
 }
 
+// 에러 메시지는 i18n 키. toFriendlySwapError에서 분기 처리.
+class WalletNotConnectedError extends Error
+{
+    constructor()
+    {
+        super("Wallet is not connected.");
+        this.name = "WalletNotConnectedError";
+    }
+}
+
+class MissingSignatureError extends Error
+{
+    constructor()
+    {
+        super("No transaction signature was returned.");
+        this.name = "MissingSignatureError";
+    }
+}
+
 export function useSwap(): UseMutationResult<SwapMutationResult, Error, SwapMutationInput>
 {
     const { account } = useWallet();
@@ -25,7 +44,7 @@ export function useSwap(): UseMutationResult<SwapMutationResult, Error, SwapMuta
         {
             if (!account)
             {
-                throw new Error("지갑이 연결되어 있지 않습니다.");
+                throw new WalletNotConnectedError();
             }
 
             const { transaction } = await getSwapTransaction({
@@ -41,14 +60,13 @@ export function useSwap(): UseMutationResult<SwapMutationResult, Error, SwapMuta
             const first = signatures[0];
             if (!first)
             {
-                throw new Error("트랜잭션 시그니처를 받지 못했습니다.");
+                throw new MissingSignatureError();
             }
 
             return { signature: first };
         },
         onSuccess: async () =>
         {
-            // 잔액 캐시 즉시 무효화 — 새 swap 후 사용자가 자산 탭으로 가면 갱신된 잔액 표시
             await queryClient.invalidateQueries({ queryKey: ["balance"] });
             await queryClient.invalidateQueries({ queryKey: ["quote"] });
         },

@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
     ActivityIndicator,
     Linking,
@@ -100,43 +101,44 @@ function ConfirmStage({
     onClose: () => void;
 }): React.JSX.Element
 {
+    const { t } = useTranslation();
     return (
         <>
-            <Text style={styles.title}>Swap 확인</Text>
+            <Text style={styles.title}>{t("swap.confirmTitle")}</Text>
 
             <View style={styles.row}>
-                <Text style={styles.label}>입력</Text>
+                <Text style={styles.label}>{t("swap.confirmInput")}</Text>
                 <Text style={styles.metric}>
                     {formatRawAmount(quote.inAmount, inputToken.decimals)} {inputToken.symbol}
                 </Text>
             </View>
             <View style={styles.row}>
-                <Text style={styles.label}>예상 수령량</Text>
+                <Text style={styles.label}>{t("swap.expected")}</Text>
                 <Text style={styles.metric}>
                     {formatRawAmount(quote.outAmount, outputToken.decimals)} {outputToken.symbol}
                 </Text>
             </View>
             <View style={styles.row}>
-                <Text style={styles.label}>최소 수령량</Text>
+                <Text style={styles.label}>{t("swap.minReceive")}</Text>
                 <Text style={styles.metric}>
                     {formatRawAmount(quote.otherAmountThreshold, outputToken.decimals)}{" "}
                     {outputToken.symbol}
                 </Text>
             </View>
             <View style={styles.row}>
-                <Text style={styles.label}>슬리피지</Text>
+                <Text style={styles.label}>{t("swap.slippage")}</Text>
                 <Text style={styles.metric}>{bpsToPercent(quote.slippageBps)}</Text>
             </View>
             <View style={styles.row}>
-                <Text style={styles.label}>라우트</Text>
+                <Text style={styles.label}>{t("swap.route")}</Text>
                 <Text style={styles.metric}>
-                    {quote.routePlan.length} hop{quote.routePlan.length > 1 ? "s" : ""}
+                    {quote.routePlan.length === 1
+                        ? t("swap.hopSingular", { count: 1 })
+                        : t("swap.hopPlural", { count: quote.routePlan.length })}
                 </Text>
             </View>
 
-            <Text style={styles.warn}>
-                지갑에서 한 번 더 승인이 필요합니다. mainnet 실거래입니다.
-            </Text>
+            <Text style={styles.warn}>{t("swap.mainnetWarn")}</Text>
 
             <View style={styles.actions}>
                 <Pressable
@@ -145,7 +147,7 @@ function ConfirmStage({
                     style={({ pressed }) =>
                         [styles.btn, styles.btnSecondary, pressed && styles.pressed]}
                 >
-                    <Text style={styles.btnSecondaryText}>취소</Text>
+                    <Text style={styles.btnSecondaryText}>{t("common.cancel")}</Text>
                 </Pressable>
                 <Pressable
                     accessibilityRole="button"
@@ -153,7 +155,7 @@ function ConfirmStage({
                     style={({ pressed }) =>
                         [styles.btn, styles.btnPrimary, pressed && styles.pressed]}
                 >
-                    <Text style={styles.btnPrimaryText}>Swap 실행</Text>
+                    <Text style={styles.btnPrimaryText}>{t("swap.swapButton")}</Text>
                 </Pressable>
             </View>
         </>
@@ -162,11 +164,12 @@ function ConfirmStage({
 
 function PendingStage(): React.JSX.Element
 {
+    const { t } = useTranslation();
     return (
         <View style={styles.center}>
             <ActivityIndicator size="large" />
-            <Text style={styles.pendingText}>지갑 승인 후 트랜잭션을 전송 중…</Text>
-            <Text style={styles.pendingHint}>네트워크 상황에 따라 수 초 걸릴 수 있습니다.</Text>
+            <Text style={styles.pendingText}>{t("swap.pendingText")}</Text>
+            <Text style={styles.pendingHint}>{t("swap.pendingHint")}</Text>
         </View>
     );
 }
@@ -176,11 +179,12 @@ function SuccessStage({
     onClose,
 }: { signature: string; onClose: () => void }): React.JSX.Element
 {
+    const { t } = useTranslation();
     return (
         <>
-            <Text style={styles.title}>Swap 성공</Text>
-            <Text style={styles.successLine}>트랜잭션이 네트워크에 전송됐습니다.</Text>
-            <Text style={styles.sigLabel}>Signature</Text>
+            <Text style={styles.title}>{t("swap.successTitle")}</Text>
+            <Text style={styles.successLine}>{t("swap.successLine")}</Text>
+            <Text style={styles.sigLabel}>{t("swap.signatureLabel")}</Text>
             <Text style={styles.signature} selectable>{signature}</Text>
 
             <View style={styles.actions}>
@@ -190,7 +194,7 @@ function SuccessStage({
                     style={({ pressed }) =>
                         [styles.btn, styles.btnSecondary, pressed && styles.pressed]}
                 >
-                    <Text style={styles.btnSecondaryText}>Solscan 열기</Text>
+                    <Text style={styles.btnSecondaryText}>{t("swap.openSolscan")}</Text>
                 </Pressable>
                 <Pressable
                     accessibilityRole="button"
@@ -198,7 +202,7 @@ function SuccessStage({
                     style={({ pressed }) =>
                         [styles.btn, styles.btnPrimary, pressed && styles.pressed]}
                 >
-                    <Text style={styles.btnPrimaryText}>확인</Text>
+                    <Text style={styles.btnPrimaryText}>{t("common.ok")}</Text>
                 </Pressable>
             </View>
         </>
@@ -215,9 +219,10 @@ function ErrorStage({
     onClose: () => void;
 }): React.JSX.Element
 {
+    const { t } = useTranslation();
     return (
         <>
-            <Text style={styles.title}>Swap 실패</Text>
+            <Text style={styles.title}>{t("swap.failureTitle")}</Text>
             <Text style={styles.errorMsg}>{message}</Text>
 
             <View style={styles.actions}>
@@ -227,7 +232,7 @@ function ErrorStage({
                     style={({ pressed }) =>
                         [styles.btn, styles.btnSecondary, pressed && styles.pressed]}
                 >
-                    <Text style={styles.btnSecondaryText}>닫기</Text>
+                    <Text style={styles.btnSecondaryText}>{t("common.close")}</Text>
                 </Pressable>
                 <Pressable
                     accessibilityRole="button"
@@ -235,7 +240,7 @@ function ErrorStage({
                     style={({ pressed }) =>
                         [styles.btn, styles.btnPrimary, pressed && styles.pressed]}
                 >
-                    <Text style={styles.btnPrimaryText}>다시 시도</Text>
+                    <Text style={styles.btnPrimaryText}>{t("common.retry")}</Text>
                 </Pressable>
             </View>
         </>

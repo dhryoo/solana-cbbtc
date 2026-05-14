@@ -1,5 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import React, { useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { BalanceCard } from "@/components/BalanceCard";
@@ -9,6 +10,7 @@ import { useWallet } from "@/hooks/useWallet";
 
 export function HomeScreen(): React.JSX.Element
 {
+    const { t } = useTranslation();
     const { account } = useWallet();
     const queryClient = useQueryClient();
     const [refreshing, setRefreshing] = useState(false);
@@ -39,7 +41,7 @@ export function HomeScreen(): React.JSX.Element
         >
             <View style={styles.header}>
                 <Text style={styles.title}>seeker-btcfi</Text>
-                <Text style={styles.subtitle}>Solana Seeker · cbBTC</Text>
+                <Text style={styles.subtitle}>{t("home.subtitle")}</Text>
             </View>
 
             <View style={styles.cards}>
@@ -50,7 +52,7 @@ export function HomeScreen(): React.JSX.Element
             <View style={styles.footer}>
                 <WalletButton />
                 {account && (
-                    <Text style={styles.hint}>아래로 당겨 새로고침</Text>
+                    <Text style={styles.hint}>{t("home.pullToRefresh")}</Text>
                 )}
             </View>
         </ScrollView>

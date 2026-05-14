@@ -1,0 +1,84 @@
+{
+    "common": {
+        "ok": "확인",
+        "cancel": "취소",
+        "close": "닫기",
+        "retry": "다시 시도"
+    },
+    "tabs": {
+        "home": "자산",
+        "swap": "Swap",
+        "settings": "설정"
+    },
+    "home": {
+        "subtitle": "Solana Seeker · cbBTC",
+        "connectPrompt": "지갑을 연결하면 잔액과 swap을 사용할 수 있습니다.",
+        "connectedLabel": "연결된 지갑",
+        "pullToRefresh": "아래로 당겨 새로고침"
+    },
+    "wallet": {
+        "connect": "지갑 연결",
+        "disconnect": "연결 해제",
+        "restoring": "지갑 상태 확인 중…",
+        "connecting": "연결 중…",
+        "disconnecting": "해제 중…"
+    },
+    "balance": {
+        "connectFirst": "지갑 연결 후 표시됩니다",
+        "loadError": "잔액을 불러오지 못했습니다"
+    },
+    "swap": {
+        "title": "Swap",
+        "outputHint": "↓ 견적이 아래에 표시됩니다",
+        "amountAccessibility": "입력 금액",
+        "flipAccessibility": "토큰 방향 전환",
+        "swapButton": "Swap 실행",
+        "btnConnectFirst": "지갑 연결 후 사용 가능",
+        "btnAmountFirst": "금액을 입력하세요",
+        "btnQuoteLoading": "견적 조회 중…",
+        "expected": "예상 수령량",
+        "priceImpact": "가격 영향",
+        "route": "라우트",
+        "hopSingular": "{{count}} hop",
+        "hopPlural": "{{count}} hops",
+        "minReceive": "최소 수령량",
+        "slippage": "슬리피지 허용치",
+        "quoteFailed": "견적 실패",
+        "amountPlaceholder": "금액을 입력하세요",
+        "confirmTitle": "Swap 확인",
+        "confirmInput": "입력",
+        "mainnetWarn": "지갑에서 한 번 더 승인이 필요합니다. mainnet 실거래입니다.",
+        "successTitle": "Swap 성공",
+        "successLine": "트랜잭션이 네트워크에 전송됐습니다.",
+        "signatureLabel": "Signature",
+        "openSolscan": "Solscan 열기",
+        "failureTitle": "Swap 실패",
+        "pendingText": "지갑 승인 후 트랜잭션을 전송 중…",
+        "pendingHint": "네트워크 상황에 따라 수 초 걸릴 수 있습니다."
+    },
+    "errors": {
+        "userCancelled": "사용자가 트랜잭션 승인을 취소했습니다.",
+        "sessionTerminated": "지갑 세션이 종료됐습니다. 다시 시도해 주세요.",
+        "authExpired": "지갑 인증이 만료됐습니다. 지갑을 다시 연결한 뒤 시도해 주세요.",
+        "insufficientBalance": "잔액이 부족합니다. SOL 또는 입력 토큰 잔액을 확인해 주세요.",
+        "slippageExceeded": "가격 변동이 허용한 슬리피지를 초과했습니다. 슬리피지를 올리고 다시 시도해 주세요.",
+        "blockhashExpired": "트랜잭션이 블록해시 만료로 거부됐습니다. 다시 시도해 주세요.",
+        "computeBudget": "트랜잭션이 너무 복잡해 계산 한도를 넘었습니다. 잠시 후 다시 시도해 주세요.",
+        "rateLimit": "Jupiter API 요청이 너무 잦습니다. 잠시 후 다시 시도해 주세요.",
+        "network": "네트워크 오류로 요청이 실패했습니다. 연결 상태를 확인해 주세요.",
+        "jupiter5xx": "Jupiter 서비스가 일시적으로 응답하지 않습니다. 잠시 후 다시 시도해 주세요.",
+        "jupiterClient": "Jupiter 요청이 거부됐습니다 (HTTP {{status}}). 입력값을 확인해 주세요.",
+        "generic": "트랜잭션이 실패했습니다. 잠시 후 다시 시도해 주세요.",
+        "missingSignature": "트랜잭션 시그니처를 받지 못했습니다.",
+        "walletNotConnected": "지갑이 연결되어 있지 않습니다."
+    },
+    "settings": {
+        "title": "설정",
+        "language": "언어",
+        "ko": "한국어",
+        "en": "English",
+        "about": "정보",
+        "version": "버전",
+        "network": "네트워크"
+    }
+}

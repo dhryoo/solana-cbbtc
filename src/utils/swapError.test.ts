@@ -4,49 +4,56 @@ import { toFriendlySwapError } from "./swapError";
 
 describe("toFriendlySwapError", () =>
 {
-    it("maps user rejection to Korean cancel message", () =>
+    it("maps user rejection to userCancelled key", () =>
     {
         const result = toFriendlySwapError(new Error("User rejected the request"));
-        expect(result.message).toMatch(/사용자가/);
+        expect(result.key).toBe("errors.userCancelled");
         expect(result.isUserCancellation).toBe(true);
     });
 
-    it("maps wallet session termination to a friendly message", () =>
+    it("maps wallet session termination to sessionTerminated key", () =>
     {
         const result = toFriendlySwapError(new Error("session terminated unexpectedly"));
-        expect(result.message).toMatch(/지갑 세션/);
+        expect(result.key).toBe("errors.sessionTerminated");
         expect(result.isUserCancellation).toBe(true);
     });
 
     it("maps insufficient balance variants", () =>
     {
         const result = toFriendlySwapError(new Error("Transfer: insufficient lamports"));
-        expect(result.message).toMatch(/잔액이 부족/);
+        expect(result.key).toBe("errors.insufficientBalance");
         expect(result.isUserCancellation).toBe(false);
     });
 
     it("maps slippage exceeded", () =>
     {
         const result = toFriendlySwapError(new Error("Slippage tolerance exceeded by 1.2%"));
-        expect(result.message).toMatch(/슬리피지/);
+        expect(result.key).toBe("errors.slippageExceeded");
     });
 
     it("maps stale blockhash", () =>
     {
         const result = toFriendlySwapError(new Error("Blockhash not found"));
-        expect(result.message).toMatch(/블록해시/);
+        expect(result.key).toBe("errors.blockhashExpired");
     });
 
-    it("maps JupiterApiError 429 specifically", () =>
+    it("maps JupiterApiError 429 to rateLimit", () =>
     {
         const result = toFriendlySwapError(new JupiterApiError("rate limit", 429, {}));
-        expect(result.message).toMatch(/Jupiter API 요청이 너무 잦/);
+        expect(result.key).toBe("errors.rateLimit");
     });
 
-    it("maps JupiterApiError 5xx to service-unavailable", () =>
+    it("maps JupiterApiError 5xx to jupiter5xx", () =>
     {
         const result = toFriendlySwapError(new JupiterApiError("server down", 503, {}));
-        expect(result.message).toMatch(/일시적으로 응답하지 않/);
+        expect(result.key).toBe("errors.jupiter5xx");
+    });
+
+    it("maps Jupiter 4xx (non-429) to jupiterClient with status param", () =>
+    {
+        const result = toFriendlySwapError(new JupiterApiError("bad request", 400, {}));
+        expect(result.key).toBe("errors.jupiterClient");
+        expect(result.params).toEqual({ status: 400 });
     });
 
     it("includes raw message for debugging", () =>
@@ -55,9 +62,9 @@ describe("toFriendlySwapError", () =>
         expect(result.rawMessage).toBe("some weird internal error");
     });
 
-    it("returns a generic fallback for unknown errors", () =>
+    it("returns generic fallback for unknown errors", () =>
     {
         const result = toFriendlySwapError(new Error("unicorn"));
-        expect(result.message).toMatch(/트랜잭션이 실패/);
+        expect(result.key).toBe("errors.generic");
     });
 });

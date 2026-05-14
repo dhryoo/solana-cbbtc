@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
     Pressable,
     ScrollView,
@@ -26,6 +27,7 @@ type ModalStatus =
 
 export function SwapScreen(): React.JSX.Element
 {
+    const { t } = useTranslation();
     const { account } = useWallet();
     const [inputToken, setInputToken] = useState<TokenInfo>(SOL);
     const [outputToken, setOutputToken] = useState<TokenInfo>(CBBTC);
@@ -92,11 +94,14 @@ export function SwapScreen(): React.JSX.Element
                 onError: (err) =>
                 {
                     const friendly = toFriendlySwapError(err);
-                    setModalStatus({ kind: "error", message: friendly.message });
+                    setModalStatus({
+                        kind: "error",
+                        message: t(friendly.key, friendly.params ?? {}),
+                    });
                 },
             },
         );
-    }, [quoteQuery.data, swap]);
+    }, [quoteQuery.data, swap, t]);
 
     useEffect(() =>
     {
@@ -110,7 +115,7 @@ export function SwapScreen(): React.JSX.Element
 
     return (
         <ScrollView contentContainerStyle={styles.scroll}>
-            <Text style={styles.title}>Swap</Text>
+            <Text style={styles.title}>{t("swap.title")}</Text>
 
             <View style={styles.inputCard}>
                 <View style={styles.headerRow}>
@@ -125,14 +130,14 @@ export function SwapScreen(): React.JSX.Element
                     value={amount}
                     onChangeText={setAmount}
                     autoCorrect={false}
-                    accessibilityLabel="입력 금액"
+                    accessibilityLabel={t("swap.amountAccessibility")}
                 />
             </View>
 
             <View style={styles.flipRow}>
                 <Pressable
                     accessibilityRole="button"
-                    accessibilityLabel="토큰 방향 전환"
+                    accessibilityLabel={t("swap.flipAccessibility")}
                     onPress={onFlip}
                     style={({ pressed }) =>
                         [styles.flipButton, pressed && styles.flipPressed]}
@@ -146,7 +151,7 @@ export function SwapScreen(): React.JSX.Element
                     <Text style={styles.tokenSymbol}>{outputToken.symbol}</Text>
                     <Text style={styles.tokenName}>{outputToken.name}</Text>
                 </View>
-                <Text style={styles.placeholderHint}>↓ 견적이 아래에 표시됩니다</Text>
+                <Text style={styles.placeholderHint}>{t("swap.outputHint")}</Text>
             </View>
 
             <QuoteDisplay
@@ -162,7 +167,7 @@ export function SwapScreen(): React.JSX.Element
 
             <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="swap 실행"
+                accessibilityLabel={t("swap.swapButton")}
                 disabled={!canSwap}
                 onPress={openConfirm}
                 style={({ pressed }) =>
@@ -179,12 +184,12 @@ export function SwapScreen(): React.JSX.Element
                     ]}
                 >
                     {!account
-                        ? "지갑 연결 후 사용 가능"
+                        ? t("swap.btnConnectFirst")
                         : amount.trim() === ""
-                            ? "금액을 입력하세요"
+                            ? t("swap.btnAmountFirst")
                             : !quoteQuery.data
-                                ? "견적 조회 중…"
-                                : "Swap 실행"}
+                                ? t("swap.btnQuoteLoading")
+                                : t("swap.swapButton")}
                 </Text>
             </Pressable>
 

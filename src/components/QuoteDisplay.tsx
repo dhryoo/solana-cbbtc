@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { TokenInfo } from "@/constants/tokens";
@@ -30,19 +31,20 @@ export function QuoteDisplay({
     inputIsEmpty,
 }: QuoteDisplayProps): React.JSX.Element
 {
+    const { t } = useTranslation();
     const showSpinner = isLoading || (isFetching && !quote);
 
     return (
         <View style={styles.container}>
             <View style={styles.row}>
-                <Text style={styles.label}>예상 수령량</Text>
+                <Text style={styles.label}>{t("swap.expected")}</Text>
                 <View style={styles.valueWrap}>
                     {inputIsEmpty && (
-                        <Text style={styles.placeholder}>금액을 입력하세요</Text>
+                        <Text style={styles.placeholder}>{t("swap.amountPlaceholder")}</Text>
                     )}
                     {!inputIsEmpty && showSpinner && <ActivityIndicator />}
                     {!inputIsEmpty && !showSpinner && error && (
-                        <Text style={styles.error}>견적 실패</Text>
+                        <Text style={styles.error}>{t("swap.quoteFailed")}</Text>
                     )}
                     {!inputIsEmpty && !showSpinner && !error && quote && (
                         <Text style={styles.amount}>
@@ -56,16 +58,17 @@ export function QuoteDisplay({
             {quote && !inputIsEmpty && (
                 <>
                     <View style={styles.row}>
-                        <Text style={styles.label}>가격 영향</Text>
+                        <Text style={styles.label}>{t("swap.priceImpact")}</Text>
                         <Text style={styles.metric}>
                             {formatPriceImpact(quote.priceImpactPct)}
                         </Text>
                     </View>
                     <View style={styles.row}>
-                        <Text style={styles.label}>라우트</Text>
+                        <Text style={styles.label}>{t("swap.route")}</Text>
                         <Text style={styles.metric}>
-                            {quote.routePlan.length} hop
-                            {quote.routePlan.length > 1 ? "s" : ""}
+                            {quote.routePlan.length === 1
+                                ? t("swap.hopSingular", { count: 1 })
+                                : t("swap.hopPlural", { count: quote.routePlan.length })}
                             {quote.routePlan.length > 0 && (
                                 <Text style={styles.dim}>
                                     {" · "}
@@ -75,7 +78,7 @@ export function QuoteDisplay({
                         </Text>
                     </View>
                     <View style={styles.row}>
-                        <Text style={styles.label}>최소 수령량</Text>
+                        <Text style={styles.label}>{t("swap.minReceive")}</Text>
                         <Text style={styles.metric}>
                             {formatRawAmount(quote.otherAmountThreshold, outputToken.decimals)}{" "}
                             {outputToken.symbol}
@@ -85,7 +88,7 @@ export function QuoteDisplay({
             )}
 
             <View style={styles.slippageRow}>
-                <Text style={styles.label}>슬리피지 허용치</Text>
+                <Text style={styles.label}>{t("swap.slippage")}</Text>
                 <View style={styles.slippageOptions}>
                     {SLIPPAGE_OPTIONS_BPS.map((bps) => (
                         <Pressable
