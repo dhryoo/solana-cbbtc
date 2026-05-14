@@ -16,7 +16,9 @@
         "test:coverage": "jest --coverage",
         "typecheck": "tsc --noEmit",
         "ios": "expo run:ios",
-        "prepare": "simple-git-hooks"
+        "prepare": "simple-git-hooks",
+        "bundle:analyze": "react-native-bundle-visualizer --platform android",
+        "optimize:assets": "python3 scripts/optimize_assets.py"
     },
     "simple-git-hooks": {
         "pre-commit": "npx lint-staged && npx tsc --noEmit"
@@ -39,8 +41,10 @@
         "@tanstack/react-query": "^5.100.10",
         "buffer": "^6.0.3",
         "expo": "~54.0.33",
+        "expo-build-properties": "~1.0.10",
         "expo-clipboard": "~8.0.8",
         "expo-dev-client": "~6.0.21",
+        "expo-haptics": "~15.0.8",
         "expo-notifications": "~0.32.17",
         "expo-splash-screen": "~31.0.13",
         "expo-status-bar": "~3.0.9",
@@ -48,6 +52,7 @@
         "react": "19.1.0",
         "react-i18next": "^17.0.7",
         "react-native": "0.81.5",
+        "react-native-bundle-visualizer": "^4.0.0",
         "react-native-get-random-values": "~1.11.0"
     },
     "devDependencies": {

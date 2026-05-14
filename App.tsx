@@ -10,6 +10,7 @@ import { I18nProvider } from "@/providers/I18nProvider";
 import { NotificationProvider } from "@/providers/NotificationProvider";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { ThemeProvider, useTheme } from "@/providers/ThemeProvider";
+import { ToastProvider } from "@/providers/ToastProvider";
 import { WalletProvider } from "@/providers/WalletProvider";
 import { AppShell } from "@/screens/AppShell";
 
@@ -29,17 +30,19 @@ export default function App(): React.JSX.Element
     return (
         <ThemeProvider>
             <I18nProvider>
-                <QueryProvider>
-                    <ConnectionProvider>
-                        <NotificationProvider>
-                            <WalletProvider>
-                                <AppShell />
-                                <ThemedStatusBar />
-                                <SplashOverlay />
-                            </WalletProvider>
-                        </NotificationProvider>
-                    </ConnectionProvider>
-                </QueryProvider>
+                <ToastProvider>
+                    <QueryProvider>
+                        <ConnectionProvider>
+                            <NotificationProvider>
+                                <WalletProvider>
+                                    <AppShell />
+                                    <ThemedStatusBar />
+                                    <SplashOverlay />
+                                </WalletProvider>
+                            </NotificationProvider>
+                        </ConnectionProvider>
+                    </QueryProvider>
+                </ToastProvider>
             </I18nProvider>
         </ThemeProvider>
     );

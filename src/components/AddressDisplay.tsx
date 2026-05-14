@@ -1,10 +1,12 @@
 import * as Clipboard from "expo-clipboard";
-import React, { useCallback, useState } from "react";
+import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, Text } from "react-native";
 
 import type { ThemePalette } from "@/constants/theme";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
+import { useToast } from "@/providers/ToastProvider";
+import { hapticLight } from "@/services/HapticsService";
 /* eslint-disable react-native/no-unused-styles */
 
 interface AddressDisplayProps
@@ -24,22 +26,22 @@ export function AddressDisplay({
 {
     const { t } = useTranslation();
     const styles = useThemedStyles(makeStyles);
-    const [copiedFlash, setCopiedFlash] = useState(false);
+    const { showToast } = useToast();
 
     const onLongPress = useCallback(async (): Promise<void> =>
     {
         try
         {
             await Clipboard.setStringAsync(address);
-            setCopiedFlash(true);
+            void hapticLight();
+            showToast(t("common.copied"), { variant: "success" });
             onCopied?.();
-            setTimeout(() => setCopiedFlash(false), 1500);
         }
         catch
         {
             // clipboard 권한 거부 등 — 조용히 무시
         }
-    }, [address, onCopied]);
+    }, [address, onCopied, showToast, t]);
 
     const text = style === "short" ? shortenForDisplay(address) : address;
 
@@ -52,7 +54,7 @@ export function AddressDisplay({
             delayLongPress={400}
         >
             <Text style={[styles.address, style === "short" && styles.shortAddress]} selectable>
-                {copiedFlash ? t("common.copied") : text}
+                {text}
             </Text>
         </Pressable>
     );

@@ -1,13 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, Text, View } from "react-native";
+import { Animated, Pressable, Text, View } from "react-native";
 
 import type { ThemePalette } from "@/constants/theme";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
 import { HomeScreen } from "@/screens/HomeScreen";
 import { SettingsScreen } from "@/screens/SettingsScreen";
 import { SwapScreen } from "@/screens/SwapScreen";
+import { hapticSelection } from "@/services/HapticsService";
 
 type TabKey = "home" | "swap" | "settings";
 
@@ -31,12 +32,17 @@ export function AppShell(): React.JSX.Element
     const styles = useThemedStyles(makeStyles);
     const [tab, setTab] = useState<TabKey>("home");
 
+    const handleSelect = (next: TabKey): void =>
+    {
+        if (next === tab) return;
+        void hapticSelection();
+        setTab(next);
+    };
+
     return (
         <View style={styles.root}>
             <View style={styles.content}>
-                {tab === "home" && <HomeScreen />}
-                {tab === "swap" && <SwapScreen />}
-                {tab === "settings" && <SettingsScreen />}
+                <TabContent activeKey={tab} />
             </View>
 
             <View style={styles.tabbar}>
@@ -46,11 +52,49 @@ export function AppShell(): React.JSX.Element
                         tabKey={key}
                         label={t(`tabs.${key}`)}
                         active={tab === key}
-                        onPress={() => setTab(key)}
+                        onPress={() => handleSelect(key)}
                     />
                 ))}
             </View>
         </View>
+    );
+}
+
+// 탭 전환 시 부드러운 cross-fade. Animated.Value를 활용하되 React state도 동기화해
+// 비활성 탭은 unmount하여 메모리/RPC 비용 절감.
+function TabContent({ activeKey }: { activeKey: TabKey }): React.JSX.Element
+{
+    const opacity = useRef(new Animated.Value(1)).current;
+    const [renderedKey, setRenderedKey] = useState<TabKey>(activeKey);
+
+    useEffect(() =>
+    {
+        if (activeKey === renderedKey)
+        {
+            return;
+        }
+        Animated.timing(opacity, {
+            toValue: 0,
+            duration: 120,
+            useNativeDriver: true,
+        }).start(({ finished }) =>
+        {
+            if (!finished) return;
+            setRenderedKey(activeKey);
+            Animated.timing(opacity, {
+                toValue: 1,
+                duration: 180,
+                useNativeDriver: true,
+            }).start();
+        });
+    }, [activeKey, renderedKey, opacity]);
+
+    return (
+        <Animated.View style={{ flex: 1, opacity }}>
+            {renderedKey === "home" && <HomeScreen />}
+            {renderedKey === "swap" && <SwapScreen />}
+            {renderedKey === "settings" && <SettingsScreen />}
+        </Animated.View>
     );
 }
 

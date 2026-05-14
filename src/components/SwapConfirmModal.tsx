@@ -1,4 +1,5 @@
-import React from "react";
+import * as Clipboard from "expo-clipboard";
+import React, { useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
     ActivityIndicator,
@@ -12,6 +13,8 @@ import {
 import type { ThemePalette } from "@/constants/theme";
 import type { TokenInfo } from "@/constants/tokens";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
+import { useToast } from "@/providers/ToastProvider";
+import { hapticError, hapticLight, hapticSuccess } from "@/services/HapticsService";
 import type { QuoteResponse } from "@/types/jupiter";
 import { formatRawAmount } from "@/utils/format";
 
@@ -186,12 +189,38 @@ function SuccessStage({
 {
     const { t } = useTranslation();
     const styles = useThemedStyles(makeStyles);
+    const { showToast } = useToast();
+
+    useEffect(() =>
+    {
+        void hapticSuccess();
+    }, []);
+
+    const onLongPressSignature = useCallback(async (): Promise<void> =>
+    {
+        try
+        {
+            await Clipboard.setStringAsync(signature);
+            void hapticLight();
+            showToast(t("common.copied"), { variant: "success" });
+        }
+        catch { /* ignore */ }
+    }, [signature, showToast, t]);
+
     return (
         <>
             <Text style={styles.title}>{t("swap.successTitle")}</Text>
             <Text style={styles.successLine}>{t("swap.successLine")}</Text>
             <Text style={styles.sigLabel}>{t("swap.signatureLabel")}</Text>
-            <Text style={styles.signature} selectable>{signature}</Text>
+            <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t("common.copyAddress")}
+                accessibilityHint={t("common.copyAddressHint")}
+                onLongPress={() => { void onLongPressSignature(); }}
+                delayLongPress={400}
+            >
+                <Text style={styles.signature} selectable>{signature}</Text>
+            </Pressable>
 
             <View style={styles.actions}>
                 <Pressable
@@ -227,6 +256,12 @@ function ErrorStage({
 {
     const { t } = useTranslation();
     const styles = useThemedStyles(makeStyles);
+
+    useEffect(() =>
+    {
+        void hapticError();
+    }, []);
+
     return (
         <>
             <Text style={styles.title}>{t("swap.failureTitle")}</Text>

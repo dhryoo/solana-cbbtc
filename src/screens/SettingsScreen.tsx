@@ -9,6 +9,7 @@ import { SUPPORTED_LANGUAGES, type SupportedLanguage } from "@/i18n";
 import { useLanguage } from "@/providers/I18nProvider";
 import { useNotifications } from "@/providers/NotificationProvider";
 import { useTheme } from "@/providers/ThemeProvider";
+import { hapticSelection } from "@/services/HapticsService";
 
 const APP_VERSION = "0.1.0";
 
@@ -31,17 +32,20 @@ export function SettingsScreen(): React.JSX.Element
     const onSelectLanguage = (next: SupportedLanguage): void =>
     {
         if (next === language) return;
+        void hapticSelection();
         void setLanguage(next);
     };
 
     const onSelectTheme = (next: ThemeMode): void =>
     {
         if (next === themeMode) return;
+        void hapticSelection();
         void setThemeMode(next);
     };
 
     const onToggleNotifications = (next: boolean): void =>
     {
+        void hapticSelection();
         void notifications.setEnabled(next);
     };
 

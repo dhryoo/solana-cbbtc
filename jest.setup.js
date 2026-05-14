@@ -22,3 +22,12 @@ jest.mock("expo-clipboard", () => ({
     setStringAsync: jest.fn().mockResolvedValue(true),
     getStringAsync: jest.fn().mockResolvedValue(""),
 }));
+
+// expo-haptics mock
+jest.mock("expo-haptics", () => ({
+    impactAsync: jest.fn().mockResolvedValue(undefined),
+    notificationAsync: jest.fn().mockResolvedValue(undefined),
+    selectionAsync: jest.fn().mockResolvedValue(undefined),
+    ImpactFeedbackStyle: { Light: "light", Medium: "medium", Heavy: "heavy" },
+    NotificationFeedbackType: { Success: "success", Warning: "warning", Error: "error" },
+}));
