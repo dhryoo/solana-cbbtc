@@ -74,3 +74,6 @@ plan.md
 
 # Stray Finder duplicates
 *\ copy.*
+
+# Raw screenshot captures — intermediate files, framed versions are tracked.
+STORE/assets/raw-*.png
