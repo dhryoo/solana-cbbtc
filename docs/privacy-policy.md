@@ -1,3 +1,7 @@
+---
+title: Privacy Policy
+---
+
 # Privacy Policy — Solana cbBTC
 
 **Effective date**: 2026-05-14
@@ -23,12 +27,12 @@ This document describes the data practices of the **Solana cbBTC** mobile applic
 
 The app uses Android's `AsyncStorage` (encrypted at-rest by the OS where supported) to persist user preferences and session state:
 
-| Key | Purpose | Contents |
-|---|---|---|
-| `wallet:authToken` | Mobile Wallet Adapter session | Opaque token issued by your wallet (Seed Vault) — does not contain your private key |
-| `settings:language` | Language preference | "ko" or "en" |
-| `settings:themeMode` | Theme preference | "system", "light", or "dark" |
-| `settings:notifications:enabled` | Swap notification toggle | "1" or "0" |
+| Key                              | Purpose                       | Contents                                                                            |
+| -------------------------------- | ----------------------------- | ----------------------------------------------------------------------------------- |
+| `wallet:authToken`               | Mobile Wallet Adapter session | Opaque token issued by your wallet (Seed Vault) — does not contain your private key |
+| `settings:language`              | Language preference           | "ko" or "en"                                                                        |
+| `settings:themeMode`             | Theme preference              | "system", "light", or "dark"                                                        |
+| `settings:notifications:enabled` | Swap notification toggle      | "1" or "0"                                                                          |
 
 All of this data lives only on your device. Uninstalling the app removes it.
 
@@ -60,6 +64,7 @@ The app contacts the following external services. None of these requests carry y
 ## 4. Notifications
 
 If you enable swap completion notifications, the app:
+
 - Requests OS-level notification permission
 - Schedules **local-only** notifications using `expo-notifications`
 - **Does not** register a push token with any remote service
@@ -93,9 +98,10 @@ Material changes to this policy will be reflected in a new release of the app an
 
 This is an open-source project. For privacy concerns, questions, or to report an issue:
 
-- Repository: (to be added when public)
-- Maintainer email: (to be added)
+- Repository: <https://github.com/dhryoo/solana-cbbtc>
+- Issues: <https://github.com/dhryoo/solana-cbbtc/issues>
+- Maintainer email: <idfeelme@gmail.com>
 
 ---
 
-*Solana cbBTC is released under the MIT License. See the project repository for the full license text.*
+_Solana cbBTC is released under the MIT License. See the project repository for the full license text._

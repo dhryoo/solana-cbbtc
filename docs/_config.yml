@@ -1,0 +1,16 @@
+title: Solana cbBTC
+description: Mobile-native BTCfi dApp for the Solana Seeker — cbBTC ↔ SOL swaps via Jupiter, Seed Vault aware.
+theme: jekyll-theme-cayman
+permalink: pretty
+# pretty permalinks turn /privacy-policy.md into /privacy-policy/
+
+# Don't try to render anything outside docs/
+include:
+    - _config.yml
+
+# Default front matter for all docs/*.md
+defaults:
+    - scope:
+          path: ""
+      values:
+          layout: default

@@ -10,8 +10,10 @@
 - [ ] `~/.gradle/gradle.properties`에 `SEEKER_BTCFI_RELEASE_*` 4개 키 설정 ✓ 확인
 - [ ] release APK가 `./run.sh`로 정상 빌드 + 실기에서 모든 기능 동작 ✓ 확인
 - [ ] `STORE/metadata/description.{ko,en}.md` 검토 — 글자 수 한도 내, 오타·과장 점검
-- [ ] `STORE/legal/privacy-policy.md`를 공개 URL로 호스팅 (GitHub Pages / Notion / Vercel 등)
-- [ ] LICENSE 파일을 공개 URL로 호스팅 (보통 GitHub repo README가 가리킴)
+- [x] Privacy Policy 공개 URL — GitHub Pages: <https://dhryoo.github.io/solana-cbbtc/privacy-policy/>
+    - 소스: `docs/privacy-policy.md` (canonical)
+    - Repo Settings → Pages 에서 `main` branch + `/docs` 폴더로 활성화 필요 (한 번만)
+- [x] LICENSE 공개 URL: <https://github.com/dhryoo/solana-cbbtc/blob/main/LICENSE>
 
 ---
 
@@ -80,9 +82,11 @@ dApp Store의 모든 NFT 민팅은 **publisher 지갑**으로 서명합니다. *
 이번 v0.1.0 release를 위한 메타데이터 입력:
 
 ### 6.1 Top Up Balance (Arweave 비용)
+
 - [ ] Portal에서 SOL → ArDrive 크레딧 변환. 약 0.05~0.1 SOL 충전 권장.
 
 ### 6.2 Release 정보 입력
+
 - [ ] `versionCode`: `1`
 - [ ] `versionName`: `0.1.0`
 - [ ] APK 업로드: `android/app/build/outputs/apk/release/app-release.apk`
@@ -90,7 +94,9 @@ dApp Store의 모든 NFT 민팅은 **publisher 지갑**으로 서명합니다. *
 - [ ] APK SHA-256 fingerprint 기록 (변조 검증용)
 
 ### 6.3 메타데이터 입력 (locale별)
+
 **한국어 (ko-KR)** — `STORE/metadata/description.ko.md` 복사:
+
 - [ ] App name: `Solana cbBTC`
 - [ ] Short description (≤80자)
 - [ ] Long description (≤4000자)
@@ -98,6 +104,7 @@ dApp Store의 모든 NFT 민팅은 **publisher 지갑**으로 서명합니다. *
 - [ ] Keywords: `bitcoin, cbbtc, defi, swap, solana, wrapped-bitcoin, jupiter, btcfi, seeker, wallet`
 
 **English (en-US)** — `STORE/metadata/description.en.md` 복사:
+
 - [ ] App name: `Solana cbBTC`
 - [ ] Short description (≤80 chars)
 - [ ] Long description (≤4000 chars)
@@ -105,18 +112,21 @@ dApp Store의 모든 NFT 민팅은 **publisher 지갑**으로 서명합니다. *
 - [ ] Keywords (동일)
 
 ### 6.4 시각 자산 업로드
+
 - [ ] Icon 512×512 (`STORE/assets/icon-512.png`)
 - [ ] Banner 1200×600 (`STORE/assets/banner-1200x600.png`)
 - [ ] Feature graphic 1200×1200 (선택)
 - [ ] 스크린샷 4장 이상
 
 ### 6.5 카테고리 & 권한
+
 - [ ] Category: `DeFi`
 - [ ] Permission rationale (Android 권한 사용 사유):
     - `INTERNET`: Solana RPC + Jupiter API 호출
     - `POST_NOTIFICATIONS` (Android 13+): swap 완료 알림 (선택적, 사용자 설정 따라)
 
 ### 6.6 서명 + 민팅
+
 - [ ] 모든 메타데이터 검토 후 "Submit for Mint"
 - [ ] Publisher 지갑으로 Release NFT 서명 → 민팅
 - [ ] **민팅 비용**: ~0.01 SOL (앱마다)
@@ -133,15 +143,18 @@ dApp Store의 모든 NFT 민팅은 **publisher 지갑**으로 서명합니다. *
 ### 가능한 결과
 
 **Approved**:
+
 - dApp Store에 노출됨
 - "View on dApp Store" 링크 확보
 - Seeker 사용자가 검색·설치 가능
 
 **Rejected**:
+
 - 피드백 메일에 명시된 사항을 `plan.md`에 기록
 - 수정 후 새 release (versionCode +1) 재제출
 
 **Common rejection 이유 (선험적)**:
+
 - 디버그 키 서명 → 이미 release keystore로 처리됨 ✓
 - privacy_policy_url 접근 불가 → URL 검증 필수
 - 메타데이터 부정확 (스크린샷이 실제 앱과 다름 등)
