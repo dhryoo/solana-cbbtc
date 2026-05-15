@@ -7,7 +7,7 @@
     "license": "MIT",
     "repository": {
         "type": "git",
-        "url": "https://github.com/<owner>/solana-cbbtc.git"
+        "url": "https://github.com/dhryoo/solana-cbbtc.git"
     },
     "keywords": [
         "solana",

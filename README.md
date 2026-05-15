@@ -38,7 +38,7 @@ Mobile Wallet Adapter and Seed Vault hardware-backed signing.
 ## Setup
 
 ```bash
-git clone https://github.com/<owner>/solana-cbbtc.git
+git clone https://github.com/dhryoo/solana-cbbtc.git
 cd solana-cbbtc
 npm install
 cp .env.example .env
@@ -134,7 +134,7 @@ Solana Seeker 폰을 타겟으로 한 BTCfi 모바일 dApp입니다. cbBTC ↔ S
 ### 빠른 실행 (Android 디바이스 필요)
 
 ```bash
-git clone https://github.com/<owner>/solana-cbbtc.git
+git clone https://github.com/dhryoo/solana-cbbtc.git
 cd solana-cbbtc
 npm install
 cp .env.example .env
