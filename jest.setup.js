@@ -32,6 +32,18 @@ jest.mock("expo-haptics", () => ({
     NotificationFeedbackType: { Success: "success", Warning: "warning", Error: "error" },
 }));
 
+// expo-localization mock — 테스트는 기본으로 영어 locale을 반환
+jest.mock("expo-localization", () => ({
+    getLocales: jest.fn(() => [
+        { languageCode: "en", languageTag: "en-US", regionCode: "US" },
+    ]),
+    useLocales: jest.fn(() => [
+        { languageCode: "en", languageTag: "en-US", regionCode: "US" },
+    ]),
+    getCalendars: jest.fn(() => []),
+    useCalendars: jest.fn(() => []),
+}));
+
 // expo-network mock — native bridge 없이도 useNetworkState 호출 가능하도록.
 // 테스트는 기본적으로 online 상태로 동작 (isConnected/isInternetReachable=true)
 jest.mock("expo-network", () => ({

@@ -9,6 +9,7 @@ import React, {
 
 import i18n, {
     DEFAULT_LANGUAGE,
+    detectSystemLanguage,
     type SupportedLanguage,
 } from "@/i18n";
 import { loadLanguagePreference, saveLanguagePreference } from "@/utils/languageStorage";
@@ -37,12 +38,14 @@ export function I18nProvider({ children }: I18nProviderProps): React.JSX.Element
         let cancelled = false;
         const restore = async (): Promise<void> =>
         {
+            // 1) 저장된 사용자 선택이 있으면 그것을 사용
+            // 2) 없으면 시스템 locale 기반 자동 감지 (예: ko-KR → ko, 그 외 → en)
             const stored = await loadLanguagePreference();
             if (cancelled)
             {
                 return;
             }
-            const next = stored ?? DEFAULT_LANGUAGE;
+            const next = stored ?? detectSystemLanguage();
             await i18n.changeLanguage(next);
             if (cancelled)
             {
