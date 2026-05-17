@@ -6,6 +6,7 @@ import { useWallet } from "@/hooks/useWallet";
 import * as WalletService from "@/services/WalletService";
 import * as authStorage from "@/utils/authStorage";
 
+import { AppLockProvider } from "./AppLockProvider";
 import { WalletProvider } from "./WalletProvider";
 
 jest.mock("@/services/WalletService");
@@ -27,7 +28,14 @@ function makeAccount(authToken = "auth-1"): WalletService.ConnectedAccount
 
 function wrapper({ children }: { children: React.ReactNode }): React.JSX.Element
 {
-    return <WalletProvider>{children}</WalletProvider>;
+    // WalletProvider 가 useAppLock 을 호출하므로 AppLockProvider 가 부모여야 함.
+    // 테스트 환경에선 biometric 미설치 → state 가 "unlocked" 로 진입 → wallet
+    // 자동 reconnect 정상 동작.
+    return (
+        <AppLockProvider>
+            <WalletProvider>{children}</WalletProvider>
+        </AppLockProvider>
+    );
 }
 
 describe("WalletProvider", () =>

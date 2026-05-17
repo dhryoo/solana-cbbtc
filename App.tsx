@@ -38,14 +38,21 @@ export default function App(): React.JSX.Element
                         <QueryProvider>
                             <ConnectionProvider>
                                 <NotificationProvider>
-                                    <WalletProvider>
-                                        <AppLockProvider>
+                                    {/*
+                                     * AppLockProvider 가 WalletProvider 부모 — wallet 자동
+                                     * reconnect 가 잠금 해제 이전에 일어나면 MWA intent 로
+                                     * 앱이 background 로 전환되어 biometric prompt 가 silent
+                                     * fail 함. WalletProvider 가 useAppLock 으로 unlocked
+                                     * 상태가 될 때까지 reconnect 를 미룬다.
+                                     */}
+                                    <AppLockProvider>
+                                        <WalletProvider>
                                             <AppShell />
                                             <ThemedStatusBar />
                                             <SplashOverlay />
-                                            <LockScreen />
-                                        </AppLockProvider>
-                                    </WalletProvider>
+                                        </WalletProvider>
+                                        <LockScreen />
+                                    </AppLockProvider>
                                 </NotificationProvider>
                             </ConnectionProvider>
                         </QueryProvider>
