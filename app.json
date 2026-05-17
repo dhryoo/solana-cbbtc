@@ -22,7 +22,7 @@
         ],
         "name": "Solana cbBTC",
         "slug": "seeker-btcfi",
-        "version": "0.1.3",
+        "version": "0.1.4",
         "orientation": "portrait",
         "icon": "./assets/icon.png",
         "userInterfaceStyle": "automatic",
@@ -42,7 +42,7 @@
         },
         "android": {
             "package": "com.seekerbtcfi.app",
-            "versionCode": 6,
+            "versionCode": 7,
             "adaptiveIcon": {
                 "foregroundImage": "./assets/adaptive-icon.png",
                 "backgroundColor": "#9945FF"
