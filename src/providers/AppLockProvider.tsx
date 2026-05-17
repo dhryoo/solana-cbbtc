@@ -60,10 +60,50 @@ export function AppLockProvider({ children }: AppLockProviderProps): React.JSX.E
     // ref 는 동기적으로 update되므로 같은 frame 내 중복 호출도 차단.
     const inFlightRef = useRef(false);
 
+    const unlock = useCallback(async (): Promise<void> =>
+    {
+        // 동기 mutex: setState 가 비동기 적용되는 동안 다음 frame 의 useEffect 가 unlock 을 또
+        // 호출해도 즉시 reject. 이전 fix(state-based guard)가 빠른 재진입을 못 막아 native biometric
+        // 서비스에 "AuthSession is not current" race가 폭주했음 (production logcat 확인).
+        if (inFlightRef.current)
+        {
+            return;
+        }
+        if (stateRef.current === "unlocked")
+        {
+            return;
+        }
+        inFlightRef.current = true;
+        try
+        {
+            setState("unlocking");
+            // biometric prompt 자체가 만드는 AppState background→active 전환을 "잠금 재발동" 으로
+            // 잘못 해석하지 않도록 unlock 진입/종료 시 background timestamp 를 초기화.
+            lastBackgroundedAt.current = null;
+            const outcome = await authenticate("앱 잠금 해제");
+            lastBackgroundedAt.current = null;
+            if (outcome.kind === "success")
+            {
+                setState("unlocked");
+                return;
+            }
+            // 실패: 잠금 유지. 사용자가 LockScreen 버튼으로 재시도 가능.
+            setState("locked");
+        }
+        finally
+        {
+            inFlightRef.current = false;
+        }
+    }, []);
+
     // 시작 시 1회: 디바이스 능력 + 저장된 preference 조회.
+    // App Lock 이 활성화되어 있으면 짧은 delay 후 자동으로 unlock() 트리거 — LockScreen 의
+    // useEffect 가 디바이스에 따라 mount 직후 발동 안 하는 경우가 있어서, Provider 가
+    // 명시적으로 첫 prompt 를 발동.
     useEffect(() =>
     {
         let cancelled = false;
+        let initialUnlockTimer: ReturnType<typeof setTimeout> | undefined;
         void (async (): Promise<void> =>
         {
             const [cap, stored] = await Promise.all([
@@ -78,14 +118,32 @@ export function AppLockProvider({ children }: AppLockProviderProps): React.JSX.E
             const usable = cap.hasHardware && cap.isEnrolled;
             const effectivelyEnabled = stored && usable;
             setEnabledState(effectivelyEnabled);
-            // 저장된 preference가 있고 사용 가능하면 즉시 잠금 상태로 시작
-            setState(effectivelyEnabled ? "locked" : "unlocked");
+            if (effectivelyEnabled)
+            {
+                setState("locked");
+                // state propagation + native biometric service 안정화를 위한 짧은 delay
+                initialUnlockTimer = setTimeout(() =>
+                {
+                    if (!cancelled)
+                    {
+                        void unlock();
+                    }
+                }, 50);
+            }
+            else
+            {
+                setState("unlocked");
+            }
         })();
         return () =>
         {
             cancelled = true;
+            if (initialUnlockTimer !== undefined)
+            {
+                clearTimeout(initialUnlockTimer);
+            }
         };
-    }, []);
+    }, [unlock]);
 
     // AppState 감지: background → active 전이 시 잠금 재활성화
     useEffect(() =>
@@ -155,42 +213,6 @@ export function AppLockProvider({ children }: AppLockProviderProps): React.JSX.E
         setState("unlocked");
         return true;
     }, [capability]);
-
-    const unlock = useCallback(async (): Promise<void> =>
-    {
-        // 동기 mutex: setState 가 비동기 적용되는 동안 다음 frame 의 useEffect 가 unlock 을 또
-        // 호출해도 즉시 reject. 이전 fix(state-based guard)가 빠른 재진입을 못 막아 native biometric
-        // 서비스에 "AuthSession is not current" race가 폭주했음 (production logcat 확인).
-        if (inFlightRef.current)
-        {
-            return;
-        }
-        if (stateRef.current === "unlocked")
-        {
-            return;
-        }
-        inFlightRef.current = true;
-        try
-        {
-            setState("unlocking");
-            // biometric prompt 자체가 만드는 AppState background→active 전환을 "잠금 재발동" 으로
-            // 잘못 해석하지 않도록 unlock 진입/종료 시 background timestamp 를 초기화.
-            lastBackgroundedAt.current = null;
-            const outcome = await authenticate("앱 잠금 해제");
-            lastBackgroundedAt.current = null;
-            if (outcome.kind === "success")
-            {
-                setState("unlocked");
-                return;
-            }
-            // 실패: 잠금 유지. 사용자가 LockScreen 버튼으로 재시도 가능.
-            setState("locked");
-        }
-        finally
-        {
-            inFlightRef.current = false;
-        }
-    }, []);
 
     const value = useMemo<AppLockContextValue>(() =>
         ({
