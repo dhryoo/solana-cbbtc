@@ -97,13 +97,14 @@ export function AppLockProvider({ children }: AppLockProviderProps): React.JSX.E
     }, []);
 
     // 시작 시 1회: 디바이스 능력 + 저장된 preference 조회.
-    // App Lock 이 활성화되어 있으면 짧은 delay 후 자동으로 unlock() 트리거 — LockScreen 의
-    // useEffect 가 디바이스에 따라 mount 직후 발동 안 하는 경우가 있어서, Provider 가
-    // 명시적으로 첫 prompt 를 발동.
+    //
+    // 자동 biometric prompt 는 일부러 발동하지 않는다. 앱 mount / wallet reconnect /
+    // MWA intent 등이 동시에 일어나면서 native biometric service 가 paused-app 의 요청을
+    // silent-ignore 하는 경우가 production 에서 재현되었음 (logcat 분석). 사용자가
+    // LockScreen 에서 명시적으로 탭하면 그때 unlock() 호출 — 그 path 는 항상 작동.
     useEffect(() =>
     {
         let cancelled = false;
-        let initialUnlockTimer: ReturnType<typeof setTimeout> | undefined;
         void (async (): Promise<void> =>
         {
             const [cap, stored] = await Promise.all([
@@ -118,32 +119,13 @@ export function AppLockProvider({ children }: AppLockProviderProps): React.JSX.E
             const usable = cap.hasHardware && cap.isEnrolled;
             const effectivelyEnabled = stored && usable;
             setEnabledState(effectivelyEnabled);
-            if (effectivelyEnabled)
-            {
-                setState("locked");
-                // state propagation + native biometric service 안정화를 위한 짧은 delay
-                initialUnlockTimer = setTimeout(() =>
-                {
-                    if (!cancelled)
-                    {
-                        void unlock();
-                    }
-                }, 50);
-            }
-            else
-            {
-                setState("unlocked");
-            }
+            setState(effectivelyEnabled ? "locked" : "unlocked");
         })();
         return () =>
         {
             cancelled = true;
-            if (initialUnlockTimer !== undefined)
-            {
-                clearTimeout(initialUnlockTimer);
-            }
         };
-    }, [unlock]);
+    }, []);
 
     // AppState 감지: background → active 전이 시 잠금 재활성화
     useEffect(() =>

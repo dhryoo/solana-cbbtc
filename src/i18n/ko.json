@@ -140,7 +140,9 @@
         "title": "Solana cbBTC 잠김",
         "subtitle": "지문 또는 PIN으로 잠금을 해제해 주세요.",
         "authenticating": "인증 중…",
-        "unlockAction": "잠금 해제"
+        "unlockAction": "잠금 해제",
+        "tapToUnlock": "화면을 탭하여 잠금 해제",
+        "tapHint": "화면 어디든 탭하면 생체 인증이 시작됩니다"
     },
     "about": {
         "title": "앱 소개",

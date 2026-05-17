@@ -140,7 +140,9 @@
         "title": "Solana cbBTC locked",
         "subtitle": "Unlock with fingerprint or device PIN.",
         "authenticating": "Authenticating…",
-        "unlockAction": "Unlock"
+        "unlockAction": "Unlock",
+        "tapToUnlock": "Tap anywhere to unlock",
+        "tapHint": "Tapping the screen starts biometric authentication"
     },
     "about": {
         "title": "About",
