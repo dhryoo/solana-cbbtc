@@ -39,6 +39,12 @@ const AppLockContext = createContext<AppLockContextValue | null>(null);
 // 응답이 느릴 수 있어 3초까지는 같은 인증 세션으로 간주.
 const REGLOCK_GRACE_MS = 3000;
 
+// 사용자가 방금 잠금을 푼 직후엔 wallet auto-reconnect 가 MWA intent 로 앱을 background 로
+// 보냈다가 곧 돌아오는 background↔active transition 이 발생함. 이 시점에 reglock 이 발동되면
+// 사용자가 인증 직후 LockScreen 으로 다시 튕겨나가는 현상이 생긴다 (production 재현).
+// 따라서 unlock 후 일정 시간 동안은 AppState 변화로 인한 reglock 을 일괄 무시.
+const POST_UNLOCK_REGLOCK_GRACE_MS = 20_000;
+
 interface AppLockProviderProps
 {
     children: React.ReactNode;
@@ -59,6 +65,9 @@ export function AppLockProvider({ children }: AppLockProviderProps): React.JSX.E
     // 동기 mutex — state 기반 가드는 setState 의 비동기성 때문에 빠른 재진입에 약함.
     // ref 는 동기적으로 update되므로 같은 frame 내 중복 호출도 차단.
     const inFlightRef = useRef(false);
+    // 방금 unlock 한 시각. AppState handler 가 reglock 결정 시 이 값을 확인해
+    // wallet reconnect 등 system-initiated background transition 으로 인한 잘못된 reglock 차단.
+    const lastUnlockAtRef = useRef<number | null>(null);
 
     const unlock = useCallback(async (): Promise<void> =>
     {
@@ -84,6 +93,7 @@ export function AppLockProvider({ children }: AppLockProviderProps): React.JSX.E
             lastBackgroundedAt.current = null;
             if (outcome.kind === "success")
             {
+                lastUnlockAtRef.current = Date.now();
                 setState("unlocked");
                 return;
             }
@@ -143,6 +153,14 @@ export function AppLockProvider({ children }: AppLockProviderProps): React.JSX.E
                 lastBackgroundedAt.current = null;
                 // grace period: biometric prompt 등이 잠시 background를 만들 수 있어 너무 짧으면 무시
                 if (t === null || Date.now() - t < REGLOCK_GRACE_MS)
+                {
+                    return;
+                }
+                // 방금 unlock 한 직후 (20초 이내) wallet auto-reconnect 등이 만드는
+                // background transition 은 reglock 트리거가 아님.
+                const unlockedAt = lastUnlockAtRef.current;
+                if (unlockedAt !== null
+                    && Date.now() - unlockedAt < POST_UNLOCK_REGLOCK_GRACE_MS)
                 {
                     return;
                 }
