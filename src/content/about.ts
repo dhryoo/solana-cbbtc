@@ -7,7 +7,7 @@ export const ABOUT_KO = `# Solana cbBTC
 
 Solana Seeker 사용자를 위한 BTCfi 모바일 앱입니다.
 
-cbBTC는 Coinbase가 발행한 비트코인 1:1 페그 토큰으로, Solana 메인넷에서 시총 $300M+ 규모의 가장 안정적인 wrapped Bitcoin입니다. 본 앱은 cbBTC를 Solana 모바일 환경에서 안전하게 다룰 수 있는 가장 간결한 경로를 제공합니다.
+cbBTC는 Coinbase가 발행한 비트코인 1:1 페그 토큰으로, Solana 메인넷에서 시총 $340M+ 규모의 가장 안정적인 wrapped Bitcoin입니다. 본 앱은 cbBTC를 Solana 모바일 환경에서 안전하게 다룰 수 있는 가장 간결한 경로를 제공합니다.
 
 ## 🔑 핵심 기능
 
@@ -64,6 +64,37 @@ React Native · Expo SDK 54 · TypeScript strict · Solana Mobile Wallet Adapter
 
 ---
 
+## 🔧 문제 해결
+
+### 앱이 "인증 중..." 에서 멈춰 있어요
+0.1.0 초기 버전에 알려진 잠금 해제 버그입니다. **0.1.1 이상 버전에서는 수정**되었습니다. 현재 stuck 상태라면:
+
+1. Android 설정 → 앱 → **Solana cbBTC** → 저장공간 → **데이터 지우기**
+2. 앱을 다시 열어 지갑 재연결
+3. (선택) 설정에서 앱 잠금 다시 켜기 — 새 버전은 해당 race를 우회합니다
+
+### 지갑이 연결되지 않아요
+- MWA 호환 지갑이 설치되어 있는지 확인 (Phantom, Solflare, Backpack, Seeker Seed Vault)
+- 인터넷 연결 확인 — 상단에 오프라인 배너가 떠 있지 않은지
+- 지갑 앱을 한 번 열어 잠금 해제한 후 재시도
+
+### 잔액이 표시되지 않거나 견적이 안 와요
+- 상단에 "인터넷 연결 없음" 배너가 있다면 네트워크 확인
+- 자산 화면에서 **아래로 당겨 새로고침**
+- Jupiter API rate limit (429) 일 수 있음 — 잠시 후 재시도하면 자동 백오프
+
+### Swap이 실패해요
+- **"가스비용 SOL이 부족합니다"** → SOL 잔액 0.002 SOL 이상 확인
+- **"슬리피지 초과"** → 슬리피지를 0.5% → 1% 로 올리고 재시도
+- **"블록해시 만료"** → 즉시 재시도 (자동으로 새 견적이 발급됨)
+- **"사용자 취소"** → 지갑에서 한 번 더 승인
+
+### 그 외 문제
+- 설정 → 정보 → **문의 / 제보** 로 이메일 보내거나
+- GitHub Issues 에 등록: https://github.com/dhryoo/solana-cbbtc/issues
+
+---
+
 ## ⚠️ 안내
 
 Solana cbBTC는 사용자가 직접 트랜잭션을 승인하는 self-custody 지갑 도구입니다. 트랜잭션 비용은 Solana 네트워크 표준 수수료가 적용되며, Jupiter swap에는 라우트별 가격 영향이 발생합니다. 트랜잭션 실행 전 모달에서 정확한 수령량과 슬리피지를 확인해 주세요.
@@ -74,7 +105,7 @@ export const ABOUT_EN = `# Solana cbBTC
 
 The mobile BTCfi app for Solana Seeker users.
 
-cbBTC is Coinbase's 1:1 Bitcoin-pegged token — currently the largest wrapped Bitcoin on Solana mainnet with $300M+ market cap. This app gives you the most direct, hardware-secured path to hold and swap cbBTC from your Seeker.
+cbBTC is Coinbase's 1:1 Bitcoin-pegged token — currently the largest wrapped Bitcoin on Solana mainnet with $340M+ market cap. This app gives you the most direct, hardware-secured path to hold and swap cbBTC from your Seeker.
 
 ## 🔑 Core features
 
@@ -128,6 +159,37 @@ React Native · Expo SDK 54 · TypeScript strict · Solana Mobile Wallet Adapter
 ## 🌐 Open source
 
 Released under the **MIT license**. All security and transaction logic is open for review.
+
+---
+
+## 🔧 Troubleshooting
+
+### The app gets stuck on "Authenticating…"
+A known App Lock unlock bug in v0.1.0. **Fixed in v0.1.1+**. If you're currently stuck:
+
+1. Android Settings → Apps → **Solana cbBTC** → Storage → **Clear data**
+2. Reopen the app and reconnect your wallet
+3. (Optional) Re-enable App Lock in Settings — the new version sidesteps the race
+
+### My wallet won't connect
+- Make sure an MWA-compatible wallet is installed (Phantom, Solflare, Backpack, Seeker Seed Vault)
+- Check your internet connection — no offline banner at the top
+- Open your wallet app once to unlock it, then retry
+
+### Balances or quotes won't load
+- If the "No internet connection" banner is showing, check your network
+- Pull down to refresh on the Assets screen
+- May be a Jupiter API rate limit (429) — retry after a moment, the app backs off automatically
+
+### My swap fails
+- **"Insufficient SOL for fees"** → keep at least 0.002 SOL for gas
+- **"Slippage exceeded"** → bump slippage from 0.5% to 1% and retry
+- **"Blockhash expired"** → retry immediately (a fresh quote is fetched automatically)
+- **"User cancelled"** → approve once more in the wallet
+
+### Anything else
+- Settings → About → **Feedback** to email us, or
+- File a GitHub issue: https://github.com/dhryoo/solana-cbbtc/issues
 
 ---
 

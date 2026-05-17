@@ -12,6 +12,7 @@ Hold and swap **cbBTC** (Coinbase Wrapped BTC on Solana) directly from your phon
 - 📖 [**Source code on GitHub**](https://github.com/dhryoo/solana-cbbtc)
 - 🔒 [**Privacy Policy**](./privacy-policy)
 - 📄 [**Terms of Use**](./terms-of-use)
+- 🔧 [**Troubleshooting**](./troubleshooting)
 - 📜 [MIT License](https://github.com/dhryoo/solana-cbbtc/blob/main/LICENSE)
 - 🐛 [Report an issue](https://github.com/dhryoo/solana-cbbtc/issues)
 

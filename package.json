@@ -1,6 +1,6 @@
 {
     "name": "solana-cbbtc",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "Mobile-native BTCfi dApp for the Solana Seeker — cbBTC ↔ SOL swaps via Jupiter, Seed Vault aware.",
     "main": "index.ts",
     "private": true,
