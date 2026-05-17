@@ -35,8 +35,9 @@ interface AppLockContextValue
 const AppLockContext = createContext<AppLockContextValue | null>(null);
 
 // background에서 active로 돌아왔을 때 너무 짧은 부재(예: biometric prompt 자체로 인한 transition)는
-// 재잠금하지 않도록 grace period 적용.
-const REGLOCK_GRACE_MS = 1500;
+// 재잠금하지 않도록 grace period 적용. Seeker의 hardware-backed prompt는 일반 Android보다
+// 응답이 느릴 수 있어 3초까지는 같은 인증 세션으로 간주.
+const REGLOCK_GRACE_MS = 3000;
 
 interface AppLockProviderProps
 {
@@ -159,7 +160,13 @@ export function AppLockProvider({ children }: AppLockProviderProps): React.JSX.E
             return;
         }
         setState("unlocking");
+        // biometric prompt 자체가 만드는 AppState background→active 전환을 "잠금 재발동" 으로
+        // 잘못 해석하지 않도록 unlock 진입 시 background timestamp를 초기화.
+        // 동일하게 unlock 종료 후에도 한 번 더 reset해서, authenticate가 resolve된 뒤 늦게 도착하는
+        // AppState handler가 방금 unlocked 한 상태를 다시 locked로 강제하는 race를 차단.
+        lastBackgroundedAt.current = null;
         const outcome = await authenticate("앱 잠금 해제");
+        lastBackgroundedAt.current = null;
         if (outcome.kind === "success")
         {
             setState("unlocked");

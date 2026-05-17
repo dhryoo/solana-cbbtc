@@ -29,16 +29,39 @@ export type AuthenticateOutcome =
 
 // authenticateAsync는 OS-native prompt를 표시. 결과를 정규화해 상위에 전달.
 // disableDeviceFallback: false (기본) — biometric 실패 시 OS가 PIN/패턴 fallback을 자동 제공.
-export async function authenticate(promptMessage: string): Promise<AuthenticateOutcome>
+//
+// timeoutMs (기본 30초): expo-local-authentication 이 일부 Android 디바이스에서 OS prompt 표시 후
+// promise를 resolve 하지 않는 known hang 이슈 방어. timeout 시 caller가 잠금 화면을 재설정
+// 할 수 있도록 'timeout' 결과 반환.
+const DEFAULT_AUTH_TIMEOUT_MS = 30_000;
+
+export async function authenticate(
+    promptMessage: string,
+    timeoutMs: number = DEFAULT_AUTH_TIMEOUT_MS,
+): Promise<AuthenticateOutcome>
 {
     try
     {
-        const result = await LocalAuthentication.authenticateAsync({
+        const authPromise = LocalAuthentication.authenticateAsync({
             promptMessage,
             disableDeviceFallback: false,
-            // Android에서 cancellation 처리 명확하게
             cancelLabel: undefined,
         });
+
+        let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+        const timeoutPromise = new Promise<{ success: false; error: string }>((resolve) =>
+        {
+            timeoutHandle = setTimeout(
+                () => resolve({ success: false, error: "timeout" }),
+                timeoutMs,
+            );
+        });
+
+        const result = await Promise.race([authPromise, timeoutPromise]);
+        if (timeoutHandle !== undefined)
+        {
+            clearTimeout(timeoutHandle);
+        }
 
         if (result.success)
         {
