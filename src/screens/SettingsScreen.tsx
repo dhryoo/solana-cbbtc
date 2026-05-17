@@ -17,7 +17,7 @@ import { hapticSelection } from "@/services/HapticsService";
 import { useSeekerIdentity } from "@/hooks/useSeekerIdentity";
 import { useWallet } from "@/hooks/useWallet";
 
-const APP_VERSION = "0.1.1";
+const APP_VERSION = "0.1.2";
 const FEEDBACK_EMAIL = "idfeelme@gmail.com";
 
 const THEME_MODES: ThemeMode[] = ["system", "light", "dark"];

@@ -1,21 +1,29 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useAppLock } from "@/providers/AppLockProvider";
 
 // 풀스크린 잠금 오버레이. AppLockProvider 상태가 "locked" 또는 "unlocking"일 때만 표시.
-// 마운트 시 자동으로 unlock 시도 — 사용자가 즉시 biometric prompt 받음.
+//
+// 자동 unlock 정책 (v0.1.2 이후):
+// - mount 시 단 1회만 자동 biometric prompt 시도
+// - 실패하거나 cancelled 되어 state 가 다시 "locked" 로 떨어져도 자동으로 재발동하지 않음
+// - 이전 버전에서는 state 변화마다 unlock 재호출 → 빠른 재진입으로 native biometric service
+//   가 "AuthSession is not current" race 에 빠지는 버그(stuck "Authenticating…") 의 원인
+// - 사용자가 LockScreen 버튼으로 명시적으로 재시도 가능
 export function LockScreen(): React.JSX.Element | null
 {
     const { t } = useTranslation();
     const { state, unlock } = useAppLock();
+    const autoTriedRef = useRef(false);
 
     useEffect(() =>
     {
-        if (state === "locked")
+        if (state === "locked" && !autoTriedRef.current)
         {
+            autoTriedRef.current = true;
             void unlock();
         }
     }, [state, unlock]);
@@ -38,11 +46,11 @@ export function LockScreen(): React.JSX.Element | null
                 accessibilityRole="button"
                 accessibilityLabel={t("lock.unlockAction")}
                 onPress={() => { void unlock(); }}
-                disabled={state === "unlocking"}
+                // 'unlocking' 중에도 누를 수 있어야 stuck 상황에서 사용자가 force-retry 가능.
+                // AppLockProvider 의 inFlightRef 가 중복 native 호출은 알아서 차단.
                 style={({ pressed }) =>
                     [
                         styles.unlockButton,
-                        state === "unlocking" && styles.unlockButtonDisabled,
                         pressed && styles.unlockButtonPressed,
                     ]}
             >
@@ -91,9 +99,6 @@ const styles = StyleSheet.create({
     },
     unlockButtonPressed: {
         opacity: 0.85,
-    },
-    unlockButtonDisabled: {
-        opacity: 0.6,
     },
     unlockButtonText: {
         color: "#9945FF",
