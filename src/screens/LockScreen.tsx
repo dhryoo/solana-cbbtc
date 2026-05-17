@@ -7,12 +7,13 @@ import { useAppLock } from "@/providers/AppLockProvider";
 
 // 풀스크린 잠금 오버레이. AppLockProvider 상태가 "locked" 또는 "unlocking"일 때만 표시.
 //
-// 자동 unlock 정책 (v0.1.2 이후):
-// - mount 시 단 1회만 자동 biometric prompt 시도
-// - 실패하거나 cancelled 되어 state 가 다시 "locked" 로 떨어져도 자동으로 재발동하지 않음
-// - 이전 버전에서는 state 변화마다 unlock 재호출 → 빠른 재진입으로 native biometric service
-//   가 "AuthSession is not current" race 에 빠지는 버그(stuck "Authenticating…") 의 원인
-// - 사용자가 LockScreen 버튼으로 명시적으로 재시도 가능
+// 자동 unlock 정책 (v0.1.3 이후):
+// - LockScreen 이 처음 "locked" 상태로 mount 될 때 단 1회 자동 biometric prompt 시도
+// - 200ms delay 를 둬서 native biometric service 가 안정화된 후 호출 — 너무 빠른 호출은
+//   "AuthSession is not current" race 의 트리거였음 (v0.1.1 production logcat 확인)
+// - 사용자가 cancel/실패하여 state 가 "locked" 로 돌아와도 자동 재발동 안 함 — 의도한
+//   거부 의사를 존중. 사용자는 버튼으로 명시적 재시도 가능
+// - AppLockProvider 의 inFlightRef mutex 가 중복 native 호출은 추가로 차단
 export function LockScreen(): React.JSX.Element | null
 {
     const { t } = useTranslation();
@@ -24,8 +25,12 @@ export function LockScreen(): React.JSX.Element | null
         if (state === "locked" && !autoTriedRef.current)
         {
             autoTriedRef.current = true;
-            void unlock();
+            // RN/native 모듈이 안정화될 시간을 짧게 두고 prompt — 즉시 호출하면
+            // expo-local-authentication 이 직전 세션과 충돌하는 케이스가 있음
+            const t = setTimeout(() => { void unlock(); }, 200);
+            return () => clearTimeout(t);
         }
+        return undefined;
     }, [state, unlock]);
 
     if (state !== "locked" && state !== "unlocking")
