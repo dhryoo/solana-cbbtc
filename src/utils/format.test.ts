@@ -1,6 +1,25 @@
 import { PublicKey } from "@solana/web3.js";
 
-import { formatRawAmount, formatTokenAmount, parseTokenAmount, shortenAddress } from "./format";
+import { baseToDecimalString, formatRawAmount, formatTokenAmount, parseTokenAmount, shortenAddress } from "./format";
+
+describe("baseToDecimalString", () =>
+{
+    it("정수/소수/0 을 그룹구분 없이 변환, 뒤 0 제거", () =>
+    {
+        expect(baseToDecimalString(100_000_000n, 8)).toBe("1");
+        expect(baseToDecimalString(1175n, 8)).toBe("0.00001175");
+        expect(baseToDecimalString(0n, 8)).toBe("0");
+        expect(baseToDecimalString(150_000_000n, 8)).toBe("1.5");
+    });
+
+    it("parseTokenAmount 와 왕복(round-trip) 일치", () =>
+    {
+        for (const v of [1n, 1175n, 100_000_000n, 11n])
+        {
+            expect(parseTokenAmount(baseToDecimalString(v, 8), 8)).toBe(v);
+        }
+    });
+});
 
 describe("shortenAddress", () =>
 {

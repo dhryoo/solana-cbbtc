@@ -61,3 +61,20 @@ export function parseTokenAmount(input: string, decimals: number): bigint | null
     const padded = fracPart.padEnd(decimals, "0");
     return BigInt(intPart + padded);
 }
+
+// raw bigint amount → 입력란에 넣을 plain 십진 문자열 (그룹 구분 없음, 뒤따르는 0 제거).
+// parseTokenAmount 의 역함수. bigint 기반이라 정밀.
+//   100_000_000n + decimals=8 → "1"
+//   1175n + decimals=8 → "0.00001175"
+//   0n → "0"
+export function baseToDecimalString(amount: bigint, decimals: number): string
+{
+    if (amount === 0n)
+    {
+        return "0";
+    }
+    const s = amount.toString().padStart(decimals + 1, "0");
+    const intPart = s.slice(0, s.length - decimals);
+    const fracPart = s.slice(s.length - decimals).replace(/0+$/, "");
+    return fracPart ? `${intPart}.${fracPart}` : intPart;
+}
