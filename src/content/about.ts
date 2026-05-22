@@ -18,6 +18,15 @@ cbBTC는 Coinbase가 발행한 비트코인 1:1 페그 토큰으로, Solana 메�
 - **Versioned transaction** — Jupiter v6의 최신 트랜잭션 포맷 완전 호환
 - **Swap 완료 알림** — 백그라운드에서도 결과 확인, Solscan 링크로 즉시 확인
 
+## 💰 cbBTC 렌딩 (Earn) — Phase 2
+
+- **공급 / 인출** — cbBTC를 Kamino의 audited 스마트컨트랙트에 공급하고 언제든 전액·일부 회수
+- **담보 대출** — cbBTC를 담보로 USDC 차입, 상환하면 담보 회수 (첫 차입 시 위험 동의)
+- **위험 표시** — health(건전성)·청산가를 항상 표시, 안전/주의/위험 색상으로 강조
+- **비수탁(self-custody)** — 앱은 자금·키를 보관하지 않음. 모든 거래는 Seed Vault로 직접 서명
+- **진행 상황 시각화** — 준비 → 검증 → 서명 → 전송 → 완료 단계 표시 + Solana Explorer 확인
+- **안내 화면** — 작동 방식·투명성·위험을 인포그래픽으로 쉽게 설명
+
 ## 🛡️ 보안 우선
 
 - 개인키는 Seeker **Seed Vault 하드웨어를 떠나지 않습니다**
@@ -44,19 +53,21 @@ cbBTC는 Coinbase가 발행한 비트코인 1:1 페그 토큰으로, Solana 메�
 
 - **cbBTC** (Coinbase Wrapped BTC)
 - **SOL** (Solana 네이티브 토큰)
+- **USDC** (렌딩 차입 자산)
 - **SKR** (Solana Mobile 보상 토큰)
 
-향후 USDC, 추가 BTC 페그 토큰으로 확장 예정.
+향후 추가 BTC 페그 토큰으로 확장 예정.
 
 ## 🔮 로드맵
 
-- **Phase 2**: cbBTC 기반 lending (Kamino 등)
+- ✅ **Phase 1**: cbBTC ↔ SOL swap (Jupiter) — **완료**
+- ✅ **Phase 2**: cbBTC 기반 lending (Kamino) — 공급·인출·차입·상환 **완료**
 - **Phase 3**: Lightning Network 결제 (실험적)
 - **Phase 4**: 다양한 wrapped BTC 비교/통합 swap
 
 ## 📊 기술 스택
 
-React Native · Expo SDK 54 · TypeScript strict · Solana Mobile Wallet Adapter · Jupiter Swap v6 · TanStack Query
+React Native · Expo SDK 54 · TypeScript strict · Solana Mobile Wallet Adapter · Jupiter Swap v6 · Kamino Lend · TanStack Query
 
 ## 🌐 오픈소스
 
@@ -116,6 +127,15 @@ cbBTC is Coinbase's 1:1 Bitcoin-pegged token — currently the largest wrapped B
 - **Versioned transaction** — full compatibility with Jupiter v6's latest tx format
 - **Swap completion notifications** — get results even when the app is backgrounded, with Solscan link to verify
 
+## 💰 cbBTC lending (Earn) — Phase 2
+
+- **Supply / withdraw** — supply cbBTC to Kamino's audited smart contracts and take it back anytime (all or part)
+- **Borrow against collateral** — borrow USDC against cbBTC, repay to free your collateral (risk consent on first borrow)
+- **Risk display** — health and liquidation price always shown, color-coded safe / caution / danger
+- **Self-custody** — the app never holds your funds or keys; every transaction is signed with your Seed Vault
+- **Progress visualization** — prepare → simulate → sign → send → done steps + Solana Explorer verification
+- **Guide screen** — how it works, transparency, and risk explained with infographics
+
 ## 🛡️ Security first
 
 - Private keys **never leave the Seeker Seed Vault** hardware
@@ -142,19 +162,21 @@ cbBTC is Coinbase's 1:1 Bitcoin-pegged token — currently the largest wrapped B
 
 - **cbBTC** (Coinbase Wrapped BTC)
 - **SOL** (native Solana token)
+- **USDC** (lending borrow asset)
 - **SKR** (Solana Mobile rewards token)
 
-Future expansion: USDC, additional BTC-pegged tokens.
+Future expansion: additional BTC-pegged tokens.
 
 ## 🔮 Roadmap
 
-- **Phase 2**: cbBTC-backed lending (e.g., Kamino)
+- ✅ **Phase 1**: cbBTC ↔ SOL swap (Jupiter) — **done**
+- ✅ **Phase 2**: cbBTC-backed lending (Kamino) — supply · withdraw · borrow · repay **done**
 - **Phase 3**: Lightning Network payment rails (experimental)
 - **Phase 4**: Cross-asset wrapped BTC comparison and routing
 
 ## 📊 Tech stack
 
-React Native · Expo SDK 54 · TypeScript strict · Solana Mobile Wallet Adapter · Jupiter Swap v6 · TanStack Query
+React Native · Expo SDK 54 · TypeScript strict · Solana Mobile Wallet Adapter · Jupiter Swap v6 · Kamino Lend · TanStack Query
 
 ## 🌐 Open source
 

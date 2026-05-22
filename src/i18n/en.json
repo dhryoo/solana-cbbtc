@@ -18,7 +18,187 @@
     "tabs": {
         "home": "Assets",
         "swap": "Swap",
+        "earn": "Earn",
         "settings": "Settings"
+    },
+    "earn": {
+        "title": "Earn",
+        "subtitle": "cbBTC lending via Kamino",
+        "loadError": "Failed to load data",
+        "oracleStaleHint": "The price oracle (Kamino) is temporarily behind on updates. Please try again shortly. For safety, borrowing only runs when the price is fresh.",
+        "market": {
+            "heading": "Market",
+            "supplyApy": "cbBTC supply APY",
+            "borrowApr": "USDC borrow APR",
+            "utilization": "Utilization",
+            "price": "cbBTC price"
+        },
+        "position": {
+            "heading": "My position",
+            "connectWallet": "Connect a wallet to see your position",
+            "none": "No lending position yet",
+            "supplied": "Supplied",
+            "borrowed": "Borrowed",
+            "net": "Net value",
+            "health": "Health",
+            "liqPrice": "Liq. price (cbBTC)"
+        },
+        "supply": {
+            "heading": "Supply cbBTC",
+            "placeholder": "Amount of cbBTC to supply",
+            "button": "Supply",
+            "available": "Balance {{amount}} cbBTC",
+            "minimum": "min {{amount}}",
+            "exceeds": "Exceeds your balance",
+            "belowMin": "Enter at least {{amount}} cbBTC",
+            "success": "Supply transaction sent",
+            "completed": "Supply complete",
+            "newSupplied": "Your supply",
+            "viewExplorer": "View on Solana Explorer",
+            "confirm": "Done",
+            "errorPrefix": "Supply failed",
+            "copyHint": "long-press to copy"
+        },
+        "actions": {
+            "supply": "Supply",
+            "withdraw": "Withdraw",
+            "borrow": "Borrow",
+            "repay": "Repay"
+        },
+        "repay": {
+            "heading": "Repay USDC",
+            "placeholder": "Amount of USDC to repay",
+            "button": "Repay",
+            "debt": "Borrowed {{amount}} USDC",
+            "noDebt": "You have no borrowing to repay",
+            "completed": "Repay complete",
+            "errorPrefix": "Repay failed",
+            "dustHint": "To fully repay including interest, you need a little more USDC than you borrowed. Get a bit more USDC via Swap, then repay with MAX."
+        },
+        "borrow": {
+            "heading": "Borrow USDC",
+            "placeholder": "Amount of USDC to borrow",
+            "button": "Borrow",
+            "maxBorrowable": "Max borrowable {{amount}} USDC",
+            "safeMax": "Enter 80% amount",
+            "exceedsMax": "Exceeds your borrow limit",
+            "hint": "Borrow USDC against your cbBTC collateral. There is liquidation risk — borrow conservatively.",
+            "noCollateral": "Supply cbBTC as collateral first to be able to borrow",
+            "completed": "Borrow complete",
+            "checkHealth": "Be sure to check your health and liquidation price under My position",
+            "errorPrefix": "Borrow failed"
+        },
+        "withdraw": {
+            "heading": "Withdraw cbBTC",
+            "placeholder": "Amount of cbBTC to withdraw",
+            "button": "Withdraw",
+            "supplied": "Supplied {{amount}} cbBTC",
+            "completed": "Withdraw complete",
+            "errorPrefix": "Withdraw failed",
+            "noPosition": "You haven't supplied any cbBTC yet"
+        },
+        "disclaimer": "Values reflect the last on-chain refresh and may differ from real time. Lending carries liquidation risk."
+    },
+    "txProgress": {
+        "preparing": "Preparing transaction",
+        "simulating": "Pre-flight check (simulation)",
+        "signing": "Waiting for wallet signature",
+        "sending": "Sending to network",
+        "done": "Done"
+    },
+    "borrowConsent": {
+        "title": "Borrowing risk notice",
+        "intro": "Before you start borrowing, please review the following.",
+        "b1": "If your collateral (cbBTC) price falls, your position can be liquidated, causing a loss.",
+        "b2": "After borrowing, regularly check the health and liquidation price shown on screen.",
+        "b3": "Borrowing more conservatively (less) lowers your liquidation risk.",
+        "b4": "This app sends no alerts. Managing your position is entirely your responsibility.",
+        "confirm": "I understand, continue",
+        "confirmCountdown": "Please wait… ({{n}}s)"
+    },
+    "swapGuide": {
+        "title": "About Swap",
+        "intro": {
+            "title": "What is this?",
+            "body": "Swap cbBTC ↔ SOL instantly at the best market route via the Jupiter aggregator."
+        },
+        "how": {
+            "title": "How does it work?",
+            "body": "Enter an input token and Jupiter compares routes across many DEXs to find the most favorable one.",
+            "b1": "Solana's largest aggregator finds the best route automatically",
+            "b2": "Preview the amount you'll receive and the price impact in a quote",
+            "b3": "Runs only after you sign it with your Seed Vault"
+        },
+        "slippage": {
+            "title": "What is slippage?",
+            "body": "The tolerance for how much the execution price may differ from the quote. Pick 0.1% / 0.5% / 1%.",
+            "b1": "Higher in volatile markets, lower when stable",
+            "b2": "Too low and the trade can fail if the price moves"
+        },
+        "safe": {
+            "title": "You stay in control",
+            "b1": "This app never holds your funds or keys (self-custody).",
+            "b2": "Every transaction is publicly recorded on Solana — verify on Explorer.",
+            "b3": "No backend servers, no analytics, no trackers.",
+            "b4": "Always keep a little SOL for fees (gas)."
+        },
+        "infographic": "How swap works: your wallet → Jupiter compares routes → best route to the token you receive",
+        "links": {
+            "github": "View source on GitHub",
+            "jupiter": "Explore Jupiter"
+        }
+    },
+    "lendingGuide": {
+        "title": "About cbBTC Lending",
+        "intro": {
+            "title": "What is this?",
+            "body": "When you supply cbBTC to Kamino, it's put to work in Solana's BTCfi ecosystem. Like a bank deposit, you leave it in and can withdraw it yourself anytime."
+        },
+        "safe": {
+            "title": "You stay in control — self-custody",
+            "b1": "This app never holds your cbBTC or your private keys.",
+            "b2": "Funds are managed directly by Kamino's audited smart contracts.",
+            "b3": "Every transaction runs only after you sign it with your Seed Vault.",
+            "b4": "You can withdraw your supplied cbBTC yourself at any time."
+        },
+        "example": {
+            "title": "A simple example",
+            "body": "E.g. supply 0.001 cbBTC and it shows up under 'My position'. The cbBTC is still yours — tap 'Withdraw' to take it back anytime, just like withdrawing a deposit."
+        },
+        "withdrawSection": {
+            "title": "Withdraw (take it back anytime)",
+            "body": "Your supplied cbBTC is yours. Tap 'Withdraw' to take all or part of it back to your wallet anytime.",
+            "b1": "Withdraw everything with MAX, or just a portion you choose.",
+            "b2": "If you have borrowing, your withdrawable amount may be limited to keep enough collateral.",
+            "b3": "Withdrawing sends cbBTC straight back to your wallet."
+        },
+        "transparency": {
+            "title": "It works transparently",
+            "b1": "Every transaction is publicly recorded on the Solana blockchain — verify it yourself on Explorer.",
+            "b2": "There is no backend server. The app does not collect your data.",
+            "b3": "The source code is open on GitHub.",
+            "b4": "Each transaction is simulated and checked before you sign."
+        },
+        "borrow": {
+            "title": "Borrowing against collateral",
+            "body": "You can borrow assets like USDC using your supplied cbBTC as collateral. You pay interest on what you borrow, and repaying it frees your collateral again.",
+            "b1": "Your borrow limit is only a fraction of your collateral value — borrow conservatively (less).",
+            "b2": "The closer your Health gets to 1.0, the riskier it is. It's shown by color on screen.",
+            "b3": "If your collateral (cbBTC) price falls below the 'liquidation price', your position can be liquidated.",
+            "b4": "Repay what you borrowed to withdraw your cbBTC collateral again."
+        },
+        "risk": {
+            "title": "Risk note",
+            "body": "Supplying only carries no liquidation risk. If you later use borrowing (collateral loans), market moves can trigger liquidation — at that point, always check the health and liquidation price shown on screen."
+        },
+        "infographic1": "Self-custody flow: your wallet → your signature (Seed Vault) → Kamino contract (the app never holds funds)",
+        "infographic2": "Transparency: public on-chain records · no backend · open source",
+        "infographic3": "Collateral loans & liquidation: cbBTC collateral → borrow USDC → health gauge (safe·caution·danger). Liquidated if price drops below the liquidation price",
+        "infographic4": "Withdraw: your supply in Kamino → cbBTC back to your wallet (all or part, anytime)",
+        "links": {
+            "github": "View source on GitHub",
+            "kamino": "Explore Kamino Finance"
+        }
     },
     "home": {
         "subtitle": "Bitcoin on Solana",
@@ -43,7 +223,11 @@
     },
     "swap": {
         "title": "Swap",
+        "subtitle": "Instant swaps via Jupiter's best route",
         "outputHint": "↓ Quote will appear below",
+        "available": "Balance {{amount}} {{symbol}}",
+        "minimum": "min {{amount}}",
+        "exceeds": "Exceeds your balance",
         "amountAccessibility": "Input amount",
         "flipAccessibility": "Flip token direction",
         "swapButton": "Execute swap",
@@ -98,6 +282,7 @@
     },
     "settings": {
         "title": "Settings",
+        "subtitle": "Language · Theme · Security · About",
         "language": "Language",
         "ko": "한국어",
         "en": "English",

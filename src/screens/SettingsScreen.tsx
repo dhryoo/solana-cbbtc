@@ -104,7 +104,10 @@ export function SettingsScreen(): React.JSX.Element
     return (
         <>
         <ScrollView contentContainerStyle={styles.scroll}>
-            <Text style={styles.title}>{t("settings.title")}</Text>
+            <View style={styles.header}>
+                <Text style={styles.title} maxFontSizeMultiplier={1.4}>{t("settings.title")}</Text>
+                <Text style={styles.subtitle}>{t("settings.subtitle")}</Text>
+            </View>
 
             <View style={styles.section}>
                 <Text style={styles.sectionLabel}>{t("settings.language")}</Text>
@@ -296,11 +299,20 @@ const makeStyles = (t: ThemePalette) => ({
         paddingBottom: 48,
         gap: 24,
     },
+    header: {
+        alignItems: "center" as const,
+        marginBottom: 20,
+    },
     title: {
-        fontSize: 24,
+        fontSize: 28,
         fontWeight: "700" as const,
         color: t.text,
-        marginBottom: 4,
+    },
+    subtitle: {
+        marginTop: 4,
+        fontSize: 13,
+        color: t.textMuted,
+        textAlign: "center" as const,
     },
     section: {
         gap: 12,

@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -10,6 +11,7 @@ import {
 
 import { QuoteDisplay } from "@/components/QuoteDisplay";
 import { SwapConfirmModal } from "@/components/SwapConfirmModal";
+import { SwapGuideScreen } from "@/screens/SwapGuideScreen";
 import type { ThemePalette } from "@/constants/theme";
 import { CBBTC, MIN_SOL_GAS_RESERVE_SOL, SOL, type TokenInfo } from "@/constants/tokens";
 import { useSwap } from "@/hooks/useSwap";
@@ -19,6 +21,7 @@ import { useTokenBalance } from "@/hooks/useTokenBalance";
 import { useWallet } from "@/hooks/useWallet";
 import { useNetworkStatus } from "@/providers/NetworkProvider";
 import { useTheme } from "@/providers/ThemeProvider";
+import { baseToDecimalString, formatTokenAmount, parseTokenAmount } from "@/utils/format";
 import { toFriendlySwapError } from "@/utils/swapError";
 
 const DEFAULT_SLIPPAGE_BPS = 50;
@@ -39,6 +42,7 @@ export function SwapScreen(): React.JSX.Element
     const [inputToken, setInputToken] = useState<TokenInfo>(SOL);
     const [outputToken, setOutputToken] = useState<TokenInfo>(CBBTC);
     const [amount, setAmount] = useState("");
+    const [guideOpen, setGuideOpen] = useState(false);
     const [slippageBps, setSlippageBps] = useState<number>(DEFAULT_SLIPPAGE_BPS);
 
     const [modalOpen, setModalOpen] = useState(false);
@@ -54,6 +58,28 @@ export function SwapScreen(): React.JSX.Element
     const { isOnline } = useNetworkStatus();
     // 가스비용 SOL 잔액 검증. 가스 reserve는 ATA 생성/priority fee를 합산한 보수적 floor.
     const solBalance = useTokenBalance(SOL, account?.publicKey ?? null);
+    // 입력 토큰 잔액 (보유량/MAX 표시용). SOL 입력이면 solBalance 와 동일 쿼리(캐시 공유).
+    const inputBalance = useTokenBalance(inputToken, account?.publicKey ?? null);
+
+    // 입력 가능액(base). SOL 입력이면 가스 reserve 를 남겨야 하므로 차감.
+    const gasReserveBase = BigInt(Math.round(MIN_SOL_GAS_RESERVE_SOL * 10 ** SOL.decimals));
+    const availableBase = useMemo((): bigint =>
+    {
+        const bal = inputBalance.data?.amount ?? 0n;
+        if (inputToken.isNative)
+        {
+            return bal > gasReserveBase ? bal - gasReserveBase : 0n;
+        }
+        return bal;
+    }, [inputBalance.data, inputToken.isNative, gasReserveBase]);
+    const availableUi = Number(availableBase) / 10 ** inputToken.decimals;
+    const minLabel = baseToDecimalString(1n, inputToken.decimals);
+    // 비-SOL 입력의 잔액 초과는 여기서 검증 (SOL 은 insufficientGas 가 담당).
+    const amountBaseInput = parseTokenAmount(amount, inputToken.decimals);
+    const exceedsInput = !inputToken.isNative
+        && inputBalance.data !== undefined
+        && amountBaseInput !== null
+        && amountBaseInput > availableBase;
 
     // 재진입 가드 (React state 업데이트는 비동기라 같은 frame에 두 번 onPress 가능).
     const inFlightRef = useRef(false);
@@ -87,8 +113,9 @@ export function SwapScreen(): React.JSX.Element
         if (amount.trim() === "") return false;
         if (swap.isPending) return false;
         if (insufficientGas) return false;
+        if (exceedsInput) return false;
         return true;
-    }, [isOnline, account, quoteQuery.data, amount, swap.isPending, insufficientGas]);
+    }, [isOnline, account, quoteQuery.data, amount, swap.isPending, insufficientGas, exceedsInput]);
 
     const openConfirm = useCallback((): void =>
     {
@@ -147,16 +174,48 @@ export function SwapScreen(): React.JSX.Element
     }, [account, modalOpen, swap.isPending]);
 
     return (
+        <>
         <ScrollView contentContainerStyle={styles.scroll}>
-            <Text style={styles.title} maxFontSizeMultiplier={1.4}>{t("swap.title")}</Text>
+            <View style={styles.header}>
+                <Text style={styles.title} maxFontSizeMultiplier={1.4}>{t("swap.title")}</Text>
+                <Text style={styles.subtitle}>{t("swap.subtitle")}</Text>
+                <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t("swapGuide.title")}
+                    onPress={() => setGuideOpen(true)}
+                    style={({ pressed }) => [styles.helpBtn, pressed && { opacity: 0.6 }]}
+                >
+                    <Ionicons name="help-circle-outline" size={26} color={palette.textMuted} />
+                </Pressable>
+            </View>
 
             <View style={styles.inputCard}>
                 <View style={styles.headerRow}>
                     <Text style={styles.tokenSymbol}>{inputToken.symbol}</Text>
                     <Text style={styles.tokenName}>{inputToken.name}</Text>
                 </View>
+                {account
+                    ? (
+                        <View style={styles.balanceRow}>
+                            <Text style={styles.balanceText}>
+                                {t("swap.available", { amount: formatTokenAmount(availableUi, inputToken.decimals), symbol: inputToken.symbol })}
+                                {"  ·  "}
+                                {t("swap.minimum", { amount: minLabel })}
+                            </Text>
+                            <Pressable
+                                accessibilityRole="button"
+                                accessibilityLabel="MAX"
+                                onPress={() => setAmount(baseToDecimalString(availableBase, inputToken.decimals))}
+                                disabled={availableBase <= 0n}
+                                style={({ pressed }) => [styles.maxBtn, pressed && { opacity: 0.6 }]}
+                            >
+                                <Text style={styles.maxBtnText}>MAX</Text>
+                            </Pressable>
+                        </View>
+                    )
+                    : null}
                 <TextInput
-                    style={styles.amountInput}
+                    style={[styles.amountInput, exceedsInput && styles.amountInputError]}
                     keyboardType="decimal-pad"
                     placeholder="0.0"
                     placeholderTextColor={palette.textDim}
@@ -167,6 +226,9 @@ export function SwapScreen(): React.JSX.Element
                     maxFontSizeMultiplier={1.4}
                     accessibilityLabel={t("swap.amountAccessibility")}
                 />
+                {exceedsInput
+                    ? <Text style={styles.exceedHint}>{t("swap.exceeds")}</Text>
+                    : null}
             </View>
 
             <View style={styles.flipRow}>
@@ -248,6 +310,8 @@ export function SwapScreen(): React.JSX.Element
                 onClose={closeModal}
             />
         </ScrollView>
+        <SwapGuideScreen visible={guideOpen} onClose={() => setGuideOpen(false)} />
+        </>
     );
 }
 
@@ -260,11 +324,26 @@ const makeStyles = (t: ThemePalette) => ({
         paddingBottom: 48,
         gap: 12,
     },
+    header: {
+        alignItems: "center" as const,
+        marginBottom: 20,
+    },
+    helpBtn: {
+        position: "absolute" as const,
+        right: 0,
+        top: 0,
+        padding: 4,
+    },
     title: {
-        fontSize: 24,
+        fontSize: 28,
         fontWeight: "700" as const,
         color: t.text,
-        marginBottom: 8,
+    },
+    subtitle: {
+        marginTop: 4,
+        fontSize: 13,
+        color: t.textMuted,
+        textAlign: "center" as const,
     },
     inputCard: {
         borderWidth: 1,
@@ -296,11 +375,40 @@ const makeStyles = (t: ThemePalette) => ({
         fontSize: 12,
         color: t.textMuted,
     },
+    balanceRow: {
+        flexDirection: "row" as const,
+        justifyContent: "space-between" as const,
+        alignItems: "center" as const,
+    },
+    balanceText: {
+        flex: 1,
+        fontSize: 12,
+        color: t.textMuted,
+    },
+    maxBtn: {
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: t.borderStrong,
+    },
+    maxBtnText: {
+        fontSize: 12,
+        fontWeight: "700" as const,
+        color: t.text,
+    },
     amountInput: {
         fontSize: 28,
         fontWeight: "600" as const,
         color: t.text,
         paddingVertical: 4,
+    },
+    amountInputError: {
+        color: t.warn,
+    },
+    exceedHint: {
+        fontSize: 12,
+        color: t.warn,
     },
     placeholderHint: {
         fontSize: 12,

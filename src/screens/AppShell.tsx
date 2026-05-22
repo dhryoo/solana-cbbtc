@@ -6,12 +6,13 @@ import { Animated, Pressable, Text, View } from "react-native";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import type { ThemePalette } from "@/constants/theme";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
+import { EarnScreen } from "@/screens/EarnScreen";
 import { HomeScreen } from "@/screens/HomeScreen";
 import { SettingsScreen } from "@/screens/SettingsScreen";
 import { SwapScreen } from "@/screens/SwapScreen";
 import { hapticSelection } from "@/services/HapticsService";
 
-type TabKey = "home" | "swap" | "settings";
+type TabKey = "home" | "swap" | "earn" | "settings";
 
 interface TabIconSpec
 {
@@ -22,10 +23,11 @@ interface TabIconSpec
 const TAB_ICONS: Record<TabKey, TabIconSpec> = {
     home: { inactive: "wallet-outline", active: "wallet" },
     swap: { inactive: "swap-horizontal-outline", active: "swap-horizontal" },
+    earn: { inactive: "trending-up-outline", active: "trending-up" },
     settings: { inactive: "settings-outline", active: "settings" },
 };
 
-const TABS: TabKey[] = ["home", "swap", "settings"];
+const TABS: TabKey[] = ["home", "swap", "earn", "settings"];
 
 export function AppShell(): React.JSX.Element
 {
@@ -95,6 +97,7 @@ function TabContent({ activeKey }: { activeKey: TabKey }): React.JSX.Element
         <Animated.View style={{ flex: 1, opacity }}>
             {renderedKey === "home" && <HomeScreen />}
             {renderedKey === "swap" && <SwapScreen />}
+            {renderedKey === "earn" && <EarnScreen />}
             {renderedKey === "settings" && <SettingsScreen />}
         </Animated.View>
     );
