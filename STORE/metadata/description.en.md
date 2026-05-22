@@ -13,10 +13,10 @@ Solana cbBTC
 ## Short description (≤ 80 chars)
 
 ```
-Mobile BTCfi for Solana Seeker — swap cbBTC instantly via Jupiter.
+Mobile BTCfi for Solana Seeker — swap, supply, and borrow cbBTC.
 ```
 
-(66 chars)
+(64 chars)
 
 Alternatives:
 
@@ -41,6 +41,14 @@ cbBTC is Coinbase's 1:1 Bitcoin-pegged token — currently the largest wrapped B
 • Versioned transactions + dynamic priority fees — Jupiter v6's latest format, auto-prioritizes during congestion (capped at 0.001 SOL)
 • Share swap result — send the Solscan link to any system Share target
 • Swap completion notifications — get results even when the app is backgrounded (opt-in)
+
+💰 cbBTC lending (Earn) — new in Phase 2
+
+• Supply / withdraw — supply cbBTC to Kamino's audited smart contracts and take it back anytime (all or part)
+• Borrow against collateral — borrow USDC against cbBTC, repay to free your collateral (risk consent on first borrow)
+• Risk display — health and liquidation price always shown, color-coded safe / caution / danger
+• Self-custody — the app never holds your funds or keys; every transaction is signed with your Seed Vault
+• Progress visualization + guide — step-by-step progress, with how-it-works, transparency, and risk explained via infographics
 
 🛡️ Security first
 
@@ -74,20 +82,22 @@ cbBTC is Coinbase's 1:1 Bitcoin-pegged token — currently the largest wrapped B
 
 📱 Supported tokens
 
-• cbBTC (Coinbase Wrapped BTC) — primary swap asset
+• cbBTC (Coinbase Wrapped BTC) — primary swap & collateral asset
 • SOL (native Solana token)
+• USDC — lending borrow asset
 • SKR (Solana Mobile) — balance display
-• Future expansion: USDC, additional BTC-pegged tokens
+• Future expansion: additional BTC-pegged tokens
 
 🔮 Roadmap
 
-• Phase 2: cbBTC-backed lending (e.g., Kamino)
+• Phase 1: cbBTC ↔ SOL swap (Jupiter) — done ✅
+• Phase 2: cbBTC-backed lending (Kamino) — supply · withdraw · borrow · repay done ✅
 • Phase 3: Lightning Network payment rails (experimental)
 • Phase 4: Cross-asset wrapped BTC comparison and routing
 
 📊 Tech stack
 
-React Native · Expo SDK 54 · TypeScript strict · Solana Mobile Wallet Adapter · Jupiter Swap v6 · TanStack Query
+React Native · Expo SDK 54 · TypeScript strict · Solana Mobile Wallet Adapter · Jupiter Swap v6 · Kamino Lend · TanStack Query
 
 🌐 Open source
 

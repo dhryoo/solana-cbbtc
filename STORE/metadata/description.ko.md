@@ -15,10 +15,10 @@ Solana cbBTC
 > 글자 수 확인 필요. 한국어는 영어보다 표현이 압축적이라 보통 60~70자에서 끝남.
 
 ```
-Solana Seeker에서 cbBTC를 한 번에 swap하는 BTCfi 모바일 앱.
+Solana Seeker에서 cbBTC를 swap·예치·대출하는 BTCfi 모바일 앱.
 ```
 
-(47자, 여유 충분)
+(48자, 여유 충분)
 
 대안 후보:
 
@@ -43,6 +43,14 @@ cbBTC는 Coinbase가 발행한 비트코인 1:1 페그 토큰으로, Solana 메�
 • Versioned transaction + 동적 priority fee — Jupiter v6의 최신 포맷, 혼잡 시 자동 우선순위 상향 (cap 0.001 SOL)
 • Swap 결과 공유 — 시스템 공유 시트로 Solscan 링크 즉시 전송
 • Swap 완료 알림 — 백그라운드에서도 결과 확인 (선택)
+
+💰 cbBTC 렌딩 (Earn) — Phase 2 신규
+
+• 공급 / 인출 — cbBTC를 Kamino의 audited 스마트컨트랙트에 공급하고 언제든 전액·일부 회수
+• 담보 대출 — cbBTC를 담보로 USDC 차입, 상환하면 담보 회수 (첫 차입 시 위험 동의)
+• 위험 표시 — health(건전성)·청산가를 항상 표시, 안전/주의/위험 색상으로 강조
+• 비수탁(self-custody) — 앱은 자금·키를 보관하지 않음, 모든 거래는 Seed Vault로 직접 서명
+• 진행 시각화 + 안내 화면 — 단계별 진행 표시, 작동 방식·투명성·위험을 인포그래픽으로 설명
 
 🛡️ 보안 우선
 
@@ -76,20 +84,22 @@ cbBTC는 Coinbase가 발행한 비트코인 1:1 페그 토큰으로, Solana 메�
 
 📱 지원 토큰
 
-• cbBTC (Coinbase Wrapped BTC) — 메인 거래 자산
+• cbBTC (Coinbase Wrapped BTC) — 메인 거래·담보 자산
 • SOL (Solana 네이티브)
+• USDC — 렌딩 차입 자산
 • SKR (Solana Mobile) — 잔액 표시
-• 향후 USDC, 추가 BTC 페그 토큰 확장 예정
+• 향후 추가 BTC 페그 토큰 확장 예정
 
-🔮 로드맵 (계획)
+🔮 로드맵
 
-• Phase 2: cbBTC 기반 lending (Kamino 등)
+• Phase 1: cbBTC ↔ SOL swap (Jupiter) — 완료 ✅
+• Phase 2: cbBTC 기반 lending (Kamino) — 공급·인출·차입·상환 완료 ✅
 • Phase 3: Lightning Network 결제 (실험적)
 • Phase 4: 다양한 wrapped BTC 비교/통합 swap
 
 📊 기술 스택
 
-React Native · Expo SDK 54 · TypeScript strict · Solana Mobile Wallet Adapter · Jupiter Swap v6 · TanStack Query
+React Native · Expo SDK 54 · TypeScript strict · Solana Mobile Wallet Adapter · Jupiter Swap v6 · Kamino Lend · TanStack Query
 
 🌐 오픈소스
 
