@@ -39,6 +39,9 @@
     "simple-git-hooks": {
         "pre-commit": "npx lint-staged && npx tsc --noEmit"
     },
+    "overrides": {
+        "@kamino-finance/farms-sdk": "3.2.24"
+    },
     "lint-staged": {
         "*.{ts,tsx,js,jsx}": [
             "eslint --fix"
@@ -49,9 +52,12 @@
     },
     "dependencies": {
         "@expo/vector-icons": "^15.0.3",
+        "@kamino-finance/klend-sdk": "^7.3.22",
         "@react-native-async-storage/async-storage": "2.2.0",
         "@solana-mobile/mobile-wallet-adapter-protocol": "^2.2.8",
         "@solana-mobile/mobile-wallet-adapter-protocol-web3js": "^2.2.8",
+        "@solana/compat": "^2.3.0",
+        "@solana/kit": "^2.3.0",
         "@solana/spl-token": "^0.4.14",
         "@solana/web3.js": "^1.98.4",
         "@tanstack/react-query": "^5.100.10",
@@ -78,6 +84,7 @@
     "devDependencies": {
         "@stylistic/eslint-plugin": "^2.13.0",
         "@testing-library/react-native": "^12.9.0",
+        "@types/bn.js": "^5.2.0",
         "@types/jest": "^29.5.14",
         "@types/react": "~19.1.0",
         "@types/react-test-renderer": "~19.1.0",
