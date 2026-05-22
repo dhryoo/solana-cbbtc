@@ -138,5 +138,5 @@ bitcoin, cbbtc, defi, swap, solana, wrapped-bitcoin, jupiter, btcfi, seeker, wal
 ## Tagline (선택, 50자 이내)
 
 ```
-Bitcoin on Solana — Seeker로 직접 swap.
+Bitcoin on Solana — Seeker로 swap·예치.
 ```

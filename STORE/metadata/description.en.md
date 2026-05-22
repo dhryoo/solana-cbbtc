@@ -136,5 +136,5 @@ bitcoin, cbbtc, defi, swap, solana, wrapped-bitcoin, jupiter, btcfi, seeker, wal
 ## Tagline (optional, ≤ 50 chars)
 
 ```
-Bitcoin on Solana — straight from your Seeker.
+Bitcoin on Solana — swap & earn from your Seeker.
 ```
