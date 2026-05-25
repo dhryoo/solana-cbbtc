@@ -34,7 +34,7 @@ import { useNetworkStatus } from "@/providers/NetworkProvider";
 import { useTheme } from "@/providers/ThemeProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { loadBorrowConsent, saveBorrowConsent } from "@/utils/borrowConsent";
-import { isOracleStaleError, isUserRejection } from "@/utils/lendingErrors";
+import { isAuthFailure, isInsufficientFunds, isOracleStaleError, isUserRejection } from "@/utils/lendingErrors";
 import { baseToDecimalString, formatTokenAmount, parseTokenAmount } from "@/utils/format";
 import type { RiskZone } from "@/utils/lendingMath";
 import type { ProgressState, TxStep } from "@/utils/txProgress";
@@ -289,6 +289,7 @@ function SupplyForm({ owner, styles, palette, t, cbbtcPriceUsd, currentSuppliedU
     const balance = useTokenBalance(CBBTC, owner);
     const [amount, setAmount] = useState("");
     const [lastError, setLastError] = useState<string | null>(null);
+    const [notice, setNotice] = useState<string | null>(null);
     const [progress, setProgress] = useState<{ step: TxStep; state: ProgressState } | null>(null);
     const [result, setResult] = useState<SupplyResultView | null>(null);
 
@@ -311,6 +312,7 @@ function SupplyForm({ owner, styles, palette, t, cbbtcPriceUsd, currentSuppliedU
         }
         const submitted = amountBase;
         setLastError(null);
+        setNotice(null);
         setResult(null);
         setProgress({ step: "preparing", state: "running" });
         supply.mutate(
@@ -329,8 +331,14 @@ function SupplyForm({ owner, styles, palette, t, cbbtcPriceUsd, currentSuppliedU
                 onError: (err) =>
                 {
                     setProgress((prev) => (prev ? { ...prev, state: "error" } : null));
-                    setLastError(isOracleStaleError(err.message) ? `${t("earn.oracleStaleHint")}\n\n${err.message}` : err.message);
-                    showToast(t("earn.supply.errorPrefix"), { variant: "error", durationMs: 5000 });
+                    const cancelled = isUserRejection(err.message);
+                    const noticeMsg = isOracleStaleError(err.message)
+                        ? t("earn.oracleStaleHint")
+                        : isInsufficientFunds(err.message) ? t("earn.insufficientHint")
+                            : isAuthFailure(err.message) ? t("earn.authFailedHint") : null;
+                    setNotice(noticeMsg);
+                    setLastError(noticeMsg || cancelled ? null : err.message);
+                    showToast(cancelled ? t("errors.userCancelled") : t("earn.supply.errorPrefix"), { variant: cancelled ? "info" : "error", durationMs: 5000 });
                 },
             },
         );
@@ -413,14 +421,21 @@ function SupplyForm({ owner, styles, palette, t, cbbtcPriceUsd, currentSuppliedU
 
             {progress ? <TxProgress current={progress.step} state={progress.state} /> : null}
 
-            {lastError
+            {notice
                 ? (
-                    <View style={styles.errorBox}>
-                        <Text style={styles.errorTitle}>{t("earn.supply.errorPrefix")} · {t("earn.supply.copyHint")}</Text>
-                        <Text style={styles.errorDetail} selectable>{lastError}</Text>
+                    <View style={styles.infoBox}>
+                        <Ionicons name="information-circle-outline" size={18} color={palette.textMuted} />
+                        <Text style={styles.infoText}>{notice}</Text>
                     </View>
                 )
-                : null}
+                : lastError
+                    ? (
+                        <View style={styles.errorBox}>
+                            <Text style={styles.errorTitle}>{t("earn.supply.errorPrefix")} · {t("earn.supply.copyHint")}</Text>
+                            <Text style={styles.errorDetail} selectable>{lastError}</Text>
+                        </View>
+                    )
+                    : null}
         </View>
     );
 }
@@ -492,7 +507,7 @@ function WithdrawForm({ suppliedUsd, cbbtcPriceUsd, styles, palette, t, onFocusI
     const [progress, setProgress] = useState<{ step: TxStep; state: ProgressState } | null>(null);
     const [result, setResult] = useState<SupplyResultView | null>(null);
     const [lastError, setLastError] = useState<string | null>(null);
-    const [oracleStale, setOracleStale] = useState(false);
+    const [notice, setNotice] = useState<string | null>(null);
 
     const suppliedCbbtc = cbbtcPriceUsd && cbbtcPriceUsd > 0 ? suppliedUsd / cbbtcPriceUsd : 0;
     const suppliedBase = BigInt(Math.round(suppliedCbbtc * 10 ** CBBTC.decimals));
@@ -516,7 +531,7 @@ function WithdrawForm({ suppliedUsd, cbbtcPriceUsd, styles, palette, t, onFocusI
         }
         const submitted = withdrawAll ? suppliedBase : (amountBase ?? 0n);
         setLastError(null);
-        setOracleStale(false);
+        setNotice(null);
         setResult(null);
         setProgress({ step: "preparing", state: "running" });
         withdraw.mutate(
@@ -537,10 +552,13 @@ function WithdrawForm({ suppliedUsd, cbbtcPriceUsd, styles, palette, t, onFocusI
                 onError: (err) =>
                 {
                     setProgress((prev) => (prev ? { ...prev, state: "error" } : null));
-                    const stale = isOracleStaleError(err.message);
                     const cancelled = isUserRejection(err.message);
-                    setOracleStale(stale);
-                    setLastError(stale || cancelled ? null : err.message);
+                    const noticeMsg = isOracleStaleError(err.message)
+                        ? t("earn.oracleStaleHint")
+                        : isInsufficientFunds(err.message) ? t("earn.insufficientHint")
+                            : isAuthFailure(err.message) ? t("earn.authFailedHint") : null;
+                    setNotice(noticeMsg);
+                    setLastError(noticeMsg || cancelled ? null : err.message);
                     showToast(cancelled ? t("errors.userCancelled") : t("earn.withdraw.errorPrefix"), { variant: cancelled ? "info" : "error", durationMs: 5000 });
                 },
             },
@@ -612,11 +630,11 @@ function WithdrawForm({ suppliedUsd, cbbtcPriceUsd, styles, palette, t, onFocusI
 
             {progress ? <TxProgress current={progress.step} state={progress.state} /> : null}
 
-            {oracleStale
+            {notice
                 ? (
                     <View style={styles.infoBox}>
-                        <Ionicons name="time-outline" size={18} color={palette.textMuted} />
-                        <Text style={styles.infoText}>{t("earn.oracleStaleHint")}</Text>
+                        <Ionicons name="information-circle-outline" size={18} color={palette.textMuted} />
+                        <Text style={styles.infoText}>{notice}</Text>
                     </View>
                 )
                 : lastError
@@ -650,7 +668,7 @@ function BorrowForm({ maxBorrowableUsd, styles, palette, t, onFocusInput }: Borr
     const [progress, setProgress] = useState<{ step: TxStep; state: ProgressState } | null>(null);
     const [result, setResult] = useState<SupplyResultView | null>(null);
     const [lastError, setLastError] = useState<string | null>(null);
-    const [oracleStale, setOracleStale] = useState(false);
+    const [notice, setNotice] = useState<string | null>(null);
     const [consentGiven, setConsentGiven] = useState(false);
     const [consentOpen, setConsentOpen] = useState(false);
 
@@ -675,7 +693,7 @@ function BorrowForm({ maxBorrowableUsd, styles, palette, t, onFocusInput }: Borr
         }
         const submitted = amountBase;
         setLastError(null);
-        setOracleStale(false);
+        setNotice(null);
         setResult(null);
         setProgress({ step: "preparing", state: "running" });
         borrow.mutate(
@@ -694,11 +712,14 @@ function BorrowForm({ maxBorrowableUsd, styles, palette, t, onFocusInput }: Borr
                 onError: (err) =>
                 {
                     setProgress((prev) => (prev ? { ...prev, state: "error" } : null));
-                    const stale = isOracleStaleError(err.message);
                     const cancelled = isUserRejection(err.message);
-                    setOracleStale(stale);
-                    // 오라클 지연은 안내 박스로, 취소는 raw 숨김. 그 외만 raw 표시.
-                    setLastError(stale || cancelled ? null : err.message);
+                    // 오라클 지연·SOL 부족은 안내 박스로, 취소는 raw 숨김. 그 외만 raw 표시.
+                    const noticeMsg = isOracleStaleError(err.message)
+                        ? t("earn.oracleStaleHint")
+                        : isInsufficientFunds(err.message) ? t("earn.insufficientHint")
+                            : isAuthFailure(err.message) ? t("earn.authFailedHint") : null;
+                    setNotice(noticeMsg);
+                    setLastError(noticeMsg || cancelled ? null : err.message);
                     showToast(cancelled ? t("errors.userCancelled") : t("earn.borrow.errorPrefix"), { variant: cancelled ? "info" : "error", durationMs: 5000 });
                 },
             },
@@ -792,11 +813,11 @@ function BorrowForm({ maxBorrowableUsd, styles, palette, t, onFocusInput }: Borr
 
             {progress ? <TxProgress current={progress.step} state={progress.state} /> : null}
 
-            {oracleStale
+            {notice
                 ? (
                     <View style={styles.infoBox}>
-                        <Ionicons name="time-outline" size={18} color={palette.textMuted} />
-                        <Text style={styles.infoText}>{t("earn.oracleStaleHint")}</Text>
+                        <Ionicons name="information-circle-outline" size={18} color={palette.textMuted} />
+                        <Text style={styles.infoText}>{notice}</Text>
                     </View>
                 )
                 : lastError
@@ -832,7 +853,7 @@ function RepayForm({ borrowedUsd, styles, palette, t, onFocusInput }: RepayFormP
     const [progress, setProgress] = useState<{ step: TxStep; state: ProgressState } | null>(null);
     const [result, setResult] = useState<SupplyResultView | null>(null);
     const [lastError, setLastError] = useState<string | null>(null);
-    const [oracleStale, setOracleStale] = useState(false);
+    const [notice, setNotice] = useState<string | null>(null);
 
     // USDC ≈ $1 이므로 borrowedUsd 를 USDC 부채로 근사.
     const debtBase = BigInt(Math.ceil(borrowedUsd * 10 ** USDC.decimals));
@@ -856,7 +877,7 @@ function RepayForm({ borrowedUsd, styles, palette, t, onFocusInput }: RepayFormP
         }
         const submitted = repayAll ? debtBase : (amountBase ?? 0n);
         setLastError(null);
-        setOracleStale(false);
+        setNotice(null);
         setResult(null);
         setProgress({ step: "preparing", state: "running" });
         repay.mutate(
@@ -877,13 +898,15 @@ function RepayForm({ borrowedUsd, styles, palette, t, onFocusInput }: RepayFormP
                 onError: (err) =>
                 {
                     setProgress((prev) => (prev ? { ...prev, state: "error" } : null));
-                    // 오라클 지연 > dust(6092) 순으로 친절 안내. 둘 다 아니면 raw.
-                    const stale = isOracleStaleError(err.message);
+                    // 오라클 지연·SOL 부족 → 안내 박스(notice). 취소 → raw 숨김. dust(6092) → 안내+raw. 그 외 raw.
                     const cancelled = isUserRejection(err.message);
-                    setOracleStale(stale);
-                    // 오라클 지연은 info box(아래)로, 취소는 raw 숨김. dust(6092)는 안내 + raw 유지. 그 외 raw.
+                    const noticeMsg = isOracleStaleError(err.message)
+                        ? t("earn.oracleStaleHint")
+                        : isInsufficientFunds(err.message) ? t("earn.insufficientHint")
+                            : isAuthFailure(err.message) ? t("earn.authFailedHint") : null;
+                    setNotice(noticeMsg);
                     const isDust = /6092|remaining too small/i.test(err.message);
-                    setLastError(stale || cancelled ? null : (isDust ? `${t("earn.repay.dustHint")}\n\n${err.message}` : err.message));
+                    setLastError(noticeMsg || cancelled ? null : (isDust ? `${t("earn.repay.dustHint")}\n\n${err.message}` : err.message));
                     showToast(cancelled ? t("errors.userCancelled") : t("earn.repay.errorPrefix"), { variant: cancelled ? "info" : "error", durationMs: 5000 });
                 },
             },
@@ -957,11 +980,11 @@ function RepayForm({ borrowedUsd, styles, palette, t, onFocusInput }: RepayFormP
                 )
                 : null}
 
-            {oracleStale
+            {notice
                 ? (
                     <View style={styles.infoBox}>
-                        <Ionicons name="time-outline" size={18} color={palette.textMuted} />
-                        <Text style={styles.infoText}>{t("earn.oracleStaleHint")}</Text>
+                        <Ionicons name="information-circle-outline" size={18} color={palette.textMuted} />
+                        <Text style={styles.infoText}>{notice}</Text>
                     </View>
                 )
                 : null}

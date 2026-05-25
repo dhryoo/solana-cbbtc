@@ -17,3 +17,20 @@ export function isUserRejection(message: string): boolean
 {
     return /Cancellation|cancell?ed|rejected|declined|denied|session (terminated|closed)/i.test(message);
 }
+
+/**
+ * SOL/토큰 잔액 부족 (첫 거래의 계정 rent·수수료 포함). raw 대신 친절 안내로 처리.
+ */
+export function isInsufficientFunds(message: string): boolean
+{
+    return /insufficient (lamports|funds|balance)/i.test(message);
+}
+
+/**
+ * MWA 지갑 인증 실패 (auth token 만료/무효, reauthorize 실패 등).
+ * 예: "-1/authorization request failed". 지갑 재연결 안내로 처리.
+ */
+export function isAuthFailure(message: string): boolean
+{
+    return /authorization request failed|(authorization|reauthorize|auth[_ ]?token).*(fail|deni|invalid|expired)/i.test(message);
+}

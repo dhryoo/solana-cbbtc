@@ -26,6 +26,8 @@
         "subtitle": "cbBTC lending via Kamino",
         "loadError": "Failed to load data",
         "oracleStaleHint": "The price oracle (Kamino) is temporarily behind on updates. Please try again shortly. For safety, borrowing only runs when the price is fresh.",
+        "insufficientHint": "Not enough SOL. Your first transaction needs extra SOL for account rent and fees. Add a little more SOL and try again.",
+        "authFailedHint": "Wallet authorization failed. Disconnect and reconnect your wallet, then try again. (Your session may have expired.)",
         "market": {
             "heading": "Market",
             "supplyApy": "cbBTC supply APY",
