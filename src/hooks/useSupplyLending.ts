@@ -93,6 +93,7 @@ export function useSupplyLending(): UseMutationResult<SupplyResult, Error, Suppl
             // 새로고침은 백그라운드(fire-and-forget). UI 완료 표시가 RPC refetch 지연에 막히지 않도록.
             void queryClient.invalidateQueries({ queryKey: ["kamino"] });
             void queryClient.invalidateQueries({ queryKey: ["balance"] });
+            void queryClient.invalidateQueries({ queryKey: ["history"] });
         },
     });
 }

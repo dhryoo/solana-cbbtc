@@ -213,6 +213,7 @@ export function EarnScreen(): React.JSX.Element
                             return hasDebt
                                 ? (
                                     <RepayForm
+                                        owner={owner}
                                         borrowedUsd={position.data?.borrowedUsd ?? 0}
                                         styles={styles}
                                         palette={palette}
@@ -836,6 +837,7 @@ function BorrowForm({ maxBorrowableUsd, styles, palette, t, onFocusInput }: Borr
 
 interface RepayFormProps
 {
+    owner: PublicKey | null;
     borrowedUsd: number;
     styles: ReturnType<typeof makeStyles>;
     palette: ThemePalette;
@@ -843,11 +845,12 @@ interface RepayFormProps
     onFocusInput: () => void;
 }
 
-function RepayForm({ borrowedUsd, styles, palette, t, onFocusInput }: RepayFormProps): React.JSX.Element
+function RepayForm({ owner, borrowedUsd, styles, palette, t, onFocusInput }: RepayFormProps): React.JSX.Element
 {
     const { isOnline } = useNetworkStatus();
     const { showToast } = useToast();
     const repay = useRepayLending();
+    const walletUsdc = useTokenBalance(USDC, owner);
     const [amount, setAmount] = useState("");
     const [repayAll, setRepayAll] = useState(false);
     const [progress, setProgress] = useState<{ step: TxStep; state: ProgressState } | null>(null);
@@ -944,6 +947,11 @@ function RepayForm({ borrowedUsd, styles, palette, t, onFocusInput }: RepayFormP
             </View>
             <Text style={styles.balanceLine}>
                 {t("earn.repay.debt", { amount: borrowedUsd.toLocaleString("en-US", { maximumFractionDigits: 6 }) })}
+            </Text>
+            <Text style={styles.balanceLine}>
+                {t("earn.repay.walletBalance", {
+                    amount: formatTokenAmount(walletUsdc.data?.uiAmount ?? 0, USDC.decimals),
+                })}
             </Text>
             <TextInput
                 style={[styles.input, exceeds && styles.inputError]}

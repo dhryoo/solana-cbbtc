@@ -72,6 +72,7 @@
             "placeholder": "Amount of USDC to repay",
             "button": "Repay",
             "debt": "Borrowed {{amount}} USDC",
+            "walletBalance": "Wallet {{amount}} USDC",
             "noDebt": "You have no borrowing to repay",
             "completed": "Repay complete",
             "errorPrefix": "Repay failed",
@@ -206,7 +207,36 @@
         "subtitle": "Bitcoin on Solana",
         "connectPrompt": "Connect your wallet to view balances and swap.",
         "connectedLabel": "Connected wallet",
-        "pullToRefresh": "Pull down to refresh"
+        "pullToRefresh": "Pull down to refresh",
+        "recentActivity": "Recent activity",
+        "viewAll": "View all"
+    },
+    "history": {
+        "title": "Transaction history",
+        "subtitle": "Your Swap and Earn activity in one place",
+        "rowLabel": "Transaction history",
+        "filterAll": "All",
+        "filterSwap": "Swap",
+        "filterEarn": "Earn",
+        "empty": "No activity yet",
+        "emptyHint": "Your Swap and Earn transactions will appear here.",
+        "connectFirst": "Connect a wallet to see your history",
+        "loadError": "Failed to load history",
+        "viewExplorer": "Open on Solscan",
+        "failed": "Failed",
+        "loadingMore": "Loading…",
+        "kinds": {
+            "swap": "Swap",
+            "supply": "Supply",
+            "withdraw": "Withdraw",
+            "borrow": "Borrow",
+            "repay": "Repay"
+        },
+        "directions": {
+            "swapOutCbbtc": "cbBTC → SOL",
+            "swapInCbbtc": "SOL → cbBTC",
+            "swapGeneric": "Swap"
+        }
     },
     "wallet": {
         "connect": "Connect wallet",
@@ -313,7 +343,8 @@
         "appLockUnavailable": "Biometric or device PIN is not enrolled on this device.",
         "feedback": "Feedback",
         "feedbackHint": "Report bugs or share suggestions via email",
-        "openFailed": "Could not open external app"
+        "openFailed": "Could not open external app",
+        "history": "Transaction history"
     },
     "notifications": {
         "swapSuccessTitle": "Swap completed",

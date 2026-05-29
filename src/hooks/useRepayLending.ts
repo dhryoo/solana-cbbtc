@@ -81,6 +81,7 @@ export function useRepayLending(): UseMutationResult<RepayResult, Error, RepayIn
         {
             void queryClient.invalidateQueries({ queryKey: ["kamino"] });
             void queryClient.invalidateQueries({ queryKey: ["balance"] });
+            void queryClient.invalidateQueries({ queryKey: ["history"] });
         },
     });
 }

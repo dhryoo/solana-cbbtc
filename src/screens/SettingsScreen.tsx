@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import { Linking, Platform, Pressable, ScrollView, Switch, Text, View } from "react-native";
 
 import { AboutScreen } from "@/screens/AboutScreen";
+import { HistoryScreen } from "@/screens/HistoryScreen";
+import appConfig from "../../app.json";
 import { getClusterId } from "@/constants/cluster";
 import type { ThemeMode, ThemePalette } from "@/constants/theme";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
@@ -17,7 +19,8 @@ import { hapticSelection } from "@/services/HapticsService";
 import { useSeekerIdentity } from "@/hooks/useSeekerIdentity";
 import { useWallet } from "@/hooks/useWallet";
 
-const APP_VERSION = "0.1.8";
+// 버전 단일 출처는 app.json — Settings 표시와 release 빌드가 절대 어긋나지 않도록.
+const APP_VERSION = appConfig.expo.version;
 const FEEDBACK_EMAIL = "idfeelme@gmail.com";
 
 const THEME_MODES: ThemeMode[] = ["system", "light", "dark"];
@@ -40,6 +43,7 @@ export function SettingsScreen(): React.JSX.Element
     const appLock = useAppLock();
     const { showToast } = useToast();
     const [aboutOpen, setAboutOpen] = useState(false);
+    const [historyOpen, setHistoryOpen] = useState(false);
 
     const onSelectLanguage = (next: SupportedLanguage): void =>
     {
@@ -212,6 +216,20 @@ export function SettingsScreen(): React.JSX.Element
                 <Text style={styles.sectionLabel}>{t("settings.about")}</Text>
                 <Pressable
                     accessibilityRole="button"
+                    accessibilityLabel={t("history.rowLabel")}
+                    onPress={() =>
+                    {
+                        void hapticSelection();
+                        setHistoryOpen(true);
+                    }}
+                    style={({ pressed }) =>
+                        [styles.aboutRow, pressed && styles.aboutRowPressed]}
+                >
+                    <Text style={styles.aboutRowLabel}>{t("history.rowLabel")}</Text>
+                    <Ionicons name="chevron-forward" size={18} color={palette.textMuted} />
+                </Pressable>
+                <Pressable
+                    accessibilityRole="button"
                     accessibilityLabel={t("about.rowLabel")}
                     onPress={() =>
                     {
@@ -286,6 +304,7 @@ export function SettingsScreen(): React.JSX.Element
             </View>
         </ScrollView>
         <AboutScreen visible={aboutOpen} onClose={() => setAboutOpen(false)} />
+        <HistoryScreen visible={historyOpen} onClose={() => setHistoryOpen(false)} />
         </>
     );
 }

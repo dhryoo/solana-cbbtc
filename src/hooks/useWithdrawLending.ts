@@ -81,6 +81,7 @@ export function useWithdrawLending(): UseMutationResult<WithdrawResult, Error, W
         {
             void queryClient.invalidateQueries({ queryKey: ["kamino"] });
             void queryClient.invalidateQueries({ queryKey: ["balance"] });
+            void queryClient.invalidateQueries({ queryKey: ["history"] });
         },
     });
 }

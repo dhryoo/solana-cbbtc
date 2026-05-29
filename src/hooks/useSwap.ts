@@ -77,6 +77,7 @@ export function useSwap(): UseMutationResult<SwapMutationResult, Error, SwapMuta
         {
             await queryClient.invalidateQueries({ queryKey: ["balance"] });
             await queryClient.invalidateQueries({ queryKey: ["quote"] });
+            void queryClient.invalidateQueries({ queryKey: ["history"] });
 
             // 알림 전송 (사용자가 설정에서 켜둔 경우에만 실제 발송)
             const inputAmount = formatRawAmount(

@@ -82,6 +82,7 @@ export function useBorrowLending(): UseMutationResult<BorrowResult, Error, Borro
         {
             void queryClient.invalidateQueries({ queryKey: ["kamino"] });
             void queryClient.invalidateQueries({ queryKey: ["balance"] });
+            void queryClient.invalidateQueries({ queryKey: ["history"] });
         },
     });
 }
