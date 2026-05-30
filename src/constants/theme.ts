@@ -1,6 +1,10 @@
 // Semantic color tokens. 컴포넌트는 raw hex가 아닌 의미 토큰을 참조.
 // 토큰 추가 시 두 모드 모두 정의 — light/dark 누락 방지.
 
+// 브랜드 보라 — Solana 와 splash/adaptive icon, Seeker badge, BalanceCard verified accent 등에서 사용.
+// light/dark 양쪽 모두 동일한 값(브랜드는 모드 불문 고정).
+export const BRAND_PURPLE = "#9945FF";
+
 export interface ThemePalette
 {
     mode: "light" | "dark";

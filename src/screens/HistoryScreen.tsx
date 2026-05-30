@@ -16,7 +16,7 @@ import {
 } from "react-native";
 
 import { TransactionRow } from "@/components/TransactionRow";
-import type { ThemePalette } from "@/constants/theme";
+import { BRAND_PURPLE, type ThemePalette } from "@/constants/theme";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
 import { useTransactionHistory } from "@/hooks/useTransactionHistory";
 import { useWallet } from "@/hooks/useWallet";
@@ -122,8 +122,9 @@ export function HistoryScreen({ visible, onClose }: HistoryScreenProps): React.J
                             <RefreshControl
                                 refreshing={history.isFetching && !history.isLoading}
                                 onRefresh={() => { void onRefresh(); }}
-                                tintColor={palette.text}
-                                colors={[palette.text]}
+                                tintColor={BRAND_PURPLE}
+                                colors={[BRAND_PURPLE]}
+                                progressBackgroundColor={palette.surface}
                             />
                         )}
                     />

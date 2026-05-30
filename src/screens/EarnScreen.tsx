@@ -20,7 +20,7 @@ import { TxProgress } from "@/components/TxProgress";
 import { LendingGuideScreen } from "@/screens/LendingGuideScreen";
 import { MIN_CBBTC_SUPPLY_BASE } from "@/constants/lending";
 import { CBBTC, USDC } from "@/constants/tokens";
-import type { ThemePalette } from "@/constants/theme";
+import { BRAND_PURPLE, type ThemePalette } from "@/constants/theme";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
 import { useKaminoMarket } from "@/hooks/useKaminoMarket";
 import { useKaminoPosition } from "@/hooks/useKaminoPosition";
@@ -34,7 +34,7 @@ import { useNetworkStatus } from "@/providers/NetworkProvider";
 import { useTheme } from "@/providers/ThemeProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { loadBorrowConsent, saveBorrowConsent } from "@/utils/borrowConsent";
-import { isAuthFailure, isInsufficientFunds, isOracleStaleError, isUserRejection } from "@/utils/lendingErrors";
+import { isAuthFailure, isInsufficientFunds, isOracleStaleError, isUserRejection, isWalletTimeout } from "@/utils/lendingErrors";
 import { baseToDecimalString, formatTokenAmount, parseTokenAmount } from "@/utils/format";
 import type { RiskZone } from "@/utils/lendingMath";
 import type { ProgressState, TxStep } from "@/utils/txProgress";
@@ -111,8 +111,9 @@ export function EarnScreen(): React.JSX.Element
                 <RefreshControl
                     refreshing={refreshing}
                     onRefresh={onRefresh}
-                    tintColor={palette.text}
-                    colors={[palette.text]}
+                    tintColor={BRAND_PURPLE}
+                    colors={[BRAND_PURPLE]}
+                    progressBackgroundColor={palette.surface}
                 />
             )}
         >
@@ -336,7 +337,8 @@ function SupplyForm({ owner, styles, palette, t, cbbtcPriceUsd, currentSuppliedU
                     const noticeMsg = isOracleStaleError(err.message)
                         ? t("earn.oracleStaleHint")
                         : isInsufficientFunds(err.message) ? t("earn.insufficientHint")
-                            : isAuthFailure(err.message) ? t("earn.authFailedHint") : null;
+                            : isAuthFailure(err.message) ? t("earn.authFailedHint")
+                                : isWalletTimeout(err.message) ? t("earn.walletTimeoutHint") : null;
                     setNotice(noticeMsg);
                     setLastError(noticeMsg || cancelled ? null : err.message);
                     showToast(cancelled ? t("errors.userCancelled") : t("earn.supply.errorPrefix"), { variant: cancelled ? "info" : "error", durationMs: 5000 });
@@ -557,7 +559,8 @@ function WithdrawForm({ suppliedUsd, cbbtcPriceUsd, styles, palette, t, onFocusI
                     const noticeMsg = isOracleStaleError(err.message)
                         ? t("earn.oracleStaleHint")
                         : isInsufficientFunds(err.message) ? t("earn.insufficientHint")
-                            : isAuthFailure(err.message) ? t("earn.authFailedHint") : null;
+                            : isAuthFailure(err.message) ? t("earn.authFailedHint")
+                                : isWalletTimeout(err.message) ? t("earn.walletTimeoutHint") : null;
                     setNotice(noticeMsg);
                     setLastError(noticeMsg || cancelled ? null : err.message);
                     showToast(cancelled ? t("errors.userCancelled") : t("earn.withdraw.errorPrefix"), { variant: cancelled ? "info" : "error", durationMs: 5000 });
@@ -718,7 +721,8 @@ function BorrowForm({ maxBorrowableUsd, styles, palette, t, onFocusInput }: Borr
                     const noticeMsg = isOracleStaleError(err.message)
                         ? t("earn.oracleStaleHint")
                         : isInsufficientFunds(err.message) ? t("earn.insufficientHint")
-                            : isAuthFailure(err.message) ? t("earn.authFailedHint") : null;
+                            : isAuthFailure(err.message) ? t("earn.authFailedHint")
+                                : isWalletTimeout(err.message) ? t("earn.walletTimeoutHint") : null;
                     setNotice(noticeMsg);
                     setLastError(noticeMsg || cancelled ? null : err.message);
                     showToast(cancelled ? t("errors.userCancelled") : t("earn.borrow.errorPrefix"), { variant: cancelled ? "info" : "error", durationMs: 5000 });
@@ -906,7 +910,8 @@ function RepayForm({ owner, borrowedUsd, styles, palette, t, onFocusInput }: Rep
                     const noticeMsg = isOracleStaleError(err.message)
                         ? t("earn.oracleStaleHint")
                         : isInsufficientFunds(err.message) ? t("earn.insufficientHint")
-                            : isAuthFailure(err.message) ? t("earn.authFailedHint") : null;
+                            : isAuthFailure(err.message) ? t("earn.authFailedHint")
+                                : isWalletTimeout(err.message) ? t("earn.walletTimeoutHint") : null;
                     setNotice(noticeMsg);
                     const isDust = /6092|remaining too small/i.test(err.message);
                     setLastError(noticeMsg || cancelled ? null : (isDust ? `${t("earn.repay.dustHint")}\n\n${err.message}` : err.message));

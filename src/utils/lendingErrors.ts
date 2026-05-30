@@ -34,3 +34,13 @@ export function isAuthFailure(message: string): boolean
 {
     return /authorization request failed|(authorization|reauthorize|auth[_ ]?token).*(fail|deni|invalid|expired)/i.test(message);
 }
+
+/**
+ * MWA 응답 타임아웃 — 지갑 앱이 제때 응답하지 못한 경우.
+ * 예: "java.util.concurrent.TimeoutException: Timed out waiting for response with id=…".
+ * 보통 지갑 앱이 백그라운드에 묻혔거나 화면이 너무 오래 떠 있었을 때 발생. 다시 시도 안내로 처리.
+ */
+export function isWalletTimeout(message: string): boolean
+{
+    return /TimeoutException|Timed out waiting for response/i.test(message);
+}

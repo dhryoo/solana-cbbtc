@@ -28,6 +28,7 @@
         "oracleStaleHint": "The price oracle (Kamino) is temporarily behind on updates. Please try again shortly. For safety, borrowing only runs when the price is fresh.",
         "insufficientHint": "Not enough SOL. Your first transaction needs extra SOL for account rent and fees. Add a little more SOL and try again.",
         "authFailedHint": "Wallet authorization failed. Disconnect and reconnect your wallet, then try again. (Your session may have expired.)",
+        "walletTimeoutHint": "Wallet didn't respond in time. The approval screen may have been left open too long, or the wallet app was paused in the background. Please try again.",
         "market": {
             "heading": "Market",
             "supplyApy": "cbBTC supply APY",

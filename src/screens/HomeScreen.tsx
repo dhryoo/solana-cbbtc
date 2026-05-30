@@ -11,7 +11,7 @@ import { TransactionRow } from "@/components/TransactionRow";
 import { WalletButton } from "@/components/WalletButton";
 import { WalletCard } from "@/components/WalletCard";
 import { CBBTC, SKR, SOL, USDC } from "@/constants/tokens";
-import type { ThemePalette } from "@/constants/theme";
+import { BRAND_PURPLE, type ThemePalette } from "@/constants/theme";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
 import { useTransactionHistory } from "@/hooks/useTransactionHistory";
 import { useWallet } from "@/hooks/useWallet";
@@ -63,8 +63,9 @@ export function HomeScreen(): React.JSX.Element
                     refreshing={refreshing}
                     onRefresh={onRefresh}
                     enabled={Boolean(account)}
-                    tintColor={palette.text}
-                    colors={[palette.text]}
+                    tintColor={BRAND_PURPLE}
+                    colors={[BRAND_PURPLE]}
+                    progressBackgroundColor={palette.surface}
                 />
             )}
         >
