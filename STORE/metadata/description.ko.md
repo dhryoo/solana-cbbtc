@@ -94,8 +94,9 @@ cbBTC는 Coinbase가 발행한 비트코인 1:1 페그 토큰으로, Solana 메�
 
 • Phase 1: cbBTC ↔ SOL swap (Jupiter) — 완료 ✅
 • Phase 2: cbBTC 기반 lending (Kamino) — 공급·인출·차입·상환 완료 ✅
-• Phase 3: Lightning Network 결제 (실험적)
-• Phase 4: 다양한 wrapped BTC 비교/통합 swap
+• Phase 2.5: 멀티 프로토콜 비교 (marginfi/Solend 추가)
+• Phase 3: Lightning Network 결제 (실험적) — atomic swap 으로 cbBTC 로 LN 인보이스 결제
+• Phase 4: 다양한 wrapped BTC 비교/통합 swap (cbBTC · tBTC · BTC.b 등)
 
 📊 기술 스택
 

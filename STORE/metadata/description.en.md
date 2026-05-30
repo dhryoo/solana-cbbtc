@@ -92,8 +92,9 @@ cbBTC is Coinbase's 1:1 Bitcoin-pegged token — currently the largest wrapped B
 
 • Phase 1: cbBTC ↔ SOL swap (Jupiter) — done ✅
 • Phase 2: cbBTC-backed lending (Kamino) — supply · withdraw · borrow · repay done ✅
-• Phase 3: Lightning Network payment rails (experimental)
-• Phase 4: Cross-asset wrapped BTC comparison and routing
+• Phase 2.5: Multi-protocol comparison (add marginfi / Solend)
+• Phase 3: Lightning Network payment rails (experimental) — pay LN invoices with cbBTC via atomic swaps
+• Phase 4: Cross-asset wrapped BTC comparison and routing (cbBTC · tBTC · BTC.b ...)
 
 📊 Tech stack
 

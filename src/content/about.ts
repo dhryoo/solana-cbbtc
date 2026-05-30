@@ -62,8 +62,9 @@ cbBTC는 Coinbase가 발행한 비트코인 1:1 페그 토큰으로, Solana 메�
 
 - ✅ **Phase 1**: cbBTC ↔ SOL swap (Jupiter) — **완료**
 - ✅ **Phase 2**: cbBTC 기반 lending (Kamino) — 공급·인출·차입·상환 **완료**
-- **Phase 3**: Lightning Network 결제 (실험적)
-- **Phase 4**: 다양한 wrapped BTC 비교/통합 swap
+- **Phase 2.5**: 멀티 프로토콜 비교 (marginfi/Solend 추가) — Kamino 와 금리 비교
+- **Phase 3**: Lightning Network 결제 (실험적) — cbBTC 로 LN 인보이스 결제. atomic swap(예: Boltz)으로 trust-minimized 교환, 사용자는 Solana 쪽만 서명. "Bitcoin 을 보유에서 사용까지" 잇는 단계
+- **Phase 4**: 다양한 wrapped BTC 비교/통합 swap (cbBTC · tBTC · BTC.b 등)
 
 ## 📊 기술 스택
 
@@ -171,8 +172,9 @@ Future expansion: additional BTC-pegged tokens.
 
 - ✅ **Phase 1**: cbBTC ↔ SOL swap (Jupiter) — **done**
 - ✅ **Phase 2**: cbBTC-backed lending (Kamino) — supply · withdraw · borrow · repay **done**
-- **Phase 3**: Lightning Network payment rails (experimental)
-- **Phase 4**: Cross-asset wrapped BTC comparison and routing
+- **Phase 2.5**: Multi-protocol comparison (add marginfi / Solend alongside Kamino for rate comparison)
+- **Phase 3**: Lightning Network payment rails (experimental) — pay LN invoices with your cbBTC. Trust-minimized atomic swaps (e.g. Boltz submarine swaps) — you sign only on the Solana side. Closes the loop from "hold Bitcoin" to "spend Bitcoin"
+- **Phase 4**: Cross-asset wrapped BTC comparison and routing (cbBTC · tBTC · BTC.b ...)
 
 ## 📊 Tech stack
 
