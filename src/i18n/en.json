@@ -29,6 +29,7 @@
         "insufficientHint": "Not enough SOL. Your first transaction needs extra SOL for account rent and fees. Add a little more SOL and try again.",
         "authFailedHint": "Wallet authorization failed. Disconnect and reconnect your wallet, then try again. (Your session may have expired.)",
         "walletTimeoutHint": "Wallet didn't respond in time. The approval screen may have been left open too long, or the wallet app was paused in the background. Please try again.",
+        "noBorrowsHint": "There's no debt to repay. It may have already been fully repaid, or the screen is showing stale info. Pull down to refresh.",
         "market": {
             "heading": "Market",
             "supplyApy": "cbBTC supply APY",
@@ -203,6 +204,11 @@
             "github": "View source on GitHub",
             "kamino": "Explore Kamino Finance"
         }
+    },
+    "walletStale": {
+        "bannerTitle": "Your wallet session may have expired",
+        "bannerSubtitle": "Reconnect now to avoid a mid-transaction error",
+        "bannerAction": "Reconnect"
     },
     "update": {
         "bannerTitle": "A new version {{version}} is available",

@@ -87,6 +87,7 @@ describe("useSwap", () =>
             error: null,
             connect: jest.fn(),
             disconnect: jest.fn(),
+            reconnect: jest.fn(),
         });
 
         mockedNotifications.mockReturnValue({
@@ -135,6 +136,7 @@ describe("useSwap", () =>
             error: null,
             connect: jest.fn(),
             disconnect: jest.fn(),
+            reconnect: jest.fn(),
         });
 
         const { result } = renderHook(() => useSwap(), { wrapper });

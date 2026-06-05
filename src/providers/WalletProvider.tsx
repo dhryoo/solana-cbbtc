@@ -11,6 +11,7 @@ import { useAppLock } from "@/providers/AppLockProvider";
 import * as WalletService from "@/services/WalletService";
 import type { ConnectedAccount } from "@/services/WalletService";
 import { clearAuthToken, loadAuthToken, saveAuthToken } from "@/utils/authStorage";
+import { saveWalletConnectedAt } from "@/utils/walletAuthAge";
 
 export type WalletStatus =
     | "idle"
@@ -27,6 +28,8 @@ export interface WalletContextValue
     error: Error | null;
     connect: () => Promise<void>;
     disconnect: () => Promise<void>;
+    /** disconnect 후 즉시 connect — 만료된 세션을 새 토큰으로 갱신할 때 사용. */
+    reconnect: () => Promise<void>;
 }
 
 export const WalletContext = createContext<WalletContextValue | null>(null);
@@ -104,6 +107,8 @@ export function WalletProvider({ children }: WalletProviderProps): React.JSX.Ele
                 {
                     await saveAuthToken(restored.authToken);
                 }
+                // reauthorize 성공 = 세션이 살아있음 → stale 시계 리셋.
+                await saveWalletConnectedAt(Date.now());
                 setAccount(restored);
                 setStatus("connected");
             }
@@ -115,6 +120,7 @@ export function WalletProvider({ children }: WalletProviderProps): React.JSX.Ele
                 }
                 // reauthorize 실패 시 토큰 폐기 후 idle (에러는 표시 안 함)
                 await clearAuthToken();
+                await saveWalletConnectedAt(null);
                 setStatus("idle");
             }
         };
@@ -135,6 +141,7 @@ export function WalletProvider({ children }: WalletProviderProps): React.JSX.Ele
         {
             const next = await WalletService.connect();
             await saveAuthToken(next.authToken);
+            await saveWalletConnectedAt(Date.now());
             if (!isMounted.current)
             {
                 return;
@@ -171,6 +178,7 @@ export function WalletProvider({ children }: WalletProviderProps): React.JSX.Ele
             // 디바이스에서 이미 폐기됐을 수 있으니 무시
         }
         await clearAuthToken();
+        await saveWalletConnectedAt(null);
         if (!isMounted.current)
         {
             return;
@@ -179,6 +187,12 @@ export function WalletProvider({ children }: WalletProviderProps): React.JSX.Ele
         setStatus("idle");
     }, [account]);
 
+    const reconnect = useCallback(async (): Promise<void> =>
+    {
+        await disconnect();
+        await connect();
+    }, [disconnect, connect]);
+
     const value = useMemo<WalletContextValue>(() =>
         ({
             status,
@@ -186,7 +200,8 @@ export function WalletProvider({ children }: WalletProviderProps): React.JSX.Ele
             error,
             connect,
             disconnect,
-        }), [status, account, error, connect, disconnect]);
+            reconnect,
+        }), [status, account, error, connect, disconnect, reconnect]);
 
     return (
         <WalletContext.Provider value={value}>

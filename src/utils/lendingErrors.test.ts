@@ -1,6 +1,7 @@
 import {
     isAuthFailure,
     isInsufficientFunds,
+    isNoBorrowsToRepay,
     isOracleStaleError,
     isUserRejection,
     isWalletTimeout,
@@ -55,6 +56,30 @@ describe("isAuthFailure", () =>
     it("matches expired auth token phrasing", () =>
     {
         expect(isAuthFailure("auth_token expired")).toBe(true);
+    });
+});
+
+describe("isNoBorrowsToRepay", () =>
+{
+    it("matches Kamino 6021 numeric code", () =>
+    {
+        expect(isNoBorrowsToRepay("Simulation failed: {\"InstructionError\":[3,{\"Custom\":6021}]}")).toBe(true);
+    });
+
+    it("matches ObligationBorrowsEmpty error name", () =>
+    {
+        expect(isNoBorrowsToRepay("Error Code: ObligationBorrowsEmpty. Error Number: 6021.")).toBe(true);
+    });
+
+    it("matches 'Obligation borrows are empty' message", () =>
+    {
+        expect(isNoBorrowsToRepay("Program log: Obligation borrows are empty.")).toBe(true);
+    });
+
+    it("does not match unrelated errors", () =>
+    {
+        expect(isNoBorrowsToRepay("InvalidAmount 6003")).toBe(false);
+        expect(isNoBorrowsToRepay("PriceTooOld 6039")).toBe(false);
     });
 });
 

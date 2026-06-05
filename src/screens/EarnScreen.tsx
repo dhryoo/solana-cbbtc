@@ -34,7 +34,10 @@ import { useNetworkStatus } from "@/providers/NetworkProvider";
 import { useTheme } from "@/providers/ThemeProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { loadBorrowConsent, saveBorrowConsent } from "@/utils/borrowConsent";
-import { isAuthFailure, isInsufficientFunds, isOracleStaleError, isUserRejection, isWalletTimeout } from "@/utils/lendingErrors";
+import { isAuthFailure, isInsufficientFunds, isNoBorrowsToRepay, isOracleStaleError, isUserRejection, isWalletTimeout } from "@/utils/lendingErrors";
+import { markAuthFailureNow } from "@/utils/walletAuthAge";
+
+import { WalletReconnectBanner } from "@/components/WalletReconnectBanner";
 import { baseToDecimalString, formatTokenAmount, parseTokenAmount } from "@/utils/format";
 import type { RiskZone } from "@/utils/lendingMath";
 import type { ProgressState, TxStep } from "@/utils/txProgress";
@@ -129,6 +132,8 @@ export function EarnScreen(): React.JSX.Element
                     <Ionicons name="help-circle-outline" size={26} color={palette.textMuted} />
                 </Pressable>
             </View>
+
+            <WalletReconnectBanner />
 
             {/* 마켓 정보 */}
             <View style={styles.card}>
@@ -334,11 +339,18 @@ function SupplyForm({ owner, styles, palette, t, cbbtcPriceUsd, currentSuppliedU
                 {
                     setProgress((prev) => (prev ? { ...prev, state: "error" } : null));
                     const cancelled = isUserRejection(err.message);
+                    const authFailed = isAuthFailure(err.message);
+                    if (authFailed)
+                    {
+                        // 한 번이라도 인증 실패가 나면 그 시점부터 stale 로 마킹 — 다음 진입 즉시 배너 노출.
+                        void markAuthFailureNow();
+                    }
                     const noticeMsg = isOracleStaleError(err.message)
                         ? t("earn.oracleStaleHint")
                         : isInsufficientFunds(err.message) ? t("earn.insufficientHint")
-                            : isAuthFailure(err.message) ? t("earn.authFailedHint")
-                                : isWalletTimeout(err.message) ? t("earn.walletTimeoutHint") : null;
+                            : authFailed ? t("earn.authFailedHint")
+                                : isWalletTimeout(err.message) ? t("earn.walletTimeoutHint")
+                                    : isNoBorrowsToRepay(err.message) ? t("earn.noBorrowsHint") : null;
                     setNotice(noticeMsg);
                     setLastError(noticeMsg || cancelled ? null : err.message);
                     showToast(cancelled ? t("errors.userCancelled") : t("earn.supply.errorPrefix"), { variant: cancelled ? "info" : "error", durationMs: 5000 });
@@ -556,11 +568,18 @@ function WithdrawForm({ suppliedUsd, cbbtcPriceUsd, styles, palette, t, onFocusI
                 {
                     setProgress((prev) => (prev ? { ...prev, state: "error" } : null));
                     const cancelled = isUserRejection(err.message);
+                    const authFailed = isAuthFailure(err.message);
+                    if (authFailed)
+                    {
+                        // 한 번이라도 인증 실패가 나면 그 시점부터 stale 로 마킹 — 다음 진입 즉시 배너 노출.
+                        void markAuthFailureNow();
+                    }
                     const noticeMsg = isOracleStaleError(err.message)
                         ? t("earn.oracleStaleHint")
                         : isInsufficientFunds(err.message) ? t("earn.insufficientHint")
-                            : isAuthFailure(err.message) ? t("earn.authFailedHint")
-                                : isWalletTimeout(err.message) ? t("earn.walletTimeoutHint") : null;
+                            : authFailed ? t("earn.authFailedHint")
+                                : isWalletTimeout(err.message) ? t("earn.walletTimeoutHint")
+                                    : isNoBorrowsToRepay(err.message) ? t("earn.noBorrowsHint") : null;
                     setNotice(noticeMsg);
                     setLastError(noticeMsg || cancelled ? null : err.message);
                     showToast(cancelled ? t("errors.userCancelled") : t("earn.withdraw.errorPrefix"), { variant: cancelled ? "info" : "error", durationMs: 5000 });
@@ -722,7 +741,8 @@ function BorrowForm({ maxBorrowableUsd, styles, palette, t, onFocusInput }: Borr
                         ? t("earn.oracleStaleHint")
                         : isInsufficientFunds(err.message) ? t("earn.insufficientHint")
                             : isAuthFailure(err.message) ? t("earn.authFailedHint")
-                                : isWalletTimeout(err.message) ? t("earn.walletTimeoutHint") : null;
+                                : isWalletTimeout(err.message) ? t("earn.walletTimeoutHint")
+                                    : isNoBorrowsToRepay(err.message) ? t("earn.noBorrowsHint") : null;
                     setNotice(noticeMsg);
                     setLastError(noticeMsg || cancelled ? null : err.message);
                     showToast(cancelled ? t("errors.userCancelled") : t("earn.borrow.errorPrefix"), { variant: cancelled ? "info" : "error", durationMs: 5000 });
@@ -907,11 +927,18 @@ function RepayForm({ owner, borrowedUsd, styles, palette, t, onFocusInput }: Rep
                     setProgress((prev) => (prev ? { ...prev, state: "error" } : null));
                     // 오라클 지연·SOL 부족 → 안내 박스(notice). 취소 → raw 숨김. dust(6092) → 안내+raw. 그 외 raw.
                     const cancelled = isUserRejection(err.message);
+                    const authFailed = isAuthFailure(err.message);
+                    if (authFailed)
+                    {
+                        // 한 번이라도 인증 실패가 나면 그 시점부터 stale 로 마킹 — 다음 진입 즉시 배너 노출.
+                        void markAuthFailureNow();
+                    }
                     const noticeMsg = isOracleStaleError(err.message)
                         ? t("earn.oracleStaleHint")
                         : isInsufficientFunds(err.message) ? t("earn.insufficientHint")
-                            : isAuthFailure(err.message) ? t("earn.authFailedHint")
-                                : isWalletTimeout(err.message) ? t("earn.walletTimeoutHint") : null;
+                            : authFailed ? t("earn.authFailedHint")
+                                : isWalletTimeout(err.message) ? t("earn.walletTimeoutHint")
+                                    : isNoBorrowsToRepay(err.message) ? t("earn.noBorrowsHint") : null;
                     setNotice(noticeMsg);
                     const isDust = /6092|remaining too small/i.test(err.message);
                     setLastError(noticeMsg || cancelled ? null : (isDust ? `${t("earn.repay.dustHint")}\n\n${err.message}` : err.message));

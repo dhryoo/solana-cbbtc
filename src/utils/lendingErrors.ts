@@ -44,3 +44,13 @@ export function isWalletTimeout(message: string): boolean
 {
     return /TimeoutException|Timed out waiting for response/i.test(message);
 }
+
+/**
+ * Kamino 6021 ObligationBorrowsEmpty — 상환할 부채가 이미 0 인 경우.
+ * 보통 직전에 전액 상환했는데 UI 캐시가 갱신되기 전 다시 상환을 누르거나,
+ * 다른 경로(웹/다른 지갑) 에서 상환된 직후. "새로고침 후 확인" 안내로 처리.
+ */
+export function isNoBorrowsToRepay(message: string): boolean
+{
+    return /6021|ObligationBorrowsEmpty|Obligation borrows are empty/i.test(message);
+}
