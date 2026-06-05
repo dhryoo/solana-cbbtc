@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Animated, Pressable, Text, View } from "react-native";
 
 import { OfflineBanner } from "@/components/OfflineBanner";
+import { UpdateBanner } from "@/components/UpdateBanner";
 import type { ThemePalette } from "@/constants/theme";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
 import { EarnScreen } from "@/screens/EarnScreen";
@@ -45,6 +46,7 @@ export function AppShell(): React.JSX.Element
     return (
         <View style={styles.root}>
             <OfflineBanner />
+            <UpdateBanner />
             <View style={styles.content}>
                 <TabContent activeKey={tab} />
             </View>

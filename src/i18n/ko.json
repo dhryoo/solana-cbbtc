@@ -204,6 +204,15 @@
             "kamino": "Kamino Finance 살펴보기"
         }
     },
+    "update": {
+        "bannerTitle": "새 버전 {{version}} 이 나왔어요",
+        "modalTitle": "새 버전 {{version}}",
+        "currentVersion": "현재 버전: {{version}}",
+        "openUpdate": "업데이트하러 가기",
+        "openGitHub": "GitHub 에서 자세히 보기",
+        "later": "나중에",
+        "ignoreThisVersion": "이 버전 무시"
+    },
     "home": {
         "subtitle": "Bitcoin on Solana",
         "connectPrompt": "지갑을 연결하면 잔액과 swap을 사용할 수 있습니다.",

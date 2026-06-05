@@ -204,6 +204,15 @@
             "kamino": "Explore Kamino Finance"
         }
     },
+    "update": {
+        "bannerTitle": "A new version {{version}} is available",
+        "modalTitle": "New version {{version}}",
+        "currentVersion": "Current version: {{version}}",
+        "openUpdate": "Get the update",
+        "openGitHub": "View on GitHub",
+        "later": "Later",
+        "ignoreThisVersion": "Ignore this version"
+    },
     "home": {
         "subtitle": "Bitcoin on Solana",
         "connectPrompt": "Connect your wallet to view balances and swap.",
