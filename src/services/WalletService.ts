@@ -75,3 +75,19 @@ export async function signAndSendTransactions<T extends Transaction | VersionedT
         return wallet.signAndSendTransactions({ transactions });
     });
 }
+
+/**
+ * 서명만 하고 broadcast 는 호출자가 직접 — Atomiq SDK 처럼 자체 RPC 로 전송·추적하는
+ * 외부 SDK 에 Anchor Wallet 인터페이스를 제공하기 위해 필요 (Phase 3 Lightning).
+ */
+export async function signTransactions<T extends Transaction | VersionedTransaction>(
+    transactions: T[],
+    authToken: AuthToken,
+): Promise<T[]>
+{
+    return await transact(async (wallet) =>
+    {
+        await wallet.reauthorize({ auth_token: authToken, identity: APP_IDENTITY });
+        return wallet.signTransactions({ transactions });
+    });
+}

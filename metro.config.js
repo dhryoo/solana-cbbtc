@@ -13,6 +13,13 @@ const config = getDefaultConfig(__dirname);
 // RN 에 존재하지 않고, 우리 코드 경로에서 실제로 쓰이지 않는 Node 전용 빌트인.
 const NODE_BUILTIN_STUBS = new Set(["fs"]);
 
+// Node 전용 패키지 → RN shim 대체.
+// 'ws': @atomiqlabs/messenger-nostr 가 window.WebSocket 부재 시에만 fallback 으로 require —
+//       RN 은 WebSocket 내장이라 dead path 지만 Metro 정적 번들이 실패하므로 shim 필요.
+const MODULE_SHIMS = {
+    ws: require.resolve("./shims/ws.js"),
+};
+
 const defaultResolveRequest = config.resolver.resolveRequest;
 
 config.resolver.resolveRequest = (context, moduleName, platform) =>
@@ -20,6 +27,10 @@ config.resolver.resolveRequest = (context, moduleName, platform) =>
     if (NODE_BUILTIN_STUBS.has(moduleName))
     {
         return { type: "empty" };
+    }
+    if (MODULE_SHIMS[moduleName])
+    {
+        return { type: "sourceFile", filePath: MODULE_SHIMS[moduleName] };
     }
     const resolver = defaultResolveRequest ?? context.resolveRequest;
     return resolver(context, moduleName, platform);

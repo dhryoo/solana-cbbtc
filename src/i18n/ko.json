@@ -205,6 +205,42 @@
             "kamino": "Kamino Finance 살펴보기"
         }
     },
+    "labs": {
+        "badge": "실험"
+    },
+    "lightning": {
+        "title": "Lightning 결제",
+        "subtitle": "Atomiq atomic swap 으로 LN 인보이스 결제",
+        "chipLabel": "Lightning (실험)",
+        "experimentNotice": "실험 기능입니다. 소액으로만 사용하세요. 결제는 Atomiq 의 감사받은 스마트컨트랙트(HTLC)를 통해 이뤄지며, 서명은 모두 Solana 쪽에서만 합니다. 실패 시 자금은 환불됩니다. 본 앱은 수수료를 받지 않습니다 (LP 수수료만 발생).",
+        "refundableNotice": "환불 대기 중인 이전 결제가 {{count}}건 있습니다. 결제를 다시 시도하기 전에 지원 안내를 확인해 주세요.",
+        "destLabel": "받는 곳 (인보이스 / lightning address)",
+        "destPlaceholder": "lnbc… 인보이스 또는 user@domain.com",
+        "amountLabel": "보낼 금액 (sats)",
+        "amountPlaceholder": "예: 10000",
+        "embeddedAmount": "인보이스에 명시된 금액: {{sats}} sats",
+        "srcTokenLabel": "지불할 토큰",
+        "quoteButton": "견적 받기",
+        "initHint": "첫 견적은 LP 연결 때문에 몇 초 걸릴 수 있습니다",
+        "quoteHeading": "견적",
+        "quoteSend": "보내는 금액",
+        "quoteFee": "수수료 (LP)",
+        "quoteReceive": "LN 수신량",
+        "quoteDest": "받는 곳",
+        "payButton": "결제하기",
+        "payFailed": "결제 실패",
+        "refundingNotice": "LN 결제가 완료되지 않아 자금을 환불합니다. 지갑에서 환불 서명을 승인해 주세요.",
+        "paidTitle": "결제 완료",
+        "paidBody": "Lightning 인보이스가 결제되었습니다.",
+        "refundedTitle": "환불 완료",
+        "refundedBody": "LN 결제가 완료되지 않아 자금이 지갑으로 환불되었습니다. 잠시 후 다시 시도해 주세요.",
+        "refundFailedTitle": "환불 보류",
+        "refundFailedBody": "환불 서명이 완료되지 않았습니다. 자금은 안전하게 잠겨 있으며, 이 화면에 다시 들어오면 환불 안내가 표시됩니다.",
+        "errInvalidInput": "인보이스 또는 lightning address 형식이 아닙니다.",
+        "errExpiredInvoice": "만료된 인보이스입니다. 새 인보이스를 받아 주세요.",
+        "errAmountRequired": "보낼 금액(sats)을 입력해 주세요.",
+        "errAmountNotAllowed": "금액이 명시된 인보이스에는 금액을 따로 입력할 수 없습니다."
+    },
     "walletStale": {
         "bannerTitle": "지갑 세션이 만료되었을 수 있어요",
         "bannerSubtitle": "거래 전에 새로 연결해두면 안전합니다",
@@ -360,7 +396,10 @@
         "feedback": "문의 / 제보",
         "feedbackHint": "이메일로 버그 또는 제안을 알려주세요",
         "openFailed": "외부 앱을 열 수 없습니다",
-        "history": "거래 내역"
+        "history": "거래 내역",
+        "labs": "실험실",
+        "labsLightningToggle": "Lightning 결제 (실험)",
+        "labsLightningDescription": "Swap 탭에 ⚡ Lightning 인보이스 결제 기능을 추가합니다. 실험 기능 — 소액 사용 권장."
     },
     "notifications": {
         "swapSuccessTitle": "Swap 완료",

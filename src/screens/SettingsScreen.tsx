@@ -11,6 +11,7 @@ import type { ThemeMode, ThemePalette } from "@/constants/theme";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
 import { SUPPORTED_LANGUAGES, type SupportedLanguage } from "@/i18n";
 import { useAppLock } from "@/providers/AppLockProvider";
+import { useLabs } from "@/providers/LabsProvider";
 import { useLanguage } from "@/providers/I18nProvider";
 import { useNotifications } from "@/providers/NotificationProvider";
 import { useTheme } from "@/providers/ThemeProvider";
@@ -41,6 +42,7 @@ export function SettingsScreen(): React.JSX.Element
     const seeker = useSeekerIdentity();
     const { account } = useWallet();
     const appLock = useAppLock();
+    const labs = useLabs();
     const { showToast } = useToast();
     const [aboutOpen, setAboutOpen] = useState(false);
     const [historyOpen, setHistoryOpen] = useState(false);
@@ -206,6 +208,27 @@ export function SettingsScreen(): React.JSX.Element
                         accessibilityLabel={t("settings.notificationsToggle")}
                         value={notifications.enabled}
                         onValueChange={onToggleNotifications}
+                        trackColor={{ false: palette.borderStrong, true: "#9945FF" }}
+                        thumbColor="#ffffff"
+                    />
+                </View>
+            </View>
+
+            <View style={styles.section}>
+                <Text style={styles.sectionLabel}>{t("settings.labs")}</Text>
+                <View style={styles.toggleRow}>
+                    <View style={styles.toggleText}>
+                        <Text style={styles.toggleTitle}>{t("settings.labsLightningToggle")}</Text>
+                        <Text style={styles.toggleDesc}>{t("settings.labsLightningDescription")}</Text>
+                    </View>
+                    <Switch
+                        accessibilityLabel={t("settings.labsLightningToggle")}
+                        value={labs.lightningEnabled}
+                        onValueChange={(next) =>
+                        {
+                            void hapticSelection();
+                            void labs.setLightningEnabled(next);
+                        }}
                         trackColor={{ false: palette.borderStrong, true: "#9945FF" }}
                         thumbColor="#ffffff"
                     />

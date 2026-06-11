@@ -205,6 +205,42 @@
             "kamino": "Explore Kamino Finance"
         }
     },
+    "labs": {
+        "badge": "BETA"
+    },
+    "lightning": {
+        "title": "Lightning payment",
+        "subtitle": "Pay LN invoices via Atomiq atomic swaps",
+        "chipLabel": "Lightning (Labs)",
+        "experimentNotice": "Experimental feature — use small amounts only. Payments run through Atomiq's audited smart contracts (HTLC); you sign only on the Solana side. If a payment fails, your funds are refunded. This app charges no fee (only the LP fee applies).",
+        "refundableNotice": "You have {{count}} earlier payment(s) awaiting refund. Please check support guidance before retrying.",
+        "destLabel": "Destination (invoice / lightning address)",
+        "destPlaceholder": "lnbc… invoice or user@domain.com",
+        "amountLabel": "Amount to send (sats)",
+        "amountPlaceholder": "e.g. 10000",
+        "embeddedAmount": "Amount embedded in invoice: {{sats}} sats",
+        "srcTokenLabel": "Pay with",
+        "quoteButton": "Get quote",
+        "initHint": "The first quote may take a few seconds while connecting to the LP",
+        "quoteHeading": "Quote",
+        "quoteSend": "You send",
+        "quoteFee": "Fee (LP)",
+        "quoteReceive": "LN receives",
+        "quoteDest": "Destination",
+        "payButton": "Pay",
+        "payFailed": "Payment failed",
+        "refundingNotice": "The LN payment didn't complete, so your funds are being refunded. Please approve the refund signature in your wallet.",
+        "paidTitle": "Payment complete",
+        "paidBody": "The Lightning invoice has been paid.",
+        "refundedTitle": "Refunded",
+        "refundedBody": "The LN payment didn't complete and your funds were refunded to your wallet. Please try again shortly.",
+        "refundFailedTitle": "Refund pending",
+        "refundFailedBody": "The refund signature wasn't completed. Your funds remain safely locked — reopen this screen to see the refund notice.",
+        "errInvalidInput": "Not a valid invoice or lightning address.",
+        "errExpiredInvoice": "This invoice has expired. Please request a fresh one.",
+        "errAmountRequired": "Please enter the amount to send (sats).",
+        "errAmountNotAllowed": "This invoice already specifies an amount — you can't enter one separately."
+    },
     "walletStale": {
         "bannerTitle": "Your wallet session may have expired",
         "bannerSubtitle": "Reconnect now to avoid a mid-transaction error",
@@ -360,7 +396,10 @@
         "feedback": "Feedback",
         "feedbackHint": "Report bugs or share suggestions via email",
         "openFailed": "Could not open external app",
-        "history": "Transaction history"
+        "history": "Transaction history",
+        "labs": "Labs",
+        "labsLightningToggle": "Lightning payment (experimental)",
+        "labsLightningDescription": "Adds ⚡ Lightning invoice payment to the Swap tab. Experimental — small amounts recommended."
     },
     "notifications": {
         "swapSuccessTitle": "Swap completed",
