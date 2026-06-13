@@ -50,6 +50,14 @@ cbBTC is Coinbase's 1:1 Bitcoin-pegged token — currently the largest wrapped B
 • Self-custody — the app never holds your funds or keys; every transaction is signed with your Seed Vault
 • Progress visualization + guide — step-by-step progress, with how-it-works, transparency, and risk explained via infographics
 
+🧪 Labs — ⚡ Lightning payments (Phase 3 beta)
+
+• Opt-in feature under Settings → Labs (off by default)
+• Pay Lightning Network invoices (Bitcoin's payment rail) directly with USDC · SOL
+• Atomiq atomic swaps (HTLC) — audited escrow, every signature stays on Solana
+• Safe on failure — funds are refunded if the LN payment doesn't complete (the LP can't claim without payment proof)
+• Zero app fee — only the LP fee (~0.5%), shown in the quote. Small amounts recommended
+
 🛡️ Security first
 
 • Private keys never leave the Seeker Seed Vault hardware
@@ -93,7 +101,7 @@ cbBTC is Coinbase's 1:1 Bitcoin-pegged token — currently the largest wrapped B
 • Phase 1: cbBTC ↔ SOL swap (Jupiter) — done ✅
 • Phase 2: cbBTC-backed lending (Kamino) — supply · withdraw · borrow · repay done ✅
 • Phase 2.5: Multi-protocol comparison (add marginfi / Solend)
-• Phase 3: Lightning Network payment rails (experimental) — pay LN invoices with cbBTC via atomic swaps
+• 🧪 Phase 3: Lightning Network payments — in beta (Labs toggle; USDC · SOL as source, cbBTC next)
 • Phase 4: Cross-asset wrapped BTC comparison and routing (cbBTC · tBTC · BTC.b ...)
 
 📊 Tech stack

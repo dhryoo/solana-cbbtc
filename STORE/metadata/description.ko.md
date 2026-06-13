@@ -52,6 +52,14 @@ cbBTC는 Coinbase가 발행한 비트코인 1:1 페그 토큰으로, Solana 메�
 • 비수탁(self-custody) — 앱은 자금·키를 보관하지 않음, 모든 거래는 Seed Vault로 직접 서명
 • 진행 시각화 + 안내 화면 — 단계별 진행 표시, 작동 방식·투명성·위험을 인포그래픽으로 설명
 
+🧪 실험실 (Labs) — ⚡ Lightning 결제 (Phase 3 베타)
+
+• 설정 → 실험실에서 켜는 opt-in 기능 (기본 꺼짐)
+• Bitcoin 결제망(Lightning Network) 인보이스를 USDC·SOL 로 바로 지불
+• Atomiq atomic swap (HTLC) — 감사받은 escrow, 서명은 전부 Solana 쪽에서만
+• 실패해도 안전 — LN 지급이 안 되면 자금 환불 (LP 는 지급 증명 없이 자금 못 가져감)
+• 앱 수수료 0 — LP 수수료(~0.5%)만 견적에 표시. 소액 사용 권장
+
 🛡️ 보안 우선
 
 • 개인키는 Seeker Seed Vault 하드웨어를 떠나지 않습니다
@@ -95,7 +103,7 @@ cbBTC는 Coinbase가 발행한 비트코인 1:1 페그 토큰으로, Solana 메�
 • Phase 1: cbBTC ↔ SOL swap (Jupiter) — 완료 ✅
 • Phase 2: cbBTC 기반 lending (Kamino) — 공급·인출·차입·상환 완료 ✅
 • Phase 2.5: 멀티 프로토콜 비교 (marginfi/Solend 추가)
-• Phase 3: Lightning Network 결제 (실험적) — atomic swap 으로 cbBTC 로 LN 인보이스 결제
+• 🧪 Phase 3: Lightning Network 결제 — 베타 출시 (실험실 토글, USDC·SOL 발신. cbBTC 발신은 후속)
 • Phase 4: 다양한 wrapped BTC 비교/통합 swap (cbBTC · tBTC · BTC.b 등)
 
 📊 기술 스택

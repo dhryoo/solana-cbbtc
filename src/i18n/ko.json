@@ -241,6 +241,46 @@
         "errAmountRequired": "보낼 금액(sats)을 입력해 주세요.",
         "errAmountNotAllowed": "금액이 명시된 인보이스에는 금액을 따로 입력할 수 없습니다."
     },
+    "lightningGuide": {
+        "title": "Lightning 결제 안내",
+        "intro": {
+            "title": "무엇인가요?",
+            "body": "Bitcoin 의 결제망인 Lightning Network 인보이스를 Solana 자산(USDC·SOL)으로 바로 결제하는 실험 기능입니다. 커피 한 잔 값 같은 소액 결제에 적합합니다."
+        },
+        "how": {
+            "title": "어떻게 동작하나요?",
+            "body": "Atomiq 의 atomic swap(HTLC)으로 동작합니다. 서명은 전부 Solana 쪽에서만 이루어집니다.",
+            "b1": "견적 단계에서는 자금이 움직이지 않습니다 — 수수료를 먼저 확인하세요.",
+            "b2": "결제를 누르면 Solana 의 감사받은 escrow 컨트랙트에 자금이 잠깁니다 (Seed Vault 서명 1회).",
+            "b3": "LP(유동성 공급자)가 Lightning 인보이스를 대신 지급합니다.",
+            "b4": "LP 는 '지급했다는 암호학적 증명'을 제시해야만 잠긴 자금을 가져갈 수 있습니다."
+        },
+        "refund": {
+            "title": "실패하면 내 돈은?",
+            "body": "LN 결제가 완료되지 않으면 자금은 회수됩니다 — 이것이 atomic swap 의 핵심입니다.",
+            "b1": "결제 실패 시 앱이 바로 환불 서명을 안내합니다.",
+            "b2": "앱이 중간에 꺼져도 다음에 이 화면을 열면 환불 대기 안내가 표시됩니다.",
+            "b3": "LP 는 지급 증명 없이는 자금을 절대 가져갈 수 없습니다 (스마트컨트랙트가 강제)."
+        },
+        "fees": {
+            "title": "수수료",
+            "b1": "이 앱은 수수료를 받지 않습니다.",
+            "b2": "LP 수수료 약 0.5% + 소액 LN 라우팅 비용이 발생하며, 견적에 모두 표시됩니다.",
+            "b3": "Solana 네트워크 수수료는 일반 거래와 동일합니다."
+        },
+        "experimental": {
+            "title": "실험 기능 주의",
+            "body": "Labs 에서 켜는 실험 기능입니다. 안정화까지는 보수적으로 사용해 주세요.",
+            "b1": "소액(수천 sats)으로만 사용하세요.",
+            "b2": "금액이 명시된 인보이스 또는 lightning address(금액 입력)를 지원합니다.",
+            "b3": "문제가 생기면 설정 → 문의/제보로 알려주세요."
+        },
+        "infographic": "Lightning 결제 흐름: 내 지갑(Solana 서명) → escrow 잠금 → LP 가 LN 인보이스 지급 → 지급 증명으로 정산. 실패 시 환불",
+        "links": {
+            "github": "GitHub 에서 소스코드 보기",
+            "atomiq": "Atomiq 살펴보기"
+        }
+    },
     "walletStale": {
         "bannerTitle": "지갑 세션이 만료되었을 수 있어요",
         "bannerSubtitle": "거래 전에 새로 연결해두면 안전합니다",

@@ -25,6 +25,7 @@ import { useWallet } from "@/hooks/useWallet";
 import { useNetworkStatus } from "@/providers/NetworkProvider";
 import { useTheme } from "@/providers/ThemeProvider";
 import { useToast } from "@/providers/ToastProvider";
+import { LightningGuideScreen } from "@/screens/LightningGuideScreen";
 import { LightningQuoteError } from "@/services/lightning/LightningService";
 import type { LightningPayOutcome, LightningPayPhase, LightningQuote } from "@/services/lightning/types";
 import { formatRawAmount } from "@/utils/format";
@@ -72,6 +73,7 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
     const [outcome, setOutcome] = useState<LightningPayOutcome | null>(null);
     const [notice, setNotice] = useState<string | null>(null);
     const [lastError, setLastError] = useState<string | null>(null);
+    const [guideOpen, setGuideOpen] = useState(false);
 
     const quoteMutation = useLightningQuote();
     const payMutation = useLightningPay();
@@ -200,6 +202,14 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                         </View>
                         <Text style={styles.headerSubtitle}>{t("lightning.subtitle")}</Text>
                     </View>
+                    <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel={t("lightningGuide.title")}
+                        onPress={() => setGuideOpen(true)}
+                        style={({ pressed }) => [styles.closeButton, pressed && { opacity: 0.7 }]}
+                    >
+                        <Ionicons name="help-circle-outline" size={22} color={palette.textMuted} />
+                    </Pressable>
                     <Pressable
                         accessibilityRole="button"
                         accessibilityLabel={t("common.close")}
@@ -389,6 +399,7 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                         : null}
                 </ScrollView>
             </View>
+            <LightningGuideScreen visible={guideOpen} onClose={() => setGuideOpen(false)} />
         </Modal>
     );
 }
