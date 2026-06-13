@@ -240,14 +240,27 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
     // 서명 전이라 escrow 는 안 생기지만, 혹시 생겼더라도 화면 재진입 시 환불 배너가 잡는다.
     const onCancelPending = (): void =>
     {
+        if (__DEV__)
+        {
+            // eslint-disable-next-line no-console
+            console.log("[lightning] onCancelPending — abandoning stuck pay attempt");
+        }
         payTokenRef.current += 1;
         setProgress(null);
         setQuote(null);
         setNotice(t("lightning.cancelledPendingNotice"));
     };
 
+    // 화면을 닫을 때도 멈춘 진행 상태를 정리 — 다시 열면 깨끗한 입력 폼.
+    const handleClose = (): void =>
+    {
+        payTokenRef.current += 1;
+        setProgress(null);
+        onClose();
+    };
+
     return (
-        <Modal visible={visible} animationType="slide" onRequestClose={onClose} statusBarTranslucent={false}>
+        <Modal visible={visible} animationType="slide" onRequestClose={handleClose} statusBarTranslucent={false}>
             <View style={styles.container}>
                 <View style={styles.header}>
                     <View style={styles.headerText}>
@@ -271,7 +284,7 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                     <Pressable
                         accessibilityRole="button"
                         accessibilityLabel={t("common.close")}
-                        onPress={onClose}
+                        onPress={handleClose}
                         style={({ pressed }) => [styles.closeButton, pressed && { opacity: 0.7 }]}
                     >
                         <Ionicons name="close" size={22} color={palette.text} />
@@ -412,16 +425,17 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                     {progress ? (
                         <View style={styles.progressWrap}>
                             <TxProgress current={progress.step} state={progress.state} />
-                            {progress.state === "running" && (
-                                <Pressable
-                                    accessibilityRole="button"
-                                    accessibilityLabel={t("lightning.cancelPending")}
-                                    onPress={onCancelPending}
-                                    style={({ pressed }) => [styles.cancelPending, pressed && { opacity: 0.6 }]}
-                                >
-                                    <Text style={styles.cancelPendingText}>{t("lightning.cancelPending")}</Text>
-                                </Pressable>
-                            )}
+                            {/* 진행 표시가 떠 있으면 상태와 무관하게 항상 노출 —
+                                Seeker Seed Vault 는 '거부' 버튼이 없고 X 로 닫으면 서명이 멈추므로,
+                                이 버튼이 이 기기의 기본 취소·복구 수단이다. */}
+                            <Pressable
+                                accessibilityRole="button"
+                                accessibilityLabel={t("lightning.cancelPending")}
+                                onPress={onCancelPending}
+                                style={({ pressed }) => [styles.cancelPending, pressed && { opacity: 0.6 }]}
+                            >
+                                <Text style={styles.cancelPendingText}>{t("lightning.cancelPending")}</Text>
+                            </Pressable>
                         </View>
                     ) : null}
 
