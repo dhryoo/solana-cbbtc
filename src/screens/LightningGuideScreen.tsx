@@ -26,9 +26,9 @@ interface LightningGuideScreenProps
     onClose: () => void;
 }
 
-// 인포그래픽 생성 대기 — prompt: assets/infographics/PROMPT-lightning-pay.md.
-// 생성 후 `require("../../assets/lightning-pay.png")` 로 교체하면 placeholder 가 이미지로 바뀜.
-const INFOGRAPHIC_LIGHTNING: ImageSourcePropType | undefined = undefined;
+// Lightning 결제 흐름 인포그래픽 (AI 생성, prompt: assets/infographics/PROMPT-lightning-pay.md).
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const INFOGRAPHIC_LIGHTNING: ImageSourcePropType | undefined = require("../../assets/lightning-pay.png");
 
 const GITHUB_URL = "https://github.com/dhryoo/solana-cbbtc";
 const ATOMIQ_URL = "https://atomiq.exchange";
