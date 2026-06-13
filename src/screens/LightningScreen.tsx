@@ -432,8 +432,9 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                                 accessibilityRole="button"
                                 accessibilityLabel={t("lightning.cancelPending")}
                                 onPress={onCancelPending}
-                                style={({ pressed }) => [styles.cancelPending, pressed && { opacity: 0.6 }]}
+                                style={({ pressed }) => [styles.cancelPending, pressed && styles.cancelPendingPressed]}
                             >
+                                <Ionicons name="close-circle-outline" size={16} color={palette.text} />
                                 <Text style={styles.cancelPendingText}>{t("lightning.cancelPending")}</Text>
                             </Pressable>
                         </View>
@@ -620,9 +621,23 @@ const makeStyles = (t: ThemePalette) => StyleSheet.create({
     buttonDisabled: { backgroundColor: t.disabled },
     buttonText: { fontSize: 15, fontWeight: "700", color: t.textInverse },
     initHint: { fontSize: 11, color: t.textDim, textAlign: "center" },
-    progressWrap: { gap: 8 },
-    cancelPending: { alignSelf: "center", paddingVertical: 8, paddingHorizontal: 16 },
-    cancelPendingText: { fontSize: 13, fontWeight: "600", color: t.textMuted },
+    progressWrap: { gap: 12, alignItems: "center" as const },
+    cancelPending: {
+        flexDirection: "row" as const,
+        alignItems: "center" as const,
+        justifyContent: "center" as const,
+        gap: 6,
+        alignSelf: "center" as const,
+        paddingVertical: 11,
+        paddingHorizontal: 22,
+        borderRadius: 999,
+        borderWidth: 1,
+        borderColor: t.borderStrong,
+        backgroundColor: t.surfaceMuted,
+        minWidth: 140,
+    },
+    cancelPendingPressed: { opacity: 0.6 },
+    cancelPendingText: { fontSize: 14, fontWeight: "700" as const, color: t.text },
     row: { flexDirection: "row", justifyContent: "space-between", gap: 12 },
     rowLabel: { fontSize: 13, color: t.textMuted },
     rowValue: { flex: 1, fontSize: 13, fontWeight: "600", color: t.text, textAlign: "right" },
