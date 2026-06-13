@@ -8,6 +8,63 @@ import type { ParsedBolt11, ParsedLightningAddress, ParsedLnurl } from "@/utils/
 // Strategy 패턴: LightningSwapProvider 인터페이스 뒤에 LP(Atomiq, 추후 Boltz 등)를 숨긴다.
 // UI/hook 은 LightningService(Facade)만 보고, Facade 는 provider 를 선택해 위임한다.
 
+/**
+ * 결제 금액이 LP 의 허용 범위를 벗어난 경우 (sats 단위 min/max 동반).
+ * LP SDK 의 raw "Swap amount too low/high" 를 친절 안내로 바꾸기 위한 타입 에러.
+ */
+export class LightningAmountError extends Error
+{
+    readonly minSats: bigint | null;
+    readonly maxSats: bigint | null;
+    readonly tooLow: boolean;
+
+    constructor(opts: { minSats: bigint | null; maxSats: bigint | null; tooLow: boolean })
+    {
+        super("lightning amount out of bounds");
+        this.name = "LightningAmountError";
+        this.minSats = opts.minSats;
+        this.maxSats = opts.maxSats;
+        this.tooLow = opts.tooLow;
+    }
+}
+
+/** Hermes 의 setPrototypeOf 이슈를 피해 안전하게 판별 (instanceof + name 이중 체크). */
+export function isLightningAmountError(e: unknown): e is LightningAmountError
+{
+    return e instanceof LightningAmountError
+        || (typeof e === "object" && e !== null && (e as { name?: unknown }).name === "LightningAmountError");
+}
+
+/**
+ * LP SDK 의 OutOfBoundsError(min/max sats + "amount too low/high" 메시지)를
+ * LightningAmountError 로 변환. 해당 에러가 아니면 null.
+ */
+export function asLightningAmountError(e: unknown): LightningAmountError | null
+{
+    if (!e || typeof e !== "object")
+    {
+        return null;
+    }
+    const o = e as { min?: unknown; max?: unknown; message?: unknown };
+    const msg = typeof o.message === "string" ? o.message : "";
+    const hasBounds = o.min !== undefined || o.max !== undefined;
+    const matchesMsg = /amount too (low|high)/i.test(msg);
+    if (!hasBounds && !matchesMsg)
+    {
+        return null;
+    }
+    const toBig = (v: unknown): bigint | null =>
+    {
+        if (typeof v === "bigint") return v;
+        if (typeof v === "number" && Number.isFinite(v)) return BigInt(Math.trunc(v));
+        if (typeof v === "string" && /^\d+$/.test(v)) return BigInt(v);
+        return null;
+    };
+    // "too high" 가 명시되면 상한 초과, 그 외(특히 "too low" / 모호)는 하한 미만으로 간주
+    const tooLow = !/too high/i.test(msg);
+    return new LightningAmountError({ minSats: toBig(o.min), maxSats: toBig(o.max), tooLow });
+}
+
 /** UI 진행 단계 — 기존 TxProgress 의 TxStep 으로 매핑해 표시 */
 export type LightningPayPhase =
     | "signing"     // Solana 측 escrow lock 서명 (MWA)

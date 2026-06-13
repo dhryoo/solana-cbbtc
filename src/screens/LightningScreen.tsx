@@ -27,6 +27,7 @@ import { useTheme } from "@/providers/ThemeProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { LightningGuideScreen } from "@/screens/LightningGuideScreen";
 import { LightningQuoteError } from "@/services/lightning/LightningService";
+import { isLightningAmountError } from "@/services/lightning/types";
 import type { LightningPayOutcome, LightningPayPhase, LightningQuote } from "@/services/lightning/types";
 import { formatRawAmount } from "@/utils/format";
 import { isAuthFailure, isUserRejection, isWalletTimeout } from "@/utils/lendingErrors";
@@ -142,6 +143,12 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                 case "amount_required": return t("lightning.errAmountRequired");
                 case "amount_not_allowed": return t("lightning.errAmountNotAllowed");
             }
+        }
+        if (isLightningAmountError(err))
+        {
+            return err.tooLow
+                ? t("lightning.errAmountTooLow", { min: err.minSats?.toString() ?? "?" })
+                : t("lightning.errAmountTooHigh", { max: err.maxSats?.toString() ?? "?" });
         }
         return err.message;
     }, [t]);

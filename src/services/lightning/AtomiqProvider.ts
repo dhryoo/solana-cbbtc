@@ -1,6 +1,7 @@
 import { getRpcEndpoints } from "@/constants/cluster";
 import { SOL, USDC, type TokenInfo } from "@/constants/tokens";
 
+import { asLightningAmountError } from "./types";
 import type {
     LightningDestination,
     LightningPayOutcome,
@@ -283,6 +284,12 @@ export class AtomiqProvider implements LightningSwapProvider
         }
         catch (e)
         {
+            // 금액 범위 초과(LP min/max) → 친절 안내용 타입 에러로 변환
+            const amountErr = asLightningAmountError(e);
+            if (amountErr)
+            {
+                throw amountErr;
+            }
             if (__DEV__)
             {
                 // 진단: 실패 파라미터 + 원본 에러 + stack (M17.1 디버깅 — abort 지점 특정)

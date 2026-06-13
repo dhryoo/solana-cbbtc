@@ -242,7 +242,9 @@
         "errInvalidInput": "인보이스 또는 lightning address 형식이 아닙니다.",
         "errExpiredInvoice": "만료된 인보이스입니다. 새 인보이스를 받아 주세요.",
         "errAmountRequired": "보낼 금액(sats)을 입력해 주세요.",
-        "errAmountNotAllowed": "금액이 명시된 인보이스에는 금액을 따로 입력할 수 없습니다."
+        "errAmountNotAllowed": "금액이 명시된 인보이스에는 금액을 따로 입력할 수 없습니다.",
+        "errAmountTooLow": "금액이 너무 적습니다. 최소 {{min}} sats 이상으로 시도해 주세요.",
+        "errAmountTooHigh": "금액이 너무 큽니다. 최대 {{max}} sats 이하로 시도해 주세요."
     },
     "lightningGuide": {
         "title": "Lightning 결제 안내",

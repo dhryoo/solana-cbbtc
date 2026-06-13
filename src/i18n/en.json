@@ -242,7 +242,9 @@
         "errInvalidInput": "Not a valid invoice or lightning address.",
         "errExpiredInvoice": "This invoice has expired. Please request a fresh one.",
         "errAmountRequired": "Please enter the amount to send (sats).",
-        "errAmountNotAllowed": "This invoice already specifies an amount — you can't enter one separately."
+        "errAmountNotAllowed": "This invoice already specifies an amount — you can't enter one separately.",
+        "errAmountTooLow": "Amount is too small. Please try at least {{min}} sats.",
+        "errAmountTooHigh": "Amount is too large. Please try at most {{max}} sats."
     },
     "lightningGuide": {
         "title": "About Lightning payments",

@@ -4,6 +4,7 @@ import { USDC } from "@/constants/tokens";
 import type { ConnectedAccount } from "@/services/WalletService";
 
 import { LightningQuoteError, LightningService, resolveDestination } from "./LightningService";
+import { asLightningAmountError, isLightningAmountError } from "./types";
 import type {
     LightningDestination,
     LightningPayOutcome,
@@ -99,6 +100,55 @@ describe("resolveDestination", () =>
         {
             expect((e as LightningQuoteError).code).toBe("invalid_input");
         }
+    });
+});
+
+describe("asLightningAmountError", () =>
+{
+    it("converts a too-low OutOfBoundsError with bigint bounds", () =>
+    {
+        const sdkErr = Object.assign(new Error("Swap amount too low! Try swapping a higher amount."), {
+            min: 100n,
+            max: 2_000_000n,
+        });
+        const r = asLightningAmountError(sdkErr);
+        expect(r).not.toBeNull();
+        expect(r?.tooLow).toBe(true);
+        expect(r?.minSats).toBe(100n);
+        expect(r?.maxSats).toBe(2_000_000n);
+        expect(isLightningAmountError(r)).toBe(true);
+    });
+
+    it("converts a too-high error and reads tooLow=false", () =>
+    {
+        const sdkErr = Object.assign(new Error("Swap amount too high! Try swapping a lower amount."), {
+            min: 100, max: 2000000, // number form
+        });
+        const r = asLightningAmountError(sdkErr);
+        expect(r?.tooLow).toBe(false);
+        expect(r?.minSats).toBe(100n);
+        expect(r?.maxSats).toBe(2_000_000n);
+    });
+
+    it("accepts string bounds", () =>
+    {
+        const r = asLightningAmountError(Object.assign(new Error("amount too low"), { min: "100", max: "5000" }));
+        expect(r?.minSats).toBe(100n);
+        expect(r?.maxSats).toBe(5000n);
+    });
+
+    it("returns null for unrelated errors", () =>
+    {
+        expect(asLightningAmountError(new Error("No intermediary found"))).toBeNull();
+        expect(asLightningAmountError(null)).toBeNull();
+        expect(asLightningAmountError("string")).toBeNull();
+    });
+
+    it("isLightningAmountError recognizes by name even across proto boundaries", () =>
+    {
+        const plain = { name: "LightningAmountError", minSats: 100n, maxSats: null, tooLow: true };
+        expect(isLightningAmountError(plain)).toBe(true);
+        expect(isLightningAmountError(new Error("x"))).toBe(false);
     });
 });
 
