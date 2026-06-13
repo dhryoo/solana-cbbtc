@@ -3,8 +3,8 @@ import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Linking, Pressable, Text, View } from "react-native";
 
-import { CBBTC, USDC } from "@/constants/tokens";
-import type { ThemePalette } from "@/constants/theme";
+import { CBBTC, SOL, USDC } from "@/constants/tokens";
+import { BRAND_PURPLE, type ThemePalette } from "@/constants/theme";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
 import { useTheme } from "@/providers/ThemeProvider";
 import type { TxHistoryItem, TxHistoryKind } from "@/services/TransactionHistoryService";
@@ -31,6 +31,10 @@ function kindVisual(kind: TxHistoryKind, palette: ThemePalette): { icon: keyof t
             return { icon: "trending-up-outline", color: palette.warn };
         case "repay":
             return { icon: "checkmark-done-outline", color: palette.success };
+        case "lightningPay":
+            return { icon: "flash", color: BRAND_PURPLE };
+        case "lightningRefund":
+            return { icon: "arrow-undo-circle-outline", color: palette.warn };
         default:
             return { icon: "ellipse-outline", color: palette.textMuted };
     }
@@ -79,6 +83,25 @@ export function describeAmount(
         {
             return {
                 primary: `${formatRawAmount(absOf(ud).toString(), USDC.decimals)} ${USDC.symbol}`,
+                direction: null,
+            };
+        }
+    }
+    if (item.kind === "lightningPay" || item.kind === "lightningRefund")
+    {
+        // 발신 자산: USDC 우선, 없으면 native SOL (lamports, fee 포함 근사)
+        if (ud !== undefined && ud !== 0n)
+        {
+            return {
+                primary: `${formatRawAmount(absOf(ud).toString(), USDC.decimals)} ${USDC.symbol}`,
+                direction: null,
+            };
+        }
+        const sol = item.solDelta;
+        if (sol !== undefined && sol !== 0n)
+        {
+            return {
+                primary: `${formatRawAmount(absOf(sol).toString(), SOL.decimals)} ${SOL.symbol}`,
                 direction: null,
             };
         }

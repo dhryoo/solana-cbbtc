@@ -310,6 +310,7 @@
         "filterAll": "All",
         "filterSwap": "Swap",
         "filterEarn": "Earn",
+        "filterLightning": "⚡ LN",
         "empty": "No activity yet",
         "emptyHint": "Your Swap and Earn transactions will appear here.",
         "connectFirst": "Connect a wallet to see your history",
@@ -322,7 +323,9 @@
             "supply": "Supply",
             "withdraw": "Withdraw",
             "borrow": "Borrow",
-            "repay": "Repay"
+            "repay": "Repay",
+            "lightningPay": "⚡ LN payment",
+            "lightningRefund": "⚡ LN refund"
         },
         "directions": {
             "swapOutCbbtc": "cbBTC → SOL",

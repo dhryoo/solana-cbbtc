@@ -23,9 +23,10 @@ import { useWallet } from "@/hooks/useWallet";
 import { useTheme } from "@/providers/ThemeProvider";
 import type { TxHistoryItem } from "@/services/TransactionHistoryService";
 
-type FilterKey = "all" | "swap" | "earn";
+type FilterKey = "all" | "swap" | "earn" | "lightning";
 
 const EARN_KINDS = new Set(["supply", "withdraw", "borrow", "repay"]);
+const LIGHTNING_KINDS = new Set(["lightningPay", "lightningRefund"]);
 
 function applyFilter(items: TxHistoryItem[], filter: FilterKey): TxHistoryItem[]
 {
@@ -36,6 +37,10 @@ function applyFilter(items: TxHistoryItem[], filter: FilterKey): TxHistoryItem[]
     if (filter === "swap")
     {
         return items.filter((i) => i.kind === "swap");
+    }
+    if (filter === "lightning")
+    {
+        return items.filter((i) => LIGHTNING_KINDS.has(i.kind));
     }
     return items.filter((i) => EARN_KINDS.has(i.kind));
 }
@@ -87,6 +92,7 @@ export function HistoryScreen({ visible, onClose }: HistoryScreenProps): React.J
                     <FilterChip label={t("history.filterAll")} active={filter === "all"} onPress={() => setFilter("all")} styles={styles} />
                     <FilterChip label={t("history.filterSwap")} active={filter === "swap"} onPress={() => setFilter("swap")} styles={styles} />
                     <FilterChip label={t("history.filterEarn")} active={filter === "earn"} onPress={() => setFilter("earn")} styles={styles} />
+                    <FilterChip label={t("history.filterLightning")} active={filter === "lightning"} onPress={() => setFilter("lightning")} styles={styles} />
                 </View>
 
                 {!account ? (

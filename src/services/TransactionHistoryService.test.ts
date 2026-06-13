@@ -4,11 +4,13 @@ import { KLEND_PROGRAM_ID } from "@/constants/lending";
 import { CBBTC, USDC } from "@/constants/tokens";
 
 import {
+    ATOMIQ_PROGRAM_IDS,
     classifyTransaction,
     fetchTransactionHistory,
     isRateLimitError,
     JUPITER_V6_PROGRAM_ID,
     programIdsInTx,
+    solDelta,
     tokenDelta,
     type ParsedTxLike,
     type TxHistoryKind,
@@ -48,6 +50,10 @@ function makeTx(opts: {
     pre?: ReturnType<typeof tokenBalance>[];
     post?: ReturnType<typeof tokenBalance>[];
     err?: unknown;
+    // native SOL 잔액 추적용 (accountKeys[i] ↔ pre/postBalances[i])
+    accountKeys?: readonly string[];
+    preBalances?: readonly number[];
+    postBalances?: readonly number[];
 }): ParsedTxLike
 {
     const outer = (opts.outerPrograms ?? []).map((id) => ({ programId: new PublicKey(id) }));
@@ -56,6 +62,7 @@ function makeTx(opts: {
         transaction: {
             message: {
                 instructions: outer as Parameters<typeof programIdsInTx>[0]["transaction"]["message"]["instructions"],
+                accountKeys: opts.accountKeys?.map((k) => ({ pubkey: new PublicKey(k) })),
             },
         },
         meta: {
@@ -63,6 +70,8 @@ function makeTx(opts: {
             preTokenBalances: opts.pre ?? [],
             postTokenBalances: opts.post ?? [],
             innerInstructions: inner.length > 0 ? [{ index: 0, instructions: inner }] : null,
+            preBalances: opts.preBalances,
+            postBalances: opts.postBalances,
         },
     };
 }
@@ -189,6 +198,112 @@ describe("classifyTransaction", () =>
             outerPrograms: ["11111111111111111111111111111111"],
         });
         expect(classifyTransaction(tx, OWNER).kind).toBe<TxHistoryKind>("other");
+    });
+});
+
+describe("solDelta", () =>
+{
+    const FEE_PAYER = OWNER;
+    const OTHER = "EMR9ReRWM2ZfsHfZbDrmDdhHy3v6MUqD56X86oxd2Unf";
+
+    it("returns post - pre lamports for the owner account", () =>
+    {
+        const tx = makeTx({
+            accountKeys: [FEE_PAYER, OTHER],
+            preBalances: [1_000_000_000, 50],
+            postBalances: [340_000_000, 50],
+        });
+        expect(solDelta(tx, OWNER)).toBe(-660_000_000n);
+    });
+
+    it("returns undefined when owner not in accountKeys", () =>
+    {
+        const tx = makeTx({
+            accountKeys: [OTHER],
+            preBalances: [100],
+            postBalances: [200],
+        });
+        expect(solDelta(tx, OWNER)).toBeUndefined();
+    });
+
+    it("returns undefined when balances missing", () =>
+    {
+        const tx = makeTx({ accountKeys: [FEE_PAYER] });
+        expect(solDelta(tx, OWNER)).toBeUndefined();
+    });
+});
+
+describe("classifyTransaction — lightning (Atomiq)", () =>
+{
+    const ATOMIQ_V2 = "atq2FYuvww5EF6qeB28gj9tkao6Ld9mEGUzF4M93cCC";
+    const ATOMIQ_V1 = "4hfUykhqmD7ZRvNh1HuzVKEY7ToENixtdUKZspNDCrEM";
+
+    it("exports both deployed program ids", () =>
+    {
+        expect(ATOMIQ_PROGRAM_IDS).toContain(ATOMIQ_V1);
+        expect(ATOMIQ_PROGRAM_IDS).toContain(ATOMIQ_V2);
+    });
+
+    it("USDC-out + Atomiq => lightningPay", () =>
+    {
+        const tx = makeTx({
+            outerPrograms: [ATOMIQ_V2],
+            pre: [tokenBalance(3, USDC.mint, OWNER, "1000000", 6)],
+            post: [tokenBalance(3, USDC.mint, OWNER, "351875", 6)],
+        });
+        const r = classifyTransaction(tx, OWNER);
+        expect(r.kind).toBe<TxHistoryKind>("lightningPay");
+        expect(r.usdcDelta).toBe(-648_125n);
+    });
+
+    it("USDC-in + Atomiq => lightningRefund", () =>
+    {
+        const tx = makeTx({
+            outerPrograms: [ATOMIQ_V2],
+            pre: [tokenBalance(3, USDC.mint, OWNER, "0", 6)],
+            post: [tokenBalance(3, USDC.mint, OWNER, "648125", 6)],
+        });
+        expect(classifyTransaction(tx, OWNER).kind).toBe<TxHistoryKind>("lightningRefund");
+    });
+
+    it("native SOL-out + Atomiq (v1) => lightningPay via lamports delta", () =>
+    {
+        const tx = makeTx({
+            outerPrograms: [ATOMIQ_V1],
+            accountKeys: [OWNER, ATOMIQ_V1],
+            preBalances: [1_000_000_000, 0],
+            postBalances: [928_000_000, 0],
+        });
+        const r = classifyTransaction(tx, OWNER);
+        expect(r.kind).toBe<TxHistoryKind>("lightningPay");
+        expect(r.solDelta).toBe(-72_000_000n);
+    });
+
+    it("native SOL-in + Atomiq => lightningRefund", () =>
+    {
+        const tx = makeTx({
+            outerPrograms: [ATOMIQ_V2],
+            accountKeys: [OWNER],
+            preBalances: [100_000_000],
+            postBalances: [171_000_000],
+        });
+        expect(classifyTransaction(tx, OWNER).kind).toBe<TxHistoryKind>("lightningRefund");
+    });
+
+    it("Atomiq with no detectable delta defaults to lightningPay", () =>
+    {
+        const tx = makeTx({ outerPrograms: [ATOMIQ_V2] });
+        expect(classifyTransaction(tx, OWNER).kind).toBe<TxHistoryKind>("lightningPay");
+    });
+
+    it("Atomiq takes precedence over noise programs", () =>
+    {
+        const tx = makeTx({
+            outerPrograms: ["11111111111111111111111111111111", ATOMIQ_V2],
+            pre: [tokenBalance(3, USDC.mint, OWNER, "1000000", 6)],
+            post: [tokenBalance(3, USDC.mint, OWNER, "0", 6)],
+        });
+        expect(classifyTransaction(tx, OWNER).kind).toBe<TxHistoryKind>("lightningPay");
     });
 });
 

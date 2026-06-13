@@ -6,12 +6,21 @@ import { CBBTC, USDC } from "@/constants/tokens";
 // Jupiter v6 program (mainnet aggregator). 우리 swap 화면은 v6 만 호출.
 export const JUPITER_V6_PROGRAM_ID = "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4";
 
+// Atomiq escrow programs (mainnet, Lightning 결제 — Phase 3 Labs).
+// 출처: @atomiqlabs/chain-solana SolanaChains.js (v1/v2 swapContract)
+export const ATOMIQ_PROGRAM_IDS: readonly string[] = [
+    "4hfUykhqmD7ZRvNh1HuzVKEY7ToENixtdUKZspNDCrEM", // v1
+    "atq2FYuvww5EF6qeB28gj9tkao6Ld9mEGUzF4M93cCC",  // v2
+];
+
 export type TxHistoryKind =
     | "swap"
-    | "supply"      // cbBTC → Kamino (담보 예치)
-    | "withdraw"    // Kamino → cbBTC (담보 인출)
-    | "borrow"      // Kamino → USDC (대출)
-    | "repay"       // USDC → Kamino (상환)
+    | "supply"           // cbBTC → Kamino (담보 예치)
+    | "withdraw"         // Kamino → cbBTC (담보 인출)
+    | "borrow"           // Kamino → USDC (대출)
+    | "repay"            // USDC → Kamino (상환)
+    | "lightningPay"     // Atomiq escrow lock (LN 결제, Labs)
+    | "lightningRefund"  // Atomiq escrow refund (LN 결제 실패 회수)
     | "other";
 
 export interface TxHistoryItem
@@ -24,6 +33,8 @@ export interface TxHistoryItem
     // base unit delta(post - pre) on user's ATA. Positive = received, negative = sent.
     cbbtcDelta?: bigint;
     usdcDelta?: bigint;
+    // native SOL 잔액 delta (lamports, fee 포함) — lightning SOL 발신 표시용
+    solDelta?: bigint;
 }
 
 // 외부에 직접 의존하는 RPC 응답 형태를 줄이기 위한 경량 인터페이스.
@@ -41,11 +52,17 @@ interface TokenBalanceLike
     uiTokenAmount: { amount: string; decimals: number };
 }
 
+interface AccountKeyLike
+{
+    pubkey: PublicKey | string;
+}
+
 export interface ParsedTxLike
 {
     transaction: {
         message: {
             instructions: readonly InstructionLike[];
+            accountKeys?: readonly AccountKeyLike[];
         };
     };
     meta: {
@@ -53,6 +70,8 @@ export interface ParsedTxLike
         preTokenBalances?: readonly TokenBalanceLike[] | null;
         postTokenBalances?: readonly TokenBalanceLike[] | null;
         innerInstructions?: readonly { instructions: readonly InstructionLike[]; index?: number }[] | null;
+        preBalances?: readonly number[];
+        postBalances?: readonly number[];
     } | null;
 }
 
@@ -156,21 +175,57 @@ export function tokenDelta(
 }
 
 /**
- * 트랜잭션 분류 + cbBTC/USDC delta 계산.
+ * 사용자(owner)의 native SOL 잔액 delta (lamports, post - pre, tx fee 포함).
+ * accountKeys 또는 잔액 배열이 없으면 undefined.
+ */
+export function solDelta(tx: ParsedTxLike, owner: string): bigint | undefined
+{
+    const keys = tx.transaction.message.accountKeys;
+    const pre = tx.meta?.preBalances;
+    const post = tx.meta?.postBalances;
+    if (!keys || !pre || !post)
+    {
+        return undefined;
+    }
+    const idx = keys.findIndex((k) =>
+        (typeof k.pubkey === "string" ? k.pubkey : k.pubkey.toBase58()) === owner);
+    if (idx < 0 || pre[idx] === undefined || post[idx] === undefined)
+    {
+        return undefined;
+    }
+    return BigInt(post[idx]!) - BigInt(pre[idx]!);
+}
+
+/**
+ * 트랜잭션 분류 + cbBTC/USDC/SOL delta 계산.
  *
  * 규칙:
+ * - Atomiq escrow program 이 보이면 lightning (delta 부호로 결제/환불 구분, Labs)
  * - Kamino(KLEND_PROGRAM_ID) instruction 이 보이면 잔액 변화로 supply/withdraw/borrow/repay 구분
  * - Jupiter v6 가 보이면 swap
- * - 둘 다 아니면 other (UI 에서 필터됨)
+ * - 모두 아니면 other (UI 에서 필터됨)
  */
 export function classifyTransaction(
     tx: ParsedTxLike,
     owner: string,
-): { kind: TxHistoryKind; cbbtcDelta?: bigint; usdcDelta?: bigint }
+): { kind: TxHistoryKind; cbbtcDelta?: bigint; usdcDelta?: bigint; solDelta?: bigint }
 {
     const programs = programIdsInTx(tx);
     const cb = tokenDelta(tx.meta?.preTokenBalances, tx.meta?.postTokenBalances, owner, CBBTC.mint);
     const ud = tokenDelta(tx.meta?.preTokenBalances, tx.meta?.postTokenBalances, owner, USDC.mint);
+
+    const hasAtomiq = ATOMIQ_PROGRAM_IDS.some((id) => programs.has(id));
+    if (hasAtomiq)
+    {
+        const sol = solDelta(tx, owner);
+        // 방향: USDC delta 우선, 없으면 native SOL delta. 양쪽 다 없으면 결제로 간주
+        // (escrow lock 이 가장 흔한 케이스. fee 만 빠진 케이스도 음수 → 결제)
+        const directional = ud !== undefined && ud !== 0n ? ud : sol;
+        const kind: TxHistoryKind = directional !== undefined && directional > 0n
+            ? "lightningRefund"
+            : "lightningPay";
+        return { kind, cbbtcDelta: cb, usdcDelta: ud, solDelta: sol };
+    }
 
     const hasKlend = programs.has(KLEND_PROGRAM_ID);
     const hasJupiter = programs.has(JUPITER_V6_PROGRAM_ID);
@@ -289,7 +344,7 @@ export async function fetchTransactionHistory(
             // RPC 가 너무 오래된 tx 메타를 잃어버렸을 경우. 일단 스킵(other 와 동일).
             continue;
         }
-        const { kind, cbbtcDelta, usdcDelta } = classifyTransaction(tx as ParsedTxLike, ownerStr);
+        const { kind, cbbtcDelta, usdcDelta, solDelta: sol } = classifyTransaction(tx as ParsedTxLike, ownerStr);
         if (kind === "other")
         {
             continue;
@@ -302,6 +357,7 @@ export async function fetchTransactionHistory(
             kind,
             cbbtcDelta,
             usdcDelta,
+            solDelta: sol,
         });
     }
     return out;
