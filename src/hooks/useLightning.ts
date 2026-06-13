@@ -1,4 +1,10 @@
-import { useMutation, useQuery, useQueryClient, type UseMutationResult, type UseQueryResult } from "@tanstack/react-query";
+import {
+    useMutation,
+    useQuery,
+    useQueryClient,
+    type UseMutationResult,
+    type UseQueryResult,
+} from "@tanstack/react-query";
 
 import type { TokenInfo } from "@/constants/tokens";
 import { useWallet } from "@/hooks/useWallet";
@@ -59,6 +65,30 @@ export function useLightningPay(): UseMutationResult<LightningPayOutcome, Error,
         },
         onSuccess: () =>
         {
+            void queryClient.invalidateQueries({ queryKey: ["balance"] });
+            void queryClient.invalidateQueries({ queryKey: ["history"] });
+        },
+    });
+}
+
+/** 중단된 swap 전부 환불 — 각 swap 마다 MWA 서명 1회. 성공 시 환불된 개수 반환 */
+export function useRefundAll(): UseMutationResult<number, Error, void>
+{
+    const { account } = useWallet();
+    const queryClient = useQueryClient();
+
+    return useMutation<number, Error, void>({
+        mutationFn: async () =>
+        {
+            if (!account)
+            {
+                throw new Error("Wallet is not connected.");
+            }
+            return getLightningService().refundAll(account);
+        },
+        onSuccess: () =>
+        {
+            void queryClient.invalidateQueries({ queryKey: ["lightning", "refundable"] });
             void queryClient.invalidateQueries({ queryKey: ["balance"] });
             void queryClient.invalidateQueries({ queryKey: ["history"] });
         },

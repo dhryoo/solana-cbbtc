@@ -19,7 +19,7 @@ import {
 import { TxProgress } from "@/components/TxProgress";
 import { BRAND_PURPLE, type ThemePalette } from "@/constants/theme";
 import { SOL, USDC, type TokenInfo } from "@/constants/tokens";
-import { useLightningPay, useLightningQuote, useRefundableSwaps } from "@/hooks/useLightning";
+import { useLightningPay, useLightningQuote, useRefundableSwaps, useRefundAll } from "@/hooks/useLightning";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
 import { useWallet } from "@/hooks/useWallet";
 import { useNetworkStatus } from "@/providers/NetworkProvider";
@@ -78,6 +78,30 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
     const quoteMutation = useLightningQuote();
     const payMutation = useLightningPay();
     const refundable = useRefundableSwaps(visible);
+    const refundAllMutation = useRefundAll();
+
+    const onRefundAll = (): void =>
+    {
+        if (refundAllMutation.isPending)
+        {
+            return;
+        }
+        refundAllMutation.mutate(undefined, {
+            onSuccess: (count) =>
+            {
+                showToast(t("lightning.refundDone", { count }), { variant: "info", durationMs: 5000 });
+                void refundable.refetch();
+            },
+            onError: (err) =>
+            {
+                const cancelled = isUserRejection(err.message);
+                showToast(
+                    cancelled ? t("errors.userCancelled") : t("lightning.refundError"),
+                    { variant: cancelled ? "info" : "error", durationMs: 5000 },
+                );
+            },
+        });
+    };
 
     // bolt11 에 금액이 내장돼 있으면 금액 입력 비활성
     const parsedInput = useMemo(() => parseLightningInput(destination), [destination]);
@@ -227,11 +251,25 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                         <Text style={styles.experimentText}>{t("lightning.experimentNotice")}</Text>
                     </View>
 
-                    {/* 중단된 swap 환불 안내 */}
+                    {/* 중단된 swap 환불 안내 + 실행 */}
                     {(refundable.data ?? 0) > 0 && (
                         <View style={styles.warnBox}>
-                            <Ionicons name="alert-circle-outline" size={16} color={palette.warn} />
-                            <Text style={styles.warnText}>{t("lightning.refundableNotice", { count: refundable.data })}</Text>
+                            <View style={styles.warnRow}>
+                                <Ionicons name="alert-circle-outline" size={16} color={palette.warn} />
+                                <Text style={styles.warnText}>{t("lightning.refundableNotice", { count: refundable.data })}</Text>
+                            </View>
+                            <Pressable
+                                accessibilityRole="button"
+                                accessibilityLabel={t("lightning.refundButton")}
+                                accessibilityState={{ busy: refundAllMutation.isPending }}
+                                disabled={refundAllMutation.isPending}
+                                onPress={onRefundAll}
+                                style={({ pressed }) => [styles.refundButton, pressed && { opacity: 0.7 }]}
+                            >
+                                {refundAllMutation.isPending
+                                    ? <ActivityIndicator size="small" color={palette.text} />
+                                    : <Text style={styles.refundButtonText}>{t("lightning.refundButton")}</Text>}
+                            </Pressable>
                         </View>
                     )}
 
@@ -456,16 +494,27 @@ const makeStyles = (t: ThemePalette) => StyleSheet.create({
     },
     experimentText: { flex: 1, fontSize: 12, lineHeight: 17, color: t.textMuted },
     warnBox: {
-        flexDirection: "row",
-        alignItems: "flex-start",
-        gap: 8,
+        gap: 10,
         padding: 12,
         borderRadius: 12,
         borderWidth: 1,
         borderColor: t.warn,
         backgroundColor: t.surface,
     },
+    warnRow: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
     warnText: { flex: 1, fontSize: 12, lineHeight: 17, color: t.warn },
+    refundButton: {
+        alignSelf: "flex-start",
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        borderRadius: 999,
+        borderWidth: 1,
+        borderColor: t.borderStrong,
+        backgroundColor: t.surfaceMuted,
+        minWidth: 100,
+        alignItems: "center",
+    },
+    refundButtonText: { fontSize: 13, fontWeight: "700", color: t.text },
     card: {
         borderWidth: 1,
         borderColor: t.border,
