@@ -233,6 +233,8 @@
         "payButton": "Pay",
         "payFailed": "Payment failed",
         "refundingNotice": "The LN payment didn't complete, so your funds are being refunded. Please approve the refund signature in your wallet.",
+        "cancelPending": "Cancel",
+        "cancelledPendingNotice": "Cancelled. If you didn't complete the signature, no funds moved. If a payment did go through, you'll see a refund notice next time you open this screen.",
         "paidTitle": "Payment complete",
         "paidBody": "The Lightning invoice has been paid.",
         "refundedTitle": "Refunded",

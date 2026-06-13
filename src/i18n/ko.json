@@ -233,6 +233,8 @@
         "payButton": "결제하기",
         "payFailed": "결제 실패",
         "refundingNotice": "LN 결제가 완료되지 않아 자금을 환불합니다. 지갑에서 환불 서명을 승인해 주세요.",
+        "cancelPending": "취소",
+        "cancelledPendingNotice": "진행을 취소했습니다. 서명을 완료하지 않았다면 자금은 움직이지 않습니다. 혹시 결제가 진행됐다면 이 화면을 다시 열 때 환불 안내가 표시됩니다.",
         "paidTitle": "결제 완료",
         "paidBody": "Lightning 인보이스가 결제되었습니다.",
         "refundedTitle": "환불 완료",

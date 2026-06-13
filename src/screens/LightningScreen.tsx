@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-unused-styles */
 import { Ionicons } from "@expo/vector-icons";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
     ActivityIndicator,
@@ -169,12 +169,17 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
         );
     };
 
+    // 결제 시도마다 토큰 증가. MWA 가 지갑 dismiss(X) 시 응답을 안 주고 멈추는 경우가 있어
+    // (서명 promise 가 영원히 pending), '취소'로 그 시도를 폐기하고 settle 콜백을 무시한다.
+    const payTokenRef = useRef(0);
+
     const onPay = (): void =>
     {
         if (!quote || payMutation.isPending)
         {
             return;
         }
+        const token = ++payTokenRef.current;
         setNotice(null);
         setLastError(null);
         setProgress({ step: "signing", state: "running" });
@@ -183,6 +188,10 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                 quote,
                 onPhase: (phase) =>
                 {
+                    if (token !== payTokenRef.current)
+                    {
+                        return;
+                    }
                     if (phase === "refunding")
                     {
                         setNotice(t("lightning.refundingNotice"));
@@ -193,6 +202,10 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
             {
                 onSuccess: (res) =>
                 {
+                    if (token !== payTokenRef.current)
+                    {
+                        return; // 사용자가 폐기한 시도의 뒤늦은 성공 — 무시
+                    }
                     setProgress(null);
                     setOutcome(res);
                     setQuote(null);
@@ -204,6 +217,10 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                 },
                 onError: (err) =>
                 {
+                    if (token !== payTokenRef.current)
+                    {
+                        return;
+                    }
                     setProgress((prev) => (prev ? { ...prev, state: "error" } : null));
                     const cancelled = isUserRejection(err.message);
                     const noticeMsg = isAuthFailure(err.message) ? t("earn.authFailedHint")
@@ -217,6 +234,16 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                 },
             },
         );
+    };
+
+    // 서명 대기에서 멈춘 시도를 사용자가 직접 폐기 — 진행 중인 promise 의 결과는 토큰으로 무시됨.
+    // 서명 전이라 escrow 는 안 생기지만, 혹시 생겼더라도 화면 재진입 시 환불 배너가 잡는다.
+    const onCancelPending = (): void =>
+    {
+        payTokenRef.current += 1;
+        setProgress(null);
+        setQuote(null);
+        setNotice(t("lightning.cancelledPendingNotice"));
     };
 
     return (
@@ -382,7 +409,21 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                         </View>
                     )}
 
-                    {progress ? <TxProgress current={progress.step} state={progress.state} /> : null}
+                    {progress ? (
+                        <View style={styles.progressWrap}>
+                            <TxProgress current={progress.step} state={progress.state} />
+                            {progress.state === "running" && (
+                                <Pressable
+                                    accessibilityRole="button"
+                                    accessibilityLabel={t("lightning.cancelPending")}
+                                    onPress={onCancelPending}
+                                    style={({ pressed }) => [styles.cancelPending, pressed && { opacity: 0.6 }]}
+                                >
+                                    <Text style={styles.cancelPendingText}>{t("lightning.cancelPending")}</Text>
+                                </Pressable>
+                            )}
+                        </View>
+                    ) : null}
 
                     {/* 결과 */}
                     {outcome && (
@@ -565,6 +606,9 @@ const makeStyles = (t: ThemePalette) => StyleSheet.create({
     buttonDisabled: { backgroundColor: t.disabled },
     buttonText: { fontSize: 15, fontWeight: "700", color: t.textInverse },
     initHint: { fontSize: 11, color: t.textDim, textAlign: "center" },
+    progressWrap: { gap: 8 },
+    cancelPending: { alignSelf: "center", paddingVertical: 8, paddingHorizontal: 16 },
+    cancelPendingText: { fontSize: 13, fontWeight: "600", color: t.textMuted },
     row: { flexDirection: "row", justifyContent: "space-between", gap: 12 },
     rowLabel: { fontSize: 13, color: t.textMuted },
     rowValue: { flex: 1, fontSize: 13, fontWeight: "600", color: t.text, textAlign: "right" },
