@@ -46,6 +46,7 @@ interface AtomiqSwapperLike
     getSupportedTokens(input: boolean): { chainId: string; address?: string }[];
     swap(...args: unknown[]): Promise<AtomiqSwap>;
     getRefundableSwaps(chainId: string, address: string): Promise<AtomiqSwap[]>;
+    getAllSwaps(chainId: string, address: string): Promise<{ getId(): string; getType?(): unknown; getState?(): unknown }[]>;
 }
 
 interface AtomiqRuntime
@@ -354,6 +355,28 @@ export class AtomiqProvider implements LightningSwapProvider
     {
         const rt = await loadRuntime();
         const refundable = await rt.swapper.getRefundableSwaps("SOLANA", srcAddress);
+        if (__DEV__)
+        {
+            // 진단(M17.2): 환불 가능 개수 + 디바이스에 저장된 모든 swap 의 상태.
+            // escrow 가 실제로 잠겼는지(=환불 대상 존재) vs 애초에 안 잠겼는지 구분용.
+            try
+            {
+                const all = await rt.swapper.getAllSwaps("SOLANA", srcAddress);
+                const states = all.map((s) =>
+                {
+                    const type = s.getType?.();
+                    const state = s.getState?.();
+                    return `${s.getId()}: type=${String(type)} state=${String(state)}`;
+                });
+                // eslint-disable-next-line no-console
+                console.log(`[lightning] refundable=${refundable.length}, allSwaps=${all.length}`, states);
+            }
+            catch (e)
+            {
+                // eslint-disable-next-line no-console
+                console.warn("[lightning] getAllSwaps diag failed", e);
+            }
+        }
         return refundable.length;
     }
 
