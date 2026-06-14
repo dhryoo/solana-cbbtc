@@ -127,8 +127,9 @@ function loadRuntime(): Promise<AtomiqRuntime>
     {
         if (__DEV__)
         {
-            // Atomiq SDK 내부 로거 활성화 (debug=3) — discovery 가 삼키는 per-LP 에러를 노출
-            (globalThis as { atomiqLogLevel?: number }).atomiqLogLevel = 3;
+            // Atomiq SDK 내부 로거: warn(1) 기본. 깊은 디버깅이 필요하면 3 으로 올린다.
+            // (3 은 StreamingFetch/price 등 매우 verbose — 평소엔 noise)
+            (globalThis as { atomiqLogLevel?: number }).atomiqLogLevel = 1;
         }
 
         /* eslint-disable @typescript-eslint/no-require-imports */
@@ -153,57 +154,13 @@ function loadRuntime(): Promise<AtomiqRuntime>
 
         if (__DEV__)
         {
-            // 진단: LP discovery 가 디바이스에서 실제로 무엇을 찾았는지 (M17.1 디버깅)
+            // 간결 진단: 디바이스에서 LP 가 몇 개 잡혔는지 (0 이면 discovery 문제 신호)
             const disc = (swapper as unknown as {
                 intermediaryDiscovery?: { intermediaries?: { url: string }[] };
             }).intermediaryDiscovery;
             const lps = disc?.intermediaries ?? [];
             // eslint-disable-next-line no-console
-            console.log(`[lightning] init OK — LP count: ${lps.length}`, lps.map((i) => i.url));
-            if (lps.length === 0)
-            {
-                // Hermes 호환성 피처 플래그 — getNodeInfo 경로가 쓰는 API 들
-                // eslint-disable-next-line no-console
-                console.log("[lightning] env:", JSON.stringify({
-                    promiseAny: typeof Promise.any,
-                    structuredClone: typeof globalThis.structuredClone,
-                    textEncoder: typeof globalThis.TextEncoder,
-                    getRandomValues: typeof globalThis.crypto?.getRandomValues,
-                }));
-                // discovery 가 debug 레벨로 삼키는 원본 예외를 직접 노출:
-                // SDK 의 getIntermediaryInfo 를 그대로 호출해 raw error 를 로그
-                for (const u of lpUrls)
-                {
-                    void (async (): Promise<void> =>
-                    {
-                        try
-                        {
-                            /* eslint-disable @typescript-eslint/no-require-imports */
-                            const api = require("@atomiqlabs/sdk/dist/intermediaries/apis/IntermediaryAPI");
-                            /* eslint-enable @typescript-eslint/no-require-imports */
-                            await api.IntermediaryAPI.getIntermediaryInfo(u, 15_000);
-                            // eslint-disable-next-line no-console
-                            console.log(`[lightning] getIntermediaryInfo(${u}): OK — 실패 지점은 서명검증/이후 단계`);
-                        }
-                        catch (e)
-                        {
-                            // eslint-disable-next-line no-console
-                            console.error(`[lightning] getIntermediaryInfo(${u}) RAW ERROR:`, e);
-                        }
-                    })();
-                }
-            }
-            try
-            {
-                const toks = (swapper as unknown as AtomiqSwapperLike).getSupportedTokens(true);
-                // eslint-disable-next-line no-console
-                console.log("[lightning] LP-quoted tokens:", toks.map((tk) => `${tk.chainId}:${tk.address ?? "BTC"}`));
-            }
-            catch (e)
-            {
-                // eslint-disable-next-line no-console
-                console.warn("[lightning] getSupportedTokens failed", e);
-            }
+            console.log(`[lightning] init OK — LP count: ${lps.length}`);
         }
 
         return {
@@ -371,28 +328,6 @@ export class AtomiqProvider implements LightningSwapProvider
     {
         const rt = await loadRuntime();
         const refundable = await rt.swapper.getRefundableSwaps("SOLANA", srcAddress);
-        if (__DEV__)
-        {
-            // 진단(M17.2): 환불 가능 개수 + 디바이스에 저장된 모든 swap 의 상태.
-            // escrow 가 실제로 잠겼는지(=환불 대상 존재) vs 애초에 안 잠겼는지 구분용.
-            try
-            {
-                const all = await rt.swapper.getAllSwaps("SOLANA", srcAddress);
-                const states = all.map((s) =>
-                {
-                    const type = s.getType?.();
-                    const state = s.getState?.();
-                    return `${s.getId()}: type=${String(type)} state=${String(state)}`;
-                });
-                // eslint-disable-next-line no-console
-                console.log(`[lightning] refundable=${refundable.length}, allSwaps=${all.length}`, states);
-            }
-            catch (e)
-            {
-                // eslint-disable-next-line no-console
-                console.warn("[lightning] getAllSwaps diag failed", e);
-            }
-        }
         return refundable.length;
     }
 

@@ -68,6 +68,23 @@ export function LightningGuideScreen({ visible, onClose }: LightningGuideScreenP
                         <Infographic source={INFOGRAPHIC_LIGHTNING} caption={t("lightningGuide.infographic")} styles={styles} palette={palette} />
                     </Section>
 
+                    <Section icon="arrow-down-circle-outline" title={t("lightningGuide.receive.title")} styles={styles} palette={palette}>
+                        <Body styles={styles}>{t("lightningGuide.receive.body")}</Body>
+                        <Bullet styles={styles} palette={palette}>{t("lightningGuide.receive.b1")}</Bullet>
+                        <Bullet styles={styles} palette={palette}>{t("lightningGuide.receive.b2")}</Bullet>
+                        <Bullet styles={styles} palette={palette}>{t("lightningGuide.receive.b3")}</Bullet>
+                    </Section>
+
+                    <Section icon="logo-bitcoin" title={t("lightningGuide.cbbtc.title")} styles={styles} palette={palette}>
+                        <Body styles={styles}>{t("lightningGuide.cbbtc.body")}</Body>
+                        <Bullet styles={styles} palette={palette}>{t("lightningGuide.cbbtc.b1")}</Bullet>
+                        <Bullet styles={styles} palette={palette}>{t("lightningGuide.cbbtc.b2")}</Bullet>
+                    </Section>
+
+                    <Section icon="qr-code-outline" title={t("lightningGuide.qr.title")} styles={styles} palette={palette}>
+                        <Body styles={styles}>{t("lightningGuide.qr.body")}</Body>
+                    </Section>
+
                     <Section icon="shield-checkmark-outline" title={t("lightningGuide.refund.title")} styles={styles} palette={palette}>
                         <Body styles={styles}>{t("lightningGuide.refund.body")}</Body>
                         <Bullet styles={styles} palette={palette}>{t("lightningGuide.refund.b1")}</Bullet>

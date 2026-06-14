@@ -33,6 +33,8 @@ function kindVisual(kind: TxHistoryKind, palette: ThemePalette): { icon: keyof t
             return { icon: "checkmark-done-outline", color: palette.success };
         case "lightningPay":
             return { icon: "flash", color: BRAND_PURPLE };
+        case "lightningReceive":
+            return { icon: "flash-outline", color: palette.success };
         case "lightningRefund":
             return { icon: "arrow-undo-circle-outline", color: palette.warn };
         default:
@@ -87,7 +89,7 @@ export function describeAmount(
             };
         }
     }
-    if (item.kind === "lightningPay" || item.kind === "lightningRefund")
+    if (item.kind === "lightningPay" || item.kind === "lightningReceive" || item.kind === "lightningRefund")
     {
         // 발신 자산: USDC 우선, 없으면 native SOL (lamports, fee 포함 근사)
         if (ud !== undefined && ud !== 0n)

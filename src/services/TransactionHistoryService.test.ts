@@ -1,4 +1,5 @@
 import { PublicKey } from "@solana/web3.js";
+import bs58 from "bs58";
 
 import { KLEND_PROGRAM_ID } from "@/constants/lending";
 import { CBBTC, USDC } from "@/constants/tokens";
@@ -44,6 +45,17 @@ function tokenBalance(
     };
 }
 
+// snake_case Anchor discriminators (= classify 와 동일 값) — 테스트 픽스처용
+const ATOMIQ_V2 = "atq2FYuvww5EF6qeB28gj9tkao6Ld9mEGUzF4M93cCC";
+const DISC_CLAIM = [167, 53, 133, 231, 115, 222, 196, 207];          // claimer_claim
+const DISC_REFUND = [151, 35, 133, 253, 230, 106, 141, 176];         // offerer_refund
+const DISC_INIT = [175, 80, 213, 24, 95, 155, 199, 58];              // offerer_initialize_pay_in
+
+function discData(disc: number[]): string
+{
+    return bs58.encode(Uint8Array.from([...disc, 0, 0]));
+}
+
 function makeTx(opts: {
     outerPrograms?: readonly string[];
     innerPrograms?: readonly string[];
@@ -54,9 +66,15 @@ function makeTx(opts: {
     accountKeys?: readonly string[];
     preBalances?: readonly number[];
     postBalances?: readonly number[];
+    // Atomiq 명령의 discriminator (지정 시 ATOMIQ_V2 program 명령 + base58 data 추가)
+    atomiqDisc?: number[];
 }): ParsedTxLike
 {
-    const outer = (opts.outerPrograms ?? []).map((id) => ({ programId: new PublicKey(id) }));
+    const outer = (opts.outerPrograms ?? []).map((id) => ({ programId: new PublicKey(id), data: undefined as string | undefined }));
+    if (opts.atomiqDisc)
+    {
+        outer.push({ programId: new PublicKey(ATOMIQ_V2), data: discData(opts.atomiqDisc) });
+    }
     const inner = (opts.innerPrograms ?? []).map((id) => ({ programId: new PublicKey(id) }));
     return {
         transaction: {
@@ -235,7 +253,6 @@ describe("solDelta", () =>
 
 describe("classifyTransaction — lightning (Atomiq)", () =>
 {
-    const ATOMIQ_V2 = "atq2FYuvww5EF6qeB28gj9tkao6Ld9mEGUzF4M93cCC";
     const ATOMIQ_V1 = "4hfUykhqmD7ZRvNh1HuzVKEY7ToENixtdUKZspNDCrEM";
 
     it("exports both deployed program ids", () =>
@@ -244,7 +261,41 @@ describe("classifyTransaction — lightning (Atomiq)", () =>
         expect(ATOMIQ_PROGRAM_IDS).toContain(ATOMIQ_V2);
     });
 
-    it("USDC-out + Atomiq => lightningPay", () =>
+    // --- discriminator 기반 정확 분류 ---
+
+    it("claim discriminator => lightningReceive (받기, even with positive delta)", () =>
+    {
+        const tx = makeTx({
+            atomiqDisc: DISC_CLAIM,
+            pre: [tokenBalance(3, USDC.mint, OWNER, "0", 6)],
+            post: [tokenBalance(3, USDC.mint, OWNER, "648125", 6)],
+        });
+        expect(classifyTransaction(tx, OWNER).kind).toBe<TxHistoryKind>("lightningReceive");
+    });
+
+    it("refund discriminator => lightningRefund (positive delta)", () =>
+    {
+        const tx = makeTx({
+            atomiqDisc: DISC_REFUND,
+            pre: [tokenBalance(3, USDC.mint, OWNER, "0", 6)],
+            post: [tokenBalance(3, USDC.mint, OWNER, "648125", 6)],
+        });
+        expect(classifyTransaction(tx, OWNER).kind).toBe<TxHistoryKind>("lightningRefund");
+    });
+
+    it("init discriminator + negative delta => lightningPay (보내기)", () =>
+    {
+        const tx = makeTx({
+            atomiqDisc: DISC_INIT,
+            pre: [tokenBalance(3, USDC.mint, OWNER, "1000000", 6)],
+            post: [tokenBalance(3, USDC.mint, OWNER, "351875", 6)],
+        });
+        expect(classifyTransaction(tx, OWNER).kind).toBe<TxHistoryKind>("lightningPay");
+    });
+
+    // --- delta 폴백 (discriminator data 없을 때) ---
+
+    it("USDC-out + Atomiq, no disc => lightningPay (fallback)", () =>
     {
         const tx = makeTx({
             outerPrograms: [ATOMIQ_V2],
@@ -256,17 +307,17 @@ describe("classifyTransaction — lightning (Atomiq)", () =>
         expect(r.usdcDelta).toBe(-648_125n);
     });
 
-    it("USDC-in + Atomiq => lightningRefund", () =>
+    it("USDC-in + Atomiq, no disc => lightningReceive (fallback positive=receive)", () =>
     {
         const tx = makeTx({
             outerPrograms: [ATOMIQ_V2],
             pre: [tokenBalance(3, USDC.mint, OWNER, "0", 6)],
             post: [tokenBalance(3, USDC.mint, OWNER, "648125", 6)],
         });
-        expect(classifyTransaction(tx, OWNER).kind).toBe<TxHistoryKind>("lightningRefund");
+        expect(classifyTransaction(tx, OWNER).kind).toBe<TxHistoryKind>("lightningReceive");
     });
 
-    it("native SOL-out + Atomiq (v1) => lightningPay via lamports delta", () =>
+    it("native SOL-out + Atomiq (v1), no disc => lightningPay via lamports delta", () =>
     {
         const tx = makeTx({
             outerPrograms: [ATOMIQ_V1],
@@ -279,7 +330,7 @@ describe("classifyTransaction — lightning (Atomiq)", () =>
         expect(r.solDelta).toBe(-72_000_000n);
     });
 
-    it("native SOL-in + Atomiq => lightningRefund", () =>
+    it("native SOL-in + Atomiq, no disc => lightningReceive (fallback)", () =>
     {
         const tx = makeTx({
             outerPrograms: [ATOMIQ_V2],
@@ -287,7 +338,7 @@ describe("classifyTransaction — lightning (Atomiq)", () =>
             preBalances: [100_000_000],
             postBalances: [171_000_000],
         });
-        expect(classifyTransaction(tx, OWNER).kind).toBe<TxHistoryKind>("lightningRefund");
+        expect(classifyTransaction(tx, OWNER).kind).toBe<TxHistoryKind>("lightningReceive");
     });
 
     it("Atomiq with no detectable delta defaults to lightningPay", () =>

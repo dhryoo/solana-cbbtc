@@ -273,7 +273,7 @@
         "title": "Lightning 결제 안내",
         "intro": {
             "title": "무엇인가요?",
-            "body": "Bitcoin 의 결제망인 Lightning Network 인보이스를 Solana 자산(USDC·SOL)으로 바로 결제하는 실험 기능입니다. 커피 한 잔 값 같은 소액 결제에 적합합니다."
+            "body": "Bitcoin 의 결제망인 Lightning Network 를 위한 실험 기능입니다. Solana 자산(USDC·SOL·cbBTC)으로 인보이스를 결제하고, USDC·SOL 로 받을 수도 있습니다. 커피 한 잔 값 같은 소액에 적합합니다."
         },
         "how": {
             "title": "어떻게 동작하나요?",
@@ -282,6 +282,23 @@
             "b2": "결제를 누르면 Solana 의 감사받은 escrow 컨트랙트에 자금이 잠깁니다 (Seed Vault 서명 1회).",
             "b3": "LP(유동성 공급자)가 Lightning 인보이스를 대신 지급합니다.",
             "b4": "LP 는 '지급했다는 암호학적 증명'을 제시해야만 잠긴 자금을 가져갈 수 있습니다."
+        },
+        "receive": {
+            "title": "받기 (LN → USDC·SOL)",
+            "body": "반대로 Lightning 으로 받을 수도 있습니다. 받을 토큰(USDC·SOL)과 금액을 정하면 인보이스가 만들어지고, 상대가 그 인보이스를 결제하면 Solana 로 정산됩니다.",
+            "b1": "만든 인보이스는 QR·복사·공유로 상대에게 전달하세요.",
+            "b2": "상대가 결제하면 마지막에 정산(claim) 서명을 한 번 합니다.",
+            "b3": "정산에는 수수료·계정 보증금(rent)으로 SOL 이 필요하니 SOL 을 조금 남겨두세요."
+        },
+        "cbbtc": {
+            "title": "cbBTC 로 결제하기",
+            "body": "cbBTC 로도 LN 결제가 됩니다. cbBTC 를 먼저 USDC 로 자동 교환한 뒤 결제하므로 서명을 두 번 합니다.",
+            "b1": "교환(Jupiter)과 결제(Atomiq) 모두 서명은 Solana 쪽에서만.",
+            "b2": "교환은 됐는데 결제가 막히면 USDC 를 보유한 상태가 되어 USDC 로 바로 다시 시도할 수 있습니다."
+        },
+        "qr": {
+            "title": "QR 스캔",
+            "body": "보낼 때 인보이스를 직접 붙여넣는 대신 '스캔' 버튼으로 QR 을 찍으면 자동으로 채워집니다. 카메라는 스캔 중에만 쓰이고 사진·영상은 저장·전송하지 않습니다."
         },
         "refund": {
             "title": "실패하면 내 돈은?",
@@ -371,6 +388,7 @@
             "borrow": "차입",
             "repay": "상환",
             "lightningPay": "⚡ LN 결제",
+            "lightningReceive": "⚡ LN 받기",
             "lightningRefund": "⚡ LN 환불"
         },
         "directions": {

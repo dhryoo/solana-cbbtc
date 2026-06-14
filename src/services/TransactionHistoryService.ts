@@ -1,4 +1,5 @@
 import { Connection, PublicKey } from "@solana/web3.js";
+import bs58 from "bs58";
 
 import { KLEND_PROGRAM_ID } from "@/constants/lending";
 import { CBBTC, USDC } from "@/constants/tokens";
@@ -13,13 +14,26 @@ export const ATOMIQ_PROGRAM_IDS: readonly string[] = [
     "atq2FYuvww5EF6qeB28gj9tkao6Ld9mEGUzF4M93cCC",  // v2
 ];
 
+// Atomiq instruction 의 Anchor discriminator (sha256("global:<snake_name>")[:8]).
+// 같은 escrow program 에 양수 delta 가 떠도 "받기(claim)" 와 "환불(refund)" 를 구분하기 위함.
+// v2 가 snake_case 를 쓰는 것은 실거래(5znKx… = offerer_initialize_pay_in)로 검증함.
+const ATOMIQ_CLAIM_DISCS: readonly number[][] = [
+    [167, 53, 133, 231, 115, 222, 196, 207],  // claimer_claim → 받기
+    [168, 39, 252, 161, 62, 252, 187, 222],   // claimer_claim_pay_out → 받기
+];
+const ATOMIQ_REFUND_DISCS: readonly number[][] = [
+    [151, 35, 133, 253, 230, 106, 141, 176],  // offerer_refund → 환불
+    [25, 240, 13, 129, 172, 130, 124, 168],   // offerer_refund_pay_in → 환불
+];
+
 export type TxHistoryKind =
     | "swap"
     | "supply"           // cbBTC → Kamino (담보 예치)
     | "withdraw"         // Kamino → cbBTC (담보 인출)
     | "borrow"           // Kamino → USDC (대출)
     | "repay"            // USDC → Kamino (상환)
-    | "lightningPay"     // Atomiq escrow lock (LN 결제, Labs)
+    | "lightningPay"     // Atomiq escrow lock (LN 결제 보내기, Labs)
+    | "lightningReceive" // Atomiq claim (LN 받기, Labs)
     | "lightningRefund"  // Atomiq escrow refund (LN 결제 실패 회수)
     | "other";
 
@@ -42,6 +56,7 @@ export interface TxHistoryItem
 interface InstructionLike
 {
     programId?: PublicKey | string | undefined;
+    data?: string | undefined;   // base58 (parsed RPC 가 미해독 program 명령에 주는 형식)
 }
 
 interface TokenBalanceLike
@@ -102,6 +117,51 @@ export function isRateLimitError(err: unknown): boolean
 }
 
 // --- pure helpers (테스트 대상) ---
+
+function discMatches(prefix: Uint8Array, discs: readonly number[][]): boolean
+{
+    return discs.some((d) => d.length <= prefix.length && d.every((b, i) => prefix[i] === b));
+}
+
+/**
+ * Atomiq escrow program 명령의 Anchor discriminator 로 LN 방향을 판별.
+ * outer + inner 명령을 훑어 claim(받기) / refund(환불) discriminator 존재를 본다.
+ * 명령 data 가 없거나(파싱 RPC 한계) 매칭 안 되면 둘 다 false → 호출부가 delta 로 폴백.
+ */
+export function atomiqDirectionFromDiscriminators(tx: ParsedTxLike): { isClaim: boolean; isRefund: boolean }
+{
+    let isClaim = false;
+    let isRefund = false;
+    const scan = (instrs: readonly InstructionLike[] | undefined): void =>
+    {
+        for (const i of instrs ?? [])
+        {
+            const p = i.programId;
+            const pid = p === undefined ? "" : (typeof p === "string" ? p : p.toBase58());
+            if (!ATOMIQ_PROGRAM_IDS.includes(pid) || typeof i.data !== "string" || i.data.length === 0)
+            {
+                continue;
+            }
+            let prefix: Uint8Array;
+            try
+            {
+                prefix = bs58.decode(i.data).subarray(0, 8);
+            }
+            catch
+            {
+                continue;
+            }
+            if (discMatches(prefix, ATOMIQ_CLAIM_DISCS)) isClaim = true;
+            if (discMatches(prefix, ATOMIQ_REFUND_DISCS)) isRefund = true;
+        }
+    };
+    scan(tx.transaction.message.instructions);
+    for (const block of tx.meta?.innerInstructions ?? [])
+    {
+        scan(block.instructions);
+    }
+    return { isClaim, isRefund };
+}
 
 /** outer + inner 명령에 등장한 모든 programId 를 base58 문자열 집합으로 반환. */
 export function programIdsInTx(tx: ParsedTxLike): Set<string>
@@ -200,7 +260,8 @@ export function solDelta(tx: ParsedTxLike, owner: string): bigint | undefined
  * 트랜잭션 분류 + cbBTC/USDC/SOL delta 계산.
  *
  * 규칙:
- * - Atomiq escrow program 이 보이면 lightning (delta 부호로 결제/환불 구분, Labs)
+ * - Atomiq escrow program 이 보이면 lightning. discriminator 로 claim(받기)/refund(환불) 구분,
+ *   없으면 delta 부호로 폴백(음수=보내기, 양수=받기). (Labs)
  * - Kamino(KLEND_PROGRAM_ID) instruction 이 보이면 잔액 변화로 supply/withdraw/borrow/repay 구분
  * - Jupiter v6 가 보이면 swap
  * - 모두 아니면 other (UI 에서 필터됨)
@@ -218,12 +279,24 @@ export function classifyTransaction(
     if (hasAtomiq)
     {
         const sol = solDelta(tx, owner);
-        // 방향: USDC delta 우선, 없으면 native SOL delta. 양쪽 다 없으면 결제로 간주
-        // (escrow lock 이 가장 흔한 케이스. fee 만 빠진 케이스도 음수 → 결제)
-        const directional = ud !== undefined && ud !== 0n ? ud : sol;
-        const kind: TxHistoryKind = directional !== undefined && directional > 0n
-            ? "lightningRefund"
-            : "lightningPay";
+        // ① discriminator 로 정확 분류 (claim=받기, refund=환불)
+        const { isClaim, isRefund } = atomiqDirectionFromDiscriminators(tx);
+        let kind: TxHistoryKind;
+        if (isClaim)
+        {
+            kind = "lightningReceive";
+        }
+        else if (isRefund)
+        {
+            kind = "lightningRefund";
+        }
+        else
+        {
+            // ② 폴백: data 가 없을 때 delta 부호로. 음수=보내기(escrow lock), 양수=받기.
+            //    (환불도 양수지만 드물고 discriminator 로 잡히므로, 폴백 양수는 받기로 간주)
+            const directional = ud !== undefined && ud !== 0n ? ud : sol;
+            kind = directional !== undefined && directional > 0n ? "lightningReceive" : "lightningPay";
+        }
         return { kind, cbbtcDelta: cb, usdcDelta: ud, solDelta: sol };
     }
 

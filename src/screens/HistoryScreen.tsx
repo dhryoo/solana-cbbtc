@@ -26,7 +26,7 @@ import type { TxHistoryItem } from "@/services/TransactionHistoryService";
 type FilterKey = "all" | "swap" | "earn" | "lightning";
 
 const EARN_KINDS = new Set(["supply", "withdraw", "borrow", "repay"]);
-const LIGHTNING_KINDS = new Set(["lightningPay", "lightningRefund"]);
+const LIGHTNING_KINDS = new Set(["lightningPay", "lightningReceive", "lightningRefund"]);
 
 function applyFilter(items: TxHistoryItem[], filter: FilterKey): TxHistoryItem[]
 {

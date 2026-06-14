@@ -273,7 +273,7 @@
         "title": "About Lightning payments",
         "intro": {
             "title": "What is this?",
-            "body": "An experimental feature that pays Lightning Network invoices — Bitcoin's payment rail — directly with your Solana assets (USDC · SOL). Great for small, coffee-sized payments."
+            "body": "An experimental feature for Bitcoin's payment rail, the Lightning Network: pay invoices with your Solana assets (USDC · SOL · cbBTC) and receive into USDC · SOL. Great for small, coffee-sized amounts."
         },
         "how": {
             "title": "How does it work?",
@@ -282,6 +282,23 @@
             "b2": "When you pay, funds are locked in an audited escrow contract on Solana (one Seed Vault signature).",
             "b3": "An LP (liquidity provider) pays the Lightning invoice on your behalf.",
             "b4": "The LP can only claim the locked funds by presenting cryptographic proof that the invoice was paid."
+        },
+        "receive": {
+            "title": "Receiving (LN → USDC·SOL)",
+            "body": "You can also receive over Lightning. Pick the token (USDC·SOL) and amount, and the app generates an invoice; once the sender pays it, the funds settle to Solana.",
+            "b1": "Share the generated invoice via QR, copy, or share.",
+            "b2": "After the sender pays, you sign one claim to settle it.",
+            "b3": "The claim needs a little SOL for fees and account rent — keep some SOL spare."
+        },
+        "cbbtc": {
+            "title": "Paying with cbBTC",
+            "body": "You can pay over LN with cbBTC too. It's first auto-swapped to USDC and then paid, so you sign twice.",
+            "b1": "Both the swap (Jupiter) and the payment (Atomiq) are signed only on the Solana side.",
+            "b2": "If the swap succeeds but the payment fails, you'll be holding USDC and can retry with USDC right away."
+        },
+        "qr": {
+            "title": "QR scanning",
+            "body": "Instead of pasting an invoice, tap 'Scan' to read a QR and fill it automatically. The camera is used only while scanning — no photos or video are stored or sent."
         },
         "refund": {
             "title": "What if it fails?",
@@ -371,6 +388,7 @@
             "borrow": "Borrow",
             "repay": "Repay",
             "lightningPay": "⚡ LN payment",
+            "lightningReceive": "⚡ LN receive",
             "lightningRefund": "⚡ LN refund"
         },
         "directions": {
