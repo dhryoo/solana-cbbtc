@@ -63,3 +63,53 @@ if (abortSignalProto && typeof abortSignalProto.throwIfAborted !== "function")
         }
     };
 }
+
+// Hermes 의 AbortSignal 정적 메서드(timeout / any)도 없다 (RN 0.81 / 2026-06).
+// Atomiq SDK 가 FROM_BTCLN(받기) 경로에서 AbortSignal.timeout 을 호출 → 없으면 TypeError 로
+// createSwap 이 죽는다 (M18 디바이스 검증에서 발견, 2026-06-14). any 도 방어적으로 채운다.
+type AbortSignalStatic = {
+    timeout?: (ms: number) => AbortSignal;
+    any?: (signals: Iterable<AbortSignal>) => AbortSignal;
+};
+const AbortSignalCtor = (globalThis as unknown as { AbortSignal?: AbortSignalStatic }).AbortSignal;
+
+if (AbortSignalCtor && typeof AbortSignalCtor.timeout !== "function")
+{
+    AbortSignalCtor.timeout = function timeout(ms: number): AbortSignal
+    {
+        const controller = new AbortController();
+        setTimeout(() =>
+        {
+            const err = new Error("The operation timed out");
+            err.name = "TimeoutError";
+            // abort(reason) 미지원 환경이면 reason 없이 abort (동작은 동일)
+            try { (controller.abort as (r?: unknown) => void)(err); }
+            catch { controller.abort(); }
+        }, ms);
+        return controller.signal;
+    };
+}
+
+if (AbortSignalCtor && typeof AbortSignalCtor.any !== "function")
+{
+    AbortSignalCtor.any = function any(signals: Iterable<AbortSignal>): AbortSignal
+    {
+        const controller = new AbortController();
+        const list = Array.from(signals);
+        const onAbort = (sig: AbortSignal): void =>
+        {
+            try { (controller.abort as (r?: unknown) => void)((sig as { reason?: unknown }).reason); }
+            catch { controller.abort(); }
+        };
+        for (const sig of list)
+        {
+            if (sig.aborted)
+            {
+                onAbort(sig);
+                break;
+            }
+            sig.addEventListener("abort", () => onAbort(sig), { once: true });
+        }
+        return controller.signal;
+    };
+}
