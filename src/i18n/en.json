@@ -314,6 +314,7 @@
         "amountLabel": "Amount to receive (sats)",
         "amountPlaceholder": "e.g. 5000",
         "createButton": "Create receive invoice",
+        "lowSolWarn": "Your SOL may be too low. Receiving completes only after you sign a claim once the sender pays — and that needs SOL for fees and account rent. Add a little SOL first (about 0.01 SOL or more) before continuing.",
         "invoiceTitle": "Receive {{sats}} sats → {{token}}",
         "copy": "Copy",
         "share": "Share",

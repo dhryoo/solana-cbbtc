@@ -10,6 +10,7 @@ import { BRAND_PURPLE, type ThemePalette } from "@/constants/theme";
 import { SOL, USDC, type TokenInfo } from "@/constants/tokens";
 import { useCreateReceive, useWaitAndClaim } from "@/hooks/useLightning";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
+import { useTokenBalance } from "@/hooks/useTokenBalance";
 import { useWallet } from "@/hooks/useWallet";
 import { useNetworkStatus } from "@/providers/NetworkProvider";
 import { useTheme } from "@/providers/ThemeProvider";
@@ -19,6 +20,11 @@ import { formatRawAmount } from "@/utils/format";
 import { isUserRejection } from "@/utils/lendingErrors";
 
 const DEST_TOKENS: TokenInfo[] = [USDC, SOL];
+
+// 받기 정산(claim)에 필요한 최소 SOL 여유분 (lamports). escrow 계정 rent + ATA rent + 수수료 대략치.
+// 받기는 "상대 결제 → 내 claim 서명" 순서라, SOL 이 없으면 결제는 됐는데 못 받는 상황이 됨.
+// 그래서 인보이스 생성 전에 이 값 미만이면 미리 경고한다. rent 는 escrow 닫힐 때 대부분 회수.
+const MIN_SOL_FOR_RECEIVE_CLAIM = 10_000_000n; // 0.01 SOL
 
 // LN 받기 (FROM_BTCLN): dst 토큰·금액 → 인보이스 생성 → QR 표시 + 결제 대기 → 정산(claim).
 export function LightningReceivePanel(): React.JSX.Element
@@ -39,6 +45,10 @@ export function LightningReceivePanel(): React.JSX.Element
 
     const createMutation = useCreateReceive();
     const claimMutation = useWaitAndClaim();
+    const solBalance = useTokenBalance(SOL, account?.publicKey ?? null);
+
+    // SOL 잔액이 확인됐고 claim 여유분 미만이면 사전 경고 (잔액 로딩 전엔 경고 안 함)
+    const lowSol = solBalance.data !== undefined && solBalance.data.amount < MIN_SOL_FOR_RECEIVE_CLAIM;
 
     const amountSats = /^\d+$/.test(amountText.trim()) && amountText.trim() !== "0"
         ? BigInt(amountText.trim())
@@ -147,6 +157,12 @@ export function LightningReceivePanel(): React.JSX.Element
                         accessibilityLabel={t("receive.amountLabel")}
                     />
                     <AmountPad onChange={(v) => { setAmountText(v); reset(); }} value={amountText} styles={styles} />
+                    {lowSol && (
+                        <View style={styles.warnBox}>
+                            <Ionicons name="alert-circle-outline" size={16} color={palette.warn} />
+                            <Text style={styles.warnText}>{t("receive.lowSolWarn")}</Text>
+                        </View>
+                    )}
                     <Pressable
                         accessibilityRole="button"
                         accessibilityState={{ disabled: !canCreate, busy: createMutation.isPending }}
@@ -273,4 +289,6 @@ const makeStyles = (t: ThemePalette) => ({
     linkText: { fontSize: 13, fontWeight: "600" as const, color: BRAND_PURPLE },
     infoBox: { flexDirection: "row" as const, alignItems: "flex-start" as const, gap: 8, padding: 12, borderRadius: 12, backgroundColor: t.surfaceMuted },
     infoText: { flex: 1, fontSize: 12, lineHeight: 17, color: t.textMuted },
+    warnBox: { flexDirection: "row" as const, alignItems: "flex-start" as const, gap: 8, padding: 12, borderRadius: 12, borderWidth: 1, borderColor: t.warn, backgroundColor: t.surface },
+    warnText: { flex: 1, fontSize: 12, lineHeight: 17, color: t.warn },
 });
