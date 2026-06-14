@@ -7,6 +7,9 @@ import type {
     LightningPayOutcome,
     LightningPayPhase,
     LightningQuote,
+    LightningReceive,
+    LightningReceiveOutcome,
+    LightningReceivePhase,
     LightningSwapProvider,
     SolanaSigningDelegate,
 } from "./types";
@@ -40,10 +43,21 @@ interface AtomiqSwap
     getSecret?(): string | null;
 }
 
+// FROM_BTCLN (받기) swap — 인보이스 생성 + 결제 대기 + Solana 정산(claim)
+interface AtomiqReceiveSwap
+{
+    getId(): string;
+    getAddress(): string;          // 표시할 BOLT11 인보이스
+    getOutput(): AtomiqTokenAmount; // 받게 될 Solana 토큰량
+    waitForPayment(): Promise<boolean>;
+    commitAndClaim(signer: unknown): Promise<string[]>;
+}
+
 interface AtomiqSwapperLike
 {
     init(): Promise<void>;
     getSupportedTokens(input: boolean): { chainId: string; address?: string }[];
+    // send: SCToken→BTCLN → AtomiqSwap. receive: BTCLN→SCToken → AtomiqReceiveSwap. 호출부에서 캐스트.
     swap(...args: unknown[]): Promise<AtomiqSwap>;
     getRefundableSwaps(chainId: string, address: string): Promise<AtomiqSwap[]>;
     getAllSwaps(chainId: string, address: string): Promise<{ getId(): string; getType?(): unknown; getState?(): unknown }[]>;
@@ -55,6 +69,7 @@ interface AtomiqRuntime
     tokens: Record<string, unknown>;       // Tokens.SOLANA.*
     btcLnToken: unknown;                   // Tokens.BITCOIN.BTCLN
     exactOut: unknown;                     // SwapAmountType.EXACT_OUT
+    exactIn: unknown;                      // SwapAmountType.EXACT_IN
     makeSigner: (delegate: SolanaSigningDelegate) => unknown;
 }
 
@@ -196,6 +211,7 @@ function loadRuntime(): Promise<AtomiqRuntime>
             tokens: factory.Tokens.SOLANA as Record<string, unknown>,
             btcLnToken: factory.Tokens.BITCOIN.BTCLN as unknown,
             exactOut: sdk.SwapAmountType.EXACT_OUT as unknown,
+            exactIn: sdk.SwapAmountType.EXACT_IN as unknown,
             makeSigner: (delegate: SolanaSigningDelegate) => new chainSolana.SolanaSigner(delegate),
         };
     })();
@@ -392,5 +408,82 @@ export class AtomiqProvider implements LightningSwapProvider
             done += 1;
         }
         return done;
+    }
+
+    async createReceive(
+        dstToken: TokenInfo,
+        amountSats: bigint,
+        dstAddress: string,
+    ): Promise<LightningReceive>
+    {
+        const rt = await loadRuntime();
+        const entry = APP_SOURCE_TOKENS.find((t) => t.app.symbol === dstToken.symbol);
+        if (!entry)
+        {
+            throw new Error(`Unsupported receive token: ${dstToken.symbol}`);
+        }
+        const atomiqDst = rt.tokens[entry.atomiqSymbol];
+        try
+        {
+            // BTCLN → dstToken, amount = sats (EXACT_IN), src=undefined → 우리가 인보이스를 생성·표시
+            const swap = (await rt.swapper.swap(
+                rt.btcLnToken,
+                atomiqDst,
+                amountSats,
+                rt.exactIn,
+                undefined,
+                dstAddress,
+            )) as unknown as AtomiqReceiveSwap;
+            return {
+                providerId: "atomiq",
+                invoice: swap.getAddress(),
+                amountSats,
+                expectedOutBase: swap.getOutput().rawAmount,
+                dstToken,
+                ref: swap,
+            };
+        }
+        catch (e)
+        {
+            const amountErr = asLightningAmountError(e);
+            if (amountErr)
+            {
+                throw amountErr;
+            }
+            if (__DEV__)
+            {
+                // eslint-disable-next-line no-console
+                console.error(`[lightning] createReceive failed — dst=${dstToken.symbol} sats=${amountSats}`, e);
+            }
+            throw e;
+        }
+    }
+
+    async waitAndClaim(
+        receive: LightningReceive,
+        signer: SolanaSigningDelegate,
+        onPhase: (phase: LightningReceivePhase) => void,
+    ): Promise<LightningReceiveOutcome>
+    {
+        const rt = await loadRuntime();
+        const swap = receive.ref as AtomiqReceiveSwap;
+
+        // ① LN 인보이스 결제 대기 (서명 없음)
+        onPhase("awaiting");
+        const paid = await swap.waitForPayment();
+        if (!paid)
+        {
+            throw new Error("receive_invoice_expired");
+        }
+
+        // ② Solana 정산 (claim, MWA 서명)
+        onPhase("claiming");
+        const atomiqSigner = rt.makeSigner(signer);
+        const txs = await swap.commitAndClaim(atomiqSigner);
+        return {
+            status: "received",
+            claimTxId: txs[txs.length - 1] ?? txs[0] ?? "",
+            outBase: swap.getOutput().rawAmount,
+        };
     }
 }

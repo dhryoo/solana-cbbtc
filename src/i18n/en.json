@@ -212,6 +212,8 @@
         "title": "Lightning payment",
         "subtitle": "Pay LN invoices via Atomiq atomic swaps",
         "chipLabel": "Lightning (Labs)",
+        "modeSend": "Send",
+        "modeReceive": "Receive",
         "experimentNotice": "Experimental feature — use small amounts only. Payments run through Atomiq's audited smart contracts (HTLC); you sign only on the Solana side. If a payment fails, your funds are refunded. This app charges no fee (only the LP fee applies).",
         "refundableNotice": "You have {{count}} earlier payment(s) awaiting refund. Use the button below to recover your funds (wallet signature required).",
         "refundButton": "Refund now",
@@ -306,6 +308,23 @@
             "github": "View source on GitHub",
             "atomiq": "Explore Atomiq"
         }
+    },
+    "receive": {
+        "dstTokenLabel": "Receive as",
+        "amountLabel": "Amount to receive (sats)",
+        "amountPlaceholder": "e.g. 5000",
+        "createButton": "Create receive invoice",
+        "invoiceTitle": "Receive {{sats}} sats → {{token}}",
+        "copy": "Copy",
+        "share": "Share",
+        "awaiting": "Waiting for payment… (this continues once the sender pays this invoice)",
+        "claiming": "Settling to Solana… please sign in your wallet",
+        "expectHint": "When paid, you'll receive about {{amount}} {{token}} (after the LP fee).",
+        "receivedTitle": "Received",
+        "receivedBody": "You received {{amount}} {{token}}.",
+        "again": "Receive again",
+        "expired": "The invoice expired. Please create a new one.",
+        "claimCancelled": "Settlement signature cancelled. If the payment already arrived, please try again."
     },
     "walletStale": {
         "bannerTitle": "Your wallet session may have expired",

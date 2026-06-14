@@ -16,6 +16,7 @@ import {
     View,
 } from "react-native";
 
+import { LightningReceivePanel } from "@/components/LightningReceivePanel";
 import { QRScanModal } from "@/components/QRScanModal";
 import { TxProgress } from "@/components/TxProgress";
 import { BRAND_PURPLE, type ThemePalette } from "@/constants/theme";
@@ -85,6 +86,7 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
     const [lastError, setLastError] = useState<string | null>(null);
     const [guideOpen, setGuideOpen] = useState(false);
     const [scanOpen, setScanOpen] = useState(false);
+    const [mode, setMode] = useState<"send" | "receive">("send");
 
     const isCbbtc = srcToken.symbol === CBBTC.symbol;
 
@@ -436,6 +438,32 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                         <Text style={styles.experimentText}>{t("lightning.experimentNotice")}</Text>
                     </View>
 
+                    {/* 보내기 / 받기 토글 */}
+                    <View style={styles.modeToggle}>
+                        {(["send", "receive"] as const).map((m) => (
+                            <Pressable
+                                key={m}
+                                accessibilityRole="button"
+                                accessibilityState={{ selected: mode === m }}
+                                onPress={() => setMode(m)}
+                                style={[styles.modeTab, mode === m && styles.modeTabActive]}
+                            >
+                                <Ionicons
+                                    name={m === "send" ? "arrow-up-circle-outline" : "arrow-down-circle-outline"}
+                                    size={16}
+                                    color={mode === m ? palette.textInverse : palette.textMuted}
+                                />
+                                <Text style={[styles.modeTabText, mode === m && styles.modeTabTextActive]}>
+                                    {t(m === "send" ? "lightning.modeSend" : "lightning.modeReceive")}
+                                </Text>
+                            </Pressable>
+                        ))}
+                    </View>
+
+                    {mode === "receive" && <LightningReceivePanel />}
+
+                    {mode === "send" && (
+                    <>
                     {/* 중단된 swap 환불 안내 + 실행 */}
                     {(refundable.data ?? 0) > 0 && (
                         <View style={styles.warnBox}>
@@ -677,6 +705,8 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                             </View>
                         )
                         : null}
+                    </>
+                    )}
                 </ScrollView>
             </View>
             <LightningGuideScreen visible={guideOpen} onClose={() => setGuideOpen(false)} />
@@ -810,6 +840,17 @@ const makeStyles = (t: ThemePalette) => StyleSheet.create({
         borderRadius: 999, borderWidth: 1, borderColor: "#9945FF55", backgroundColor: t.surfaceMuted,
     },
     scanButtonText: { fontSize: 12, fontWeight: "700" as const, color: t.text },
+    modeToggle: {
+        flexDirection: "row" as const, gap: 6, padding: 4,
+        borderRadius: 12, backgroundColor: t.surfaceMuted,
+    },
+    modeTab: {
+        flex: 1, flexDirection: "row" as const, alignItems: "center" as const, justifyContent: "center" as const,
+        gap: 6, paddingVertical: 10, borderRadius: 9,
+    },
+    modeTabActive: { backgroundColor: t.primary },
+    modeTabText: { fontSize: 14, fontWeight: "700" as const, color: t.textMuted },
+    modeTabTextActive: { color: t.textInverse },
     cbbtcStatusRow: { flexDirection: "row" as const, alignItems: "center" as const, gap: 10 },
     cbbtcStatusText: { fontSize: 14, fontWeight: "600" as const, color: t.text },
     cancelPending: {

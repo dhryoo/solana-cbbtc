@@ -9,6 +9,9 @@ import type {
     LightningPayOutcome,
     LightningPayPhase,
     LightningQuote,
+    LightningReceive,
+    LightningReceiveOutcome,
+    LightningReceivePhase,
     LightningSwapProvider,
 } from "./types";
 
@@ -127,6 +130,22 @@ export class LightningService
     refundAll(account: ConnectedAccount): Promise<number>
     {
         return this.provider.refundAll(createMwaSigningDelegate(account));
+    }
+
+    /** 받기: LN 인보이스 생성 (자금 이동 없음) */
+    createReceive(dstToken: TokenInfo, amountSats: bigint, dstAddress: string): Promise<LightningReceive>
+    {
+        return this.provider.createReceive(dstToken, amountSats, dstAddress);
+    }
+
+    /** 받기: 인보이스 결제 대기 → Solana 정산(claim, 서명) */
+    waitAndClaim(
+        receive: LightningReceive,
+        account: ConnectedAccount,
+        onPhase: (phase: LightningReceivePhase) => void,
+    ): Promise<LightningReceiveOutcome>
+    {
+        return this.provider.waitAndClaim(receive, createMwaSigningDelegate(account), onPhase);
     }
 }
 

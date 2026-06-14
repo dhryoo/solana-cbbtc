@@ -188,6 +188,11 @@ describe("LightningService (Facade + mock provider)", () =>
             ),
             getRefundableCount: jest.fn().mockResolvedValue(0),
             refundAll: jest.fn().mockResolvedValue(0),
+            createReceive: jest.fn().mockResolvedValue({
+                providerId: "mock", invoice: "lnbc...", amountSats: 5000n,
+                expectedOutBase: 3000n, dstToken: USDC, ref: {},
+            }),
+            waitAndClaim: jest.fn().mockResolvedValue({ status: "received", claimTxId: "tx456", outBase: 3000n }),
             ...overrides,
         };
     }

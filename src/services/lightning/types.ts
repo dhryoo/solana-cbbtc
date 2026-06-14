@@ -104,6 +104,29 @@ export interface SolanaSigningDelegate
     signAllTransactions<T>(txs: T[]): Promise<T[]>;
 }
 
+// --- 받기 (FROM_BTCLN) ---
+
+export type LightningReceivePhase =
+    | "awaiting"   // LN 인보이스 결제 대기 (서명 없음)
+    | "claiming";  // Solana 정산 서명
+
+export interface LightningReceive
+{
+    providerId: string;
+    invoice: string;           // 표시할 BOLT11 인보이스
+    amountSats: bigint;        // 요청한 수신액
+    expectedOutBase: bigint;   // 받게 될 dst token 량 (LP fee 차감 후)
+    dstToken: TokenInfo;
+    ref: unknown;              // provider 내부 swap 핸들
+}
+
+export interface LightningReceiveOutcome
+{
+    status: "received";
+    claimTxId: string;
+    outBase: bigint;
+}
+
 export type LightningDestination =
     | { kind: "bolt11"; parsed: ParsedBolt11 }
     | { kind: "lnurlOrAddress"; destination: string; amountSats: bigint; parsed: ParsedLightningAddress | ParsedLnurl };
@@ -137,4 +160,14 @@ export interface LightningSwapProvider
 
     /** 환불 가능한 swap 전부 환불 실행 (각각 MWA 서명) */
     refundAll(signer: SolanaSigningDelegate): Promise<number>;
+
+    /** 받기: dstToken 으로 amountSats 받기 위한 LN 인보이스 생성 (자금 이동 없음, 서명 없음) */
+    createReceive(dstToken: TokenInfo, amountSats: bigint, dstAddress: string): Promise<LightningReceive>;
+
+    /** 인보이스 결제 대기 → Solana 정산(claim, MWA 서명). onPhase 로 단계 통지 */
+    waitAndClaim(
+        receive: LightningReceive,
+        signer: SolanaSigningDelegate,
+        onPhase: (phase: LightningReceivePhase) => void,
+    ): Promise<LightningReceiveOutcome>;
 }

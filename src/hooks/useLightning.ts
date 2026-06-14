@@ -10,7 +10,14 @@ import type { TokenInfo } from "@/constants/tokens";
 import { useWallet } from "@/hooks/useWallet";
 import { useNetworkStatus } from "@/providers/NetworkProvider";
 import { getLightningService } from "@/services/lightning/LightningService";
-import type { LightningPayOutcome, LightningPayPhase, LightningQuote } from "@/services/lightning/types";
+import type {
+    LightningPayOutcome,
+    LightningPayPhase,
+    LightningQuote,
+    LightningReceive,
+    LightningReceiveOutcome,
+    LightningReceivePhase,
+} from "@/services/lightning/types";
 
 // Phase 3 Lightning 결제 hooks — 실험 화면이 열렸을 때만 마운트됨 (Labs 토글 뒤).
 // 첫 호출 시 Atomiq SDK 초기화(LP 레지스트리 fetch)가 일어나므로 로딩 상태 표시 필요.
@@ -89,6 +96,60 @@ export function useRefundAll(): UseMutationResult<number, Error, void>
         onSuccess: () =>
         {
             void queryClient.invalidateQueries({ queryKey: ["lightning", "refundable"] });
+            void queryClient.invalidateQueries({ queryKey: ["balance"] });
+            void queryClient.invalidateQueries({ queryKey: ["history"] });
+        },
+    });
+}
+
+// --- 받기 (FROM_BTCLN) ---
+
+export interface ReceiveCreateInput
+{
+    dstToken: TokenInfo;
+    amountSats: bigint;
+}
+
+/** 받기 인보이스 생성 (자금 이동 없음) */
+export function useCreateReceive(): UseMutationResult<LightningReceive, Error, ReceiveCreateInput>
+{
+    const { account } = useWallet();
+
+    return useMutation<LightningReceive, Error, ReceiveCreateInput>({
+        mutationFn: async ({ dstToken, amountSats }) =>
+        {
+            if (!account)
+            {
+                throw new Error("Wallet is not connected.");
+            }
+            return getLightningService().createReceive(dstToken, amountSats, account.publicKey.toBase58());
+        },
+    });
+}
+
+export interface ReceiveClaimInput
+{
+    receive: LightningReceive;
+    onPhase: (phase: LightningReceivePhase) => void;
+}
+
+/** 인보이스 결제 대기 → Solana 정산(claim, MWA 서명) */
+export function useWaitAndClaim(): UseMutationResult<LightningReceiveOutcome, Error, ReceiveClaimInput>
+{
+    const { account } = useWallet();
+    const queryClient = useQueryClient();
+
+    return useMutation<LightningReceiveOutcome, Error, ReceiveClaimInput>({
+        mutationFn: async ({ receive, onPhase }) =>
+        {
+            if (!account)
+            {
+                throw new Error("Wallet is not connected.");
+            }
+            return getLightningService().waitAndClaim(receive, account, onPhase);
+        },
+        onSuccess: () =>
+        {
             void queryClient.invalidateQueries({ queryKey: ["balance"] });
             void queryClient.invalidateQueries({ queryKey: ["history"] });
         },
