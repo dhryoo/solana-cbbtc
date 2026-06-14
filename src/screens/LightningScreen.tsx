@@ -18,7 +18,13 @@ import {
 
 import { TxProgress } from "@/components/TxProgress";
 import { BRAND_PURPLE, type ThemePalette } from "@/constants/theme";
-import { SOL, USDC, type TokenInfo } from "@/constants/tokens";
+import { CBBTC, SOL, USDC, type TokenInfo } from "@/constants/tokens";
+import {
+    useCbbtcLightningPay,
+    useCbbtcLightningQuote,
+    type CbbtcLightningQuote,
+    type CbbtcPayPhase,
+} from "@/hooks/useCbbtcLightning";
 import { useLightningPay, useLightningQuote, useRefundableSwaps, useRefundAll } from "@/hooks/useLightning";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
 import { useWallet } from "@/hooks/useWallet";
@@ -38,7 +44,7 @@ import type { ProgressState, TxStep } from "@/utils/txProgress";
 // 흐름: 입력(BOLT11/lightning address) → 견적(자금 이동 없음) → 결제(MWA 서명 → LP 가 LN 지급).
 // 실패 시 cooperative refund 로 자금 회수 (Solana 서명만).
 
-const SOURCE_TOKENS: TokenInfo[] = [USDC, SOL];
+const SOURCE_TOKENS: TokenInfo[] = [USDC, SOL, CBBTC];
 
 interface LightningScreenProps
 {
@@ -70,16 +76,35 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
     const [amountSatsText, setAmountSatsText] = useState("");
     const [srcToken, setSrcToken] = useState<TokenInfo>(USDC);
     const [quote, setQuote] = useState<LightningQuote | null>(null);
+    const [cbbtcQuote, setCbbtcQuote] = useState<CbbtcLightningQuote | null>(null);
+    const [cbbtcStatus, setCbbtcStatus] = useState<string | null>(null);
     const [progress, setProgress] = useState<{ step: TxStep; state: ProgressState } | null>(null);
     const [outcome, setOutcome] = useState<LightningPayOutcome | null>(null);
     const [notice, setNotice] = useState<string | null>(null);
     const [lastError, setLastError] = useState<string | null>(null);
     const [guideOpen, setGuideOpen] = useState(false);
 
+    const isCbbtc = srcToken.symbol === CBBTC.symbol;
+
     const quoteMutation = useLightningQuote();
     const payMutation = useLightningPay();
+    const cbbtcQuoteMutation = useCbbtcLightningQuote();
+    const cbbtcPayMutation = useCbbtcLightningPay();
     const refundable = useRefundableSwaps(visible);
     const refundAllMutation = useRefundAll();
+
+    // cbBTC 결제 단계 → 상태 라벨
+    const cbbtcPhaseLabel = useCallback((phase: CbbtcPayPhase): string =>
+    {
+        switch (phase)
+        {
+            case "swapping": return t("lightning.cbbtcSwapping");
+            case "confirming": return t("lightning.cbbtcConfirming");
+            case "signing": return t("lightning.cbbtcPaySigning");
+            case "paying": return t("lightning.cbbtcPaying");
+            case "refunding": return t("lightning.refundingNotice");
+        }
+    }, [t]);
 
     const onRefundAll = (): void =>
     {
@@ -121,11 +146,14 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
         && Boolean(account)
         && destination.trim().length > 0
         && !quoteMutation.isPending
+        && !cbbtcQuoteMutation.isPending
         && (amountEmbedded || amountSats !== null);
 
     const resetResult = useCallback((): void =>
     {
         setQuote(null);
+        setCbbtcQuote(null);
+        setCbbtcStatus(null);
         setOutcome(null);
         setProgress(null);
         setNotice(null);
@@ -160,6 +188,18 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
             return;
         }
         resetResult();
+        if (isCbbtc)
+        {
+            // cbBTC: Atomiq(USDC) 견적 + Jupiter cbBTC→USDC ExactOut 견적
+            cbbtcQuoteMutation.mutate(
+                { rawInput: destination, amountSats },
+                {
+                    onSuccess: (q) => setCbbtcQuote(q),
+                    onError: (err) => setLastError(quoteErrorMessage(err)),
+                },
+            );
+            return;
+        }
         quoteMutation.mutate(
             { rawInput: destination, amountSats, srcToken },
             {
@@ -173,8 +213,94 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
     // (서명 promise 가 영원히 pending), '취소'로 그 시도를 폐기하고 settle 콜백을 무시한다.
     const payTokenRef = useRef(0);
 
+    // cbBTC 결제: Jupiter swap(서명1) → 확정 → Atomiq 결제(서명2). 중간 실패 시 USDC 보유로 graceful.
+    const onPayCbbtc = (): void =>
+    {
+        if (!cbbtcQuote || cbbtcPayMutation.isPending)
+        {
+            return;
+        }
+        const token = ++payTokenRef.current;
+        // swap 단계를 넘어선 뒤(=cbBTC 가 이미 USDC 로 바뀜) 실패하면 USDC 로 재시도 안내
+        let swapped = false;
+        setNotice(null);
+        setLastError(null);
+        setProgress({ step: "signing", state: "running" });
+        setCbbtcStatus(cbbtcPhaseLabel("swapping"));
+        cbbtcPayMutation.mutate(
+            {
+                rawInput: destination,
+                amountSats,
+                swap: cbbtcQuote.swap,
+                onPhase: (phase) =>
+                {
+                    if (token !== payTokenRef.current)
+                    {
+                        return;
+                    }
+                    if (phase === "confirming" || phase === "signing")
+                    {
+                        swapped = true;
+                    }
+                    setCbbtcStatus(cbbtcPhaseLabel(phase));
+                    setProgress({ step: phase === "swapping" ? "signing" : "sending", state: "running" });
+                },
+            },
+            {
+                onSuccess: (res) =>
+                {
+                    if (token !== payTokenRef.current)
+                    {
+                        return;
+                    }
+                    setProgress(null);
+                    setCbbtcStatus(null);
+                    setOutcome(res.outcome);
+                    setCbbtcQuote(null);
+                    if (res.outcome.status === "paid")
+                    {
+                        setDestination("");
+                        setAmountSatsText("");
+                    }
+                },
+                onError: (err) =>
+                {
+                    if (token !== payTokenRef.current)
+                    {
+                        return;
+                    }
+                    setProgress((prev) => (prev ? { ...prev, state: "error" } : null));
+                    setCbbtcStatus(null);
+                    const cancelled = isUserRejection(err.message);
+                    const timedOut = /swap_confirm_timeout/.test(err.message);
+                    // swap 후 실패 → 이미 USDC 보유 → USDC 로 재시도 안내 + 소스 자동 전환
+                    const afterSwap = swapped || timedOut;
+                    const noticeMsg = afterSwap ? t("lightning.cbbtcRetryWithUsdc")
+                        : isAuthFailure(err.message) ? t("earn.authFailedHint")
+                            : isWalletTimeout(err.message) ? t("earn.walletTimeoutHint") : null;
+                    if (afterSwap)
+                    {
+                        setSrcToken(USDC);
+                        setCbbtcQuote(null);
+                    }
+                    setNotice(noticeMsg);
+                    setLastError(noticeMsg || cancelled ? null : err.message);
+                    showToast(
+                        cancelled ? t("errors.userCancelled") : t("lightning.payFailed"),
+                        { variant: cancelled ? "info" : "error", durationMs: 5000 },
+                    );
+                },
+            },
+        );
+    };
+
     const onPay = (): void =>
     {
+        if (isCbbtc)
+        {
+            onPayCbbtc();
+            return;
+        }
         if (!quote || payMutation.isPending)
         {
             return;
@@ -247,7 +373,9 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
         }
         payTokenRef.current += 1;
         setProgress(null);
+        setCbbtcStatus(null);
         setQuote(null);
+        setCbbtcQuote(null);
         setNotice(t("lightning.cancelledPendingNotice"));
     };
 
@@ -256,6 +384,7 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
     {
         payTokenRef.current += 1;
         setProgress(null);
+        setCbbtcStatus(null);
         onClose();
     };
 
@@ -386,21 +515,21 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
 
                         <Pressable
                             accessibilityRole="button"
-                            accessibilityState={{ disabled: !canQuote, busy: quoteMutation.isPending }}
+                            accessibilityState={{ disabled: !canQuote, busy: quoteMutation.isPending || cbbtcQuoteMutation.isPending }}
                             disabled={!canQuote}
                             onPress={onGetQuote}
                             style={[styles.button, !canQuote && styles.buttonDisabled]}
                         >
-                            {quoteMutation.isPending
+                            {(quoteMutation.isPending || cbbtcQuoteMutation.isPending)
                                 ? <ActivityIndicator color={palette.textInverse} />
                                 : <Text style={styles.buttonText}>{t("lightning.quoteButton")}</Text>}
                         </Pressable>
-                        {quoteMutation.isPending && (
+                        {(quoteMutation.isPending || cbbtcQuoteMutation.isPending) && (
                             <Text style={styles.initHint}>{t("lightning.initHint")}</Text>
                         )}
                     </View>
 
-                    {/* 견적 카드 */}
+                    {/* 견적 카드 — USDC/SOL 직결제 */}
                     {quote && (
                         <View style={styles.card}>
                             <Text style={styles.cardTitle}>{t("lightning.quoteHeading")}</Text>
@@ -422,9 +551,39 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                         </View>
                     )}
 
-                    {progress ? (
+                    {/* 견적 카드 — cbBTC (Jupiter swap → Atomiq 결제) */}
+                    {cbbtcQuote && (
+                        <View style={styles.card}>
+                            <Text style={styles.cardTitle}>{t("lightning.cbbtcQuoteHeading")}</Text>
+                            <Text style={styles.cbbtcChainHint}>{t("lightning.cbbtcChainHint")}</Text>
+                            <Row label={t("lightning.cbbtcSwapFrom")} value={`~${formatRawAmount(cbbtcQuote.swap.cbbtcInBase, CBBTC.decimals)} ${CBBTC.symbol}`} styles={styles} />
+                            <Row label={t("lightning.cbbtcSwapTo")} value={`${formatRawAmount(cbbtcQuote.usdcTargetBase, USDC.decimals)} ${USDC.symbol}`} styles={styles} />
+                            <Row label={t("lightning.quoteReceive")} value={`${cbbtcQuote.atomiqPreview.outputSats.toString()} sats`} styles={styles} />
+                            <Row label={t("lightning.quoteDest")} value={cbbtcQuote.atomiqPreview.destinationLabel} styles={styles} />
+                            <Pressable
+                                accessibilityRole="button"
+                                accessibilityState={{ disabled: cbbtcPayMutation.isPending, busy: cbbtcPayMutation.isPending }}
+                                disabled={cbbtcPayMutation.isPending}
+                                onPress={onPay}
+                                style={[styles.button, cbbtcPayMutation.isPending && styles.buttonDisabled]}
+                            >
+                                {cbbtcPayMutation.isPending
+                                    ? <ActivityIndicator color={palette.textInverse} />
+                                    : <Text style={styles.buttonText}>{t("lightning.cbbtcPayButton")}</Text>}
+                            </Pressable>
+                        </View>
+                    )}
+
+                    {(cbbtcStatus || progress) ? (
                         <View style={styles.progressWrap}>
-                            <TxProgress current={progress.step} state={progress.state} />
+                            {cbbtcStatus ? (
+                                <View style={styles.cbbtcStatusRow}>
+                                    <ActivityIndicator color={palette.text} />
+                                    <Text style={styles.cbbtcStatusText}>{cbbtcStatus}</Text>
+                                </View>
+                            ) : progress ? (
+                                <TxProgress current={progress.step} state={progress.state} />
+                            ) : null}
                             {/* 진행 표시가 떠 있으면 상태와 무관하게 항상 노출 —
                                 Seeker Seed Vault 는 '거부' 버튼이 없고 X 로 닫으면 서명이 멈추므로,
                                 이 버튼이 이 기기의 기본 취소·복구 수단이다. */}
@@ -622,6 +781,9 @@ const makeStyles = (t: ThemePalette) => StyleSheet.create({
     buttonText: { fontSize: 15, fontWeight: "700", color: t.textInverse },
     initHint: { fontSize: 11, color: t.textDim, textAlign: "center" },
     progressWrap: { gap: 12, alignItems: "center" as const },
+    cbbtcChainHint: { fontSize: 12, color: t.textMuted, lineHeight: 17, marginBottom: 2 },
+    cbbtcStatusRow: { flexDirection: "row" as const, alignItems: "center" as const, gap: 10 },
+    cbbtcStatusText: { fontSize: 14, fontWeight: "600" as const, color: t.text },
     cancelPending: {
         flexDirection: "row" as const,
         alignItems: "center" as const,
