@@ -16,6 +16,7 @@ import {
     View,
 } from "react-native";
 
+import { QRScanModal } from "@/components/QRScanModal";
 import { TxProgress } from "@/components/TxProgress";
 import { BRAND_PURPLE, type ThemePalette } from "@/constants/theme";
 import { CBBTC, SOL, USDC, type TokenInfo } from "@/constants/tokens";
@@ -83,6 +84,7 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
     const [notice, setNotice] = useState<string | null>(null);
     const [lastError, setLastError] = useState<string | null>(null);
     const [guideOpen, setGuideOpen] = useState(false);
+    const [scanOpen, setScanOpen] = useState(false);
 
     const isCbbtc = srcToken.symbol === CBBTC.symbol;
 
@@ -159,6 +161,13 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
         setNotice(null);
         setLastError(null);
     }, []);
+
+    const onScanned = useCallback((value: string): void =>
+    {
+        setScanOpen(false);
+        setDestination(value);
+        resetResult();
+    }, [resetResult]);
 
     const quoteErrorMessage = useCallback((err: Error): string =>
     {
@@ -451,7 +460,18 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
 
                     {/* 입력 */}
                     <View style={styles.card}>
-                        <Text style={styles.cardTitle}>{t("lightning.destLabel")}</Text>
+                        <View style={styles.destLabelRow}>
+                            <Text style={styles.cardTitle}>{t("lightning.destLabel")}</Text>
+                            <Pressable
+                                accessibilityRole="button"
+                                accessibilityLabel={t("qrScan.scanButton")}
+                                onPress={() => setScanOpen(true)}
+                                style={({ pressed }) => [styles.scanButton, pressed && { opacity: 0.6 }]}
+                            >
+                                <Ionicons name="scan-outline" size={16} color={BRAND_PURPLE} />
+                                <Text style={styles.scanButtonText}>{t("qrScan.scanButton")}</Text>
+                            </Pressable>
+                        </View>
                         <TextInput
                             style={styles.input}
                             value={destination}
@@ -660,6 +680,7 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                 </ScrollView>
             </View>
             <LightningGuideScreen visible={guideOpen} onClose={() => setGuideOpen(false)} />
+            <QRScanModal visible={scanOpen} onClose={() => setScanOpen(false)} onScanned={onScanned} />
         </Modal>
     );
 }
@@ -782,6 +803,13 @@ const makeStyles = (t: ThemePalette) => StyleSheet.create({
     initHint: { fontSize: 11, color: t.textDim, textAlign: "center" },
     progressWrap: { gap: 12, alignItems: "center" as const },
     cbbtcChainHint: { fontSize: 12, color: t.textMuted, lineHeight: 17, marginBottom: 2 },
+    destLabelRow: { flexDirection: "row" as const, alignItems: "center" as const, justifyContent: "space-between" as const },
+    scanButton: {
+        flexDirection: "row" as const, alignItems: "center" as const, gap: 4,
+        paddingVertical: 4, paddingHorizontal: 8,
+        borderRadius: 999, borderWidth: 1, borderColor: "#9945FF55", backgroundColor: t.surfaceMuted,
+    },
+    scanButtonText: { fontSize: 12, fontWeight: "700" as const, color: t.text },
     cbbtcStatusRow: { flexDirection: "row" as const, alignItems: "center" as const, gap: 10 },
     cbbtcStatusText: { fontSize: 14, fontWeight: "600" as const, color: t.text },
     cancelPending: {

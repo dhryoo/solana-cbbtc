@@ -258,6 +258,15 @@
         "errAmountTooLow": "Amount is too small. Please try at least {{min}} sats.",
         "errAmountTooHigh": "Amount is too large. Please try at most {{max}} sats."
     },
+    "qrScan": {
+        "title": "Scan QR",
+        "scanButton": "Scan",
+        "hint": "Point the camera at a Lightning invoice or address QR code",
+        "permTitle": "Camera permission needed",
+        "permBody": "Used only for QR scanning — no photos or video are stored or sent.",
+        "grant": "Allow camera",
+        "openSettings": "Open settings"
+    },
     "lightningGuide": {
         "title": "About Lightning payments",
         "intro": {

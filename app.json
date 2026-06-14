@@ -18,7 +18,14 @@
                     }
                 }
             ],
-            "expo-localization"
+            "expo-localization",
+            [
+                "expo-camera",
+                {
+                    "cameraPermission": "Used only to scan Lightning invoice QR codes. No photos or video are taken, stored, or sent anywhere.",
+                    "recordAudioAndroid": false
+                }
+            ]
         ],
         "name": "Solana cbBTC",
         "slug": "seeker-btcfi",

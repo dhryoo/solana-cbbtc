@@ -258,6 +258,15 @@
         "errAmountTooLow": "금액이 너무 적습니다. 최소 {{min}} sats 이상으로 시도해 주세요.",
         "errAmountTooHigh": "금액이 너무 큽니다. 최대 {{max}} sats 이하로 시도해 주세요."
     },
+    "qrScan": {
+        "title": "QR 스캔",
+        "scanButton": "스캔",
+        "hint": "Lightning 인보이스 또는 주소 QR 을 사각형 안에 맞춰 주세요",
+        "permTitle": "카메라 권한이 필요합니다",
+        "permBody": "QR 스캔에만 사용하며, 사진·영상은 저장하거나 전송하지 않습니다.",
+        "grant": "카메라 허용",
+        "openSettings": "설정에서 권한 켜기"
+    },
     "lightningGuide": {
         "title": "Lightning 결제 안내",
         "intro": {
