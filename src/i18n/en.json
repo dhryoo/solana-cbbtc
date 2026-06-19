@@ -6,7 +6,9 @@
         "retry": "Retry",
         "copyAddress": "Copy address",
         "copyAddressHint": "Long-press to copy to clipboard",
-        "copied": "Copied!"
+        "copied": "Copied!",
+        "cancel_pending": "Cancel",
+        "signCancelled": "Cancelled. If you didn't complete the signature, the transaction was not submitted."
     },
     "offline": {
         "banner": "No internet connection",

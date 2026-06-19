@@ -16,7 +16,9 @@ import {
 } from "react-native";
 
 import { BorrowConsentModal } from "@/components/BorrowConsentModal";
+import { CancelableProgress } from "@/components/CancelableProgress";
 import { TxProgress } from "@/components/TxProgress";
+import { useCancellableSign } from "@/hooks/useCancellableSign";
 import { LendingGuideScreen } from "@/screens/LendingGuideScreen";
 import { MIN_CBBTC_SUPPLY_BASE } from "@/constants/lending";
 import { CBBTC, USDC } from "@/constants/tokens";
@@ -293,6 +295,7 @@ function SupplyForm({ owner, styles, palette, t, cbbtcPriceUsd, currentSuppliedU
     const { isOnline } = useNetworkStatus();
     const { showToast } = useToast();
     const supply = useSupplyLending();
+    const sign = useCancellableSign();
     const balance = useTokenBalance(CBBTC, owner);
     const [amount, setAmount] = useState("");
     const [lastError, setLastError] = useState<string | null>(null);
@@ -322,14 +325,16 @@ function SupplyForm({ owner, styles, palette, t, cbbtcPriceUsd, currentSuppliedU
         setNotice(null);
         setResult(null);
         setProgress({ step: "preparing", state: "running" });
+        const token = sign.begin();
         supply.mutate(
             {
                 amountBase,
-                onStep: (step) => setProgress({ step, state: "running" }),
+                onStep: (step) => { if (sign.isCurrent(token)) setProgress({ step, state: "running" }); },
             },
             {
                 onSuccess: (res) =>
                 {
+                    if (!sign.isCurrent(token)) return;
                     // stepper 는 감추고 결과 카드로 전환.
                     setProgress(null);
                     setResult({ amountBase: submitted, signature: res.signature });
@@ -337,6 +342,7 @@ function SupplyForm({ owner, styles, palette, t, cbbtcPriceUsd, currentSuppliedU
                 },
                 onError: (err) =>
                 {
+                    if (!sign.isCurrent(token)) return;
                     setProgress((prev) => (prev ? { ...prev, state: "error" } : null));
                     const cancelled = isUserRejection(err.message);
                     const authFailed = isAuthFailure(err.message);
@@ -363,6 +369,15 @@ function SupplyForm({ owner, styles, palette, t, cbbtcPriceUsd, currentSuppliedU
     {
         setResult(null);
         setProgress(null);
+    };
+
+    // 멈춘 서명을 사용자가 폐기 (뒤늦은 settle 은 token 가드로 무시됨)
+    const onCancelSign = (): void =>
+    {
+        sign.cancel();
+        setProgress(null);
+        setNotice(t("common.signCancelled"));
+        setLastError(null);
     };
 
     // 성공 후: 입력 폼/stepper 대신 결과 카드 표시.
@@ -434,7 +449,7 @@ function SupplyForm({ owner, styles, palette, t, cbbtcPriceUsd, currentSuppliedU
                     : <Text style={styles.buttonText}>{t("earn.supply.button")}</Text>}
             </Pressable>
 
-            {progress ? <TxProgress current={progress.step} state={progress.state} /> : null}
+            <CancelableProgress progress={progress} onCancel={onCancelSign} cancelLabel={t("common.cancel_pending")} />
 
             {notice
                 ? (
@@ -517,6 +532,7 @@ function WithdrawForm({ suppliedUsd, cbbtcPriceUsd, styles, palette, t, onFocusI
     const { isOnline } = useNetworkStatus();
     const { showToast } = useToast();
     const withdraw = useWithdrawLending();
+    const sign = useCancellableSign();
     const [amount, setAmount] = useState("");
     const [withdrawAll, setWithdrawAll] = useState(false);
     const [progress, setProgress] = useState<{ step: TxStep; state: ProgressState } | null>(null);
@@ -549,16 +565,18 @@ function WithdrawForm({ suppliedUsd, cbbtcPriceUsd, styles, palette, t, onFocusI
         setNotice(null);
         setResult(null);
         setProgress({ step: "preparing", state: "running" });
+        const token = sign.begin();
         withdraw.mutate(
             {
                 liquidityBase: amountBase ?? 0n,
                 withdrawAll,
                 allowOracleStale,
-                onStep: (step) => setProgress({ step, state: "running" }),
+                onStep: (step) => { if (sign.isCurrent(token)) setProgress({ step, state: "running" }); },
             },
             {
                 onSuccess: (res) =>
                 {
+                    if (!sign.isCurrent(token)) return;
                     setProgress(null);
                     setResult({ amountBase: submitted, signature: res.signature });
                     setAmount("");
@@ -566,6 +584,7 @@ function WithdrawForm({ suppliedUsd, cbbtcPriceUsd, styles, palette, t, onFocusI
                 },
                 onError: (err) =>
                 {
+                    if (!sign.isCurrent(token)) return;
                     setProgress((prev) => (prev ? { ...prev, state: "error" } : null));
                     const cancelled = isUserRejection(err.message);
                     const authFailed = isAuthFailure(err.message);
@@ -586,6 +605,14 @@ function WithdrawForm({ suppliedUsd, cbbtcPriceUsd, styles, palette, t, onFocusI
                 },
             },
         );
+    };
+
+    const onCancelSign = (): void =>
+    {
+        sign.cancel();
+        setProgress(null);
+        setNotice(t("common.signCancelled"));
+        setLastError(null);
     };
 
     if (result)
@@ -651,7 +678,7 @@ function WithdrawForm({ suppliedUsd, cbbtcPriceUsd, styles, palette, t, onFocusI
                     : <Text style={styles.buttonText}>{t("earn.withdraw.button")}</Text>}
             </Pressable>
 
-            {progress ? <TxProgress current={progress.step} state={progress.state} /> : null}
+            <CancelableProgress progress={progress} onCancel={onCancelSign} cancelLabel={t("common.cancel_pending")} />
 
             {notice
                 ? (
@@ -687,6 +714,7 @@ function BorrowForm({ maxBorrowableUsd, styles, palette, t, onFocusInput }: Borr
     const { isOnline } = useNetworkStatus();
     const { showToast } = useToast();
     const borrow = useBorrowLending();
+    const sign = useCancellableSign();
     const [amount, setAmount] = useState("");
     const [progress, setProgress] = useState<{ step: TxStep; state: ProgressState } | null>(null);
     const [result, setResult] = useState<SupplyResultView | null>(null);
@@ -719,28 +747,37 @@ function BorrowForm({ maxBorrowableUsd, styles, palette, t, onFocusInput }: Borr
         setNotice(null);
         setResult(null);
         setProgress({ step: "preparing", state: "running" });
+        const token = sign.begin();
         borrow.mutate(
             {
                 usdcAmountBase: amountBase,
                 allowOracleStale,
-                onStep: (step) => setProgress({ step, state: "running" }),
+                onStep: (step) => { if (sign.isCurrent(token)) setProgress({ step, state: "running" }); },
             },
             {
                 onSuccess: (res) =>
                 {
+                    if (!sign.isCurrent(token)) return;
                     setProgress(null);
                     setResult({ amountBase: submitted, signature: res.signature });
                     setAmount("");
                 },
                 onError: (err) =>
                 {
+                    if (!sign.isCurrent(token)) return;
                     setProgress((prev) => (prev ? { ...prev, state: "error" } : null));
                     const cancelled = isUserRejection(err.message);
+                    const authFailed = isAuthFailure(err.message);
+                    if (authFailed)
+                    {
+                        // borrow 도 다른 폼처럼 인증 실패 시 stale 마킹 (재연결 배너)
+                        void markAuthFailureNow();
+                    }
                     // 오라클 지연·SOL 부족은 안내 박스로, 취소는 raw 숨김. 그 외만 raw 표시.
                     const noticeMsg = isOracleStaleError(err.message)
                         ? t("earn.oracleStaleHint")
                         : isInsufficientFunds(err.message) ? t("earn.insufficientHint")
-                            : isAuthFailure(err.message) ? t("earn.authFailedHint")
+                            : authFailed ? t("earn.authFailedHint")
                                 : isWalletTimeout(err.message) ? t("earn.walletTimeoutHint")
                                     : isNoBorrowsToRepay(err.message) ? t("earn.noBorrowsHint") : null;
                     setNotice(noticeMsg);
@@ -773,6 +810,14 @@ function BorrowForm({ maxBorrowableUsd, styles, palette, t, onFocusInput }: Borr
         void saveBorrowConsent();
         setConsentGiven(true);
         runBorrow();
+    };
+
+    const onCancelSign = (): void =>
+    {
+        sign.cancel();
+        setProgress(null);
+        setNotice(t("common.signCancelled"));
+        setLastError(null);
     };
 
     if (result)
@@ -836,7 +881,7 @@ function BorrowForm({ maxBorrowableUsd, styles, palette, t, onFocusInput }: Borr
                     : <Text style={styles.buttonText}>{t("earn.borrow.button")}</Text>}
             </Pressable>
 
-            {progress ? <TxProgress current={progress.step} state={progress.state} /> : null}
+            <CancelableProgress progress={progress} onCancel={onCancelSign} cancelLabel={t("common.cancel_pending")} />
 
             {notice
                 ? (
@@ -874,6 +919,7 @@ function RepayForm({ owner, borrowedUsd, styles, palette, t, onFocusInput }: Rep
     const { isOnline } = useNetworkStatus();
     const { showToast } = useToast();
     const repay = useRepayLending();
+    const sign = useCancellableSign();
     const walletUsdc = useTokenBalance(USDC, owner);
     const [amount, setAmount] = useState("");
     const [repayAll, setRepayAll] = useState(false);
@@ -907,16 +953,18 @@ function RepayForm({ owner, borrowedUsd, styles, palette, t, onFocusInput }: Rep
         setNotice(null);
         setResult(null);
         setProgress({ step: "preparing", state: "running" });
+        const token = sign.begin();
         repay.mutate(
             {
                 usdcAmountBase: amountBase ?? 0n,
                 repayAll,
                 allowOracleStale,
-                onStep: (step) => setProgress({ step, state: "running" }),
+                onStep: (step) => { if (sign.isCurrent(token)) setProgress({ step, state: "running" }); },
             },
             {
                 onSuccess: (res) =>
                 {
+                    if (!sign.isCurrent(token)) return;
                     setProgress(null);
                     setResult({ amountBase: submitted, signature: res.signature });
                     setAmount("");
@@ -924,6 +972,7 @@ function RepayForm({ owner, borrowedUsd, styles, palette, t, onFocusInput }: Rep
                 },
                 onError: (err) =>
                 {
+                    if (!sign.isCurrent(token)) return;
                     setProgress((prev) => (prev ? { ...prev, state: "error" } : null));
                     // 오라클 지연·SOL 부족 → 안내 박스(notice). 취소 → raw 숨김. dust(6092) → 안내+raw. 그 외 raw.
                     const cancelled = isUserRejection(err.message);
@@ -946,6 +995,14 @@ function RepayForm({ owner, borrowedUsd, styles, palette, t, onFocusInput }: Rep
                 },
             },
         );
+    };
+
+    const onCancelSign = (): void =>
+    {
+        sign.cancel();
+        setProgress(null);
+        setNotice(t("common.signCancelled"));
+        setLastError(null);
     };
 
     if (result)
@@ -1009,7 +1066,7 @@ function RepayForm({ owner, borrowedUsd, styles, palette, t, onFocusInput }: Rep
                     : <Text style={styles.buttonText}>{t("earn.repay.button")}</Text>}
             </Pressable>
 
-            {progress ? <TxProgress current={progress.step} state={progress.state} /> : null}
+            <CancelableProgress progress={progress} onCancel={onCancelSign} cancelLabel={t("common.cancel_pending")} />
 
             {lastError
                 ? (

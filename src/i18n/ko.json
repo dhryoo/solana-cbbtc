@@ -6,7 +6,9 @@
         "retry": "다시 시도",
         "copyAddress": "주소 복사",
         "copyAddressHint": "길게 눌러 클립보드에 복사",
-        "copied": "복사됨!"
+        "copied": "복사됨!",
+        "cancel_pending": "취소",
+        "signCancelled": "진행을 취소했습니다. 서명을 완료하지 않았다면 거래는 처리되지 않습니다."
     },
     "offline": {
         "banner": "인터넷에 연결되어 있지 않습니다",
