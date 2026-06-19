@@ -329,6 +329,34 @@ export function classifyTransaction(
 
 // --- fetch ---
 
+// 확정된 트랜잭션의 parsed 결과는 불변(immutable)이므로 signature 로 캐시한다. staleTime(30s)
+// 마다 동일한 25건을 매번 getParsedTransaction 으로 다시 부르던 버스트를, '새 signature' 에만
+// RPC 를 쓰도록 줄인다(무료 티어 RPS 보호). null(미해독/rate-limit)은 캐시하지 않아 다음에 재시도.
+type ParsedTx = NonNullable<Awaited<ReturnType<Connection["getParsedTransaction"]>>>;
+
+const PARSED_TX_CACHE_MAX = 300;
+const parsedTxCache = new Map<string, ParsedTx>();
+
+function cacheParsedTx(signature: string, tx: ParsedTx): void
+{
+    parsedTxCache.set(signature, tx);
+    // 단순 FIFO 상한 — Map 은 삽입 순서를 보존하므로 가장 오래된 키를 제거.
+    if (parsedTxCache.size > PARSED_TX_CACHE_MAX)
+    {
+        const oldest = parsedTxCache.keys().next().value;
+        if (oldest !== undefined)
+        {
+            parsedTxCache.delete(oldest);
+        }
+    }
+}
+
+/** 테스트용 — 모듈 전역 parsed-tx 캐시를 비운다. */
+export function clearHistoryCache(): void
+{
+    parsedTxCache.clear();
+}
+
 /**
  * 사용자 지갑 주소(owner) 기준 최근 거래 N건을 가져와 history item 으로 변환.
  *
@@ -372,16 +400,33 @@ export async function fetchTransactionHistory(
     const interChunkDelayMs = options.interChunkDelayMs ?? 250;
     const sigStrings = sigs.map((s) => s.signature);
     const txs: (Awaited<ReturnType<Connection["getParsedTransaction"]>> | null)[] = new Array(sigStrings.length).fill(null);
-    for (let start = 0; start < sigStrings.length; start += chunkSize)
+
+    // 캐시 히트는 즉시 채우고, 미스 index 만 RPC 로 가져온다 (불변 tx → 재요청 불필요).
+    const missIdx: number[] = [];
+    for (let i = 0; i < sigStrings.length; i += 1)
+    {
+        const cached = parsedTxCache.get(sigStrings[i]!);
+        if (cached)
+        {
+            txs[i] = cached;
+        }
+        else
+        {
+            missIdx.push(i);
+        }
+    }
+
+    for (let start = 0; start < missIdx.length; start += chunkSize)
     {
         if (start > 0 && interChunkDelayMs > 0)
         {
             // 청크 사이 짧은 휴식 — Helius 무료 RPS 한도(약 10 req/s) 회피.
             await new Promise<void>((resolve) => setTimeout(resolve, interChunkDelayMs));
         }
-        const chunk = sigStrings.slice(start, start + chunkSize);
-        const fetched = await Promise.all(chunk.map(async (sig) =>
+        const chunkIdx = missIdx.slice(start, start + chunkSize);
+        const fetched = await Promise.all(chunkIdx.map(async (i) =>
         {
+            const sig = sigStrings[i]!;
             try
             {
                 return await connection.getParsedTransaction(sig, {
@@ -400,9 +445,16 @@ export async function fetchTransactionHistory(
                 return null;
             }
         }));
-        for (let j = 0; j < fetched.length; j += 1)
+        for (let j = 0; j < chunkIdx.length; j += 1)
         {
-            txs[start + j] = fetched[j] ?? null;
+            const i = chunkIdx[j]!;
+            const tx = fetched[j] ?? null;
+            txs[i] = tx;
+            if (tx)
+            {
+                // 성공한 결과만 캐시 — null 은 다음 refetch 에서 재시도.
+                cacheParsedTx(sigStrings[i]!, tx);
+            }
         }
     }
 

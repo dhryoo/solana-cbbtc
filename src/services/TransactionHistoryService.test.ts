@@ -7,6 +7,7 @@ import { CBBTC, USDC } from "@/constants/tokens";
 import {
     ATOMIQ_PROGRAM_IDS,
     classifyTransaction,
+    clearHistoryCache,
     fetchTransactionHistory,
     isRateLimitError,
     JUPITER_V6_PROGRAM_ID,
@@ -386,6 +387,12 @@ describe("isRateLimitError", () =>
 
 describe("fetchTransactionHistory", () =>
 {
+    beforeEach(() =>
+    {
+        // 모듈 전역 parsed-tx 캐시를 테스트 간 격리.
+        clearHistoryCache();
+    });
+
     function mockConnection(
         sigs: { signature: string; slot: number; blockTime: number | null; err: unknown }[],
         txs: (ParsedTxLike | null)[],
@@ -487,5 +494,57 @@ describe("fetchTransactionHistory", () =>
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const result = await fetchTransactionHistory(conn as any, new PublicKey(OWNER), { limit: 25 });
         expect(result[0]?.success).toBe(false);
+    });
+
+    it("caches parsed txs by signature — a refetch of the same sigs hits 0 RPC", async () =>
+    {
+        const tx = makeTx({
+            outerPrograms: [JUPITER_V6_PROGRAM_ID],
+            pre: [tokenBalance(3, CBBTC.mint, OWNER, "0")],
+            post: [tokenBalance(3, CBBTC.mint, OWNER, "50000")],
+        });
+        const conn = mockConnection(
+            [{ signature: "cached-sig", slot: 1, blockTime: 1, err: null }],
+            [tx],
+        );
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await fetchTransactionHistory(conn as any, new PublicKey(OWNER), { limit: 25 });
+        expect(conn.getParsedTransaction).toHaveBeenCalledTimes(1);
+
+        // 동일 signature 재조회 (staleTime 만료 시뮬) → 캐시 히트, getParsedTransaction 추가 호출 없음
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const again = await fetchTransactionHistory(conn as any, new PublicKey(OWNER), { limit: 25 });
+        expect(conn.getParsedTransaction).toHaveBeenCalledTimes(1);
+        expect(again[0]?.signature).toBe("cached-sig");
+        expect(again[0]?.kind).toBe<TxHistoryKind>("swap");
+    });
+
+    it("only fetches the new signature when one tx is added", async () =>
+    {
+        const swap = makeTx({
+            outerPrograms: [JUPITER_V6_PROGRAM_ID],
+            pre: [tokenBalance(3, CBBTC.mint, OWNER, "0")],
+            post: [tokenBalance(3, CBBTC.mint, OWNER, "50000")],
+        });
+
+        const conn1 = mockConnection([{ signature: "old", slot: 1, blockTime: 1, err: null }], [swap]);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await fetchTransactionHistory(conn1 as any, new PublicKey(OWNER), { limit: 25 });
+        expect(conn1.getParsedTransaction).toHaveBeenCalledTimes(1);
+
+        // 새 tx 가 맨 앞에 추가된 두 번째 호출 — "old" 는 캐시 히트, "new" 만 RPC
+        const conn2 = mockConnection(
+            [
+                { signature: "new", slot: 2, blockTime: 2, err: null },
+                { signature: "old", slot: 1, blockTime: 1, err: null },
+            ],
+            [swap, swap],
+        );
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const result = await fetchTransactionHistory(conn2 as any, new PublicKey(OWNER), { limit: 25 });
+        expect(conn2.getParsedTransaction).toHaveBeenCalledTimes(1);
+        expect(conn2.getParsedTransaction).toHaveBeenCalledWith("new", expect.anything());
+        expect(result.map((r) => r.signature)).toEqual(["new", "old"]);
     });
 });
