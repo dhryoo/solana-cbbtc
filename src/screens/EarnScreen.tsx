@@ -371,10 +371,12 @@ function SupplyForm({ owner, styles, palette, t, cbbtcPriceUsd, currentSuppliedU
         setProgress(null);
     };
 
-    // 멈춘 서명을 사용자가 폐기 (뒤늦은 settle 은 token 가드로 무시됨)
+    // 멈춘 서명을 사용자가 폐기 (뒤늦은 settle 은 token 가드로 무시됨).
+    // reset() 없으면 mutation 이 영원히 pending → 제출 버튼이 계속 disabled 로 잠긴다.
     const onCancelSign = (): void =>
     {
         sign.cancel();
+        supply.reset();
         setProgress(null);
         setNotice(t("common.signCancelled"));
         setLastError(null);
@@ -610,6 +612,7 @@ function WithdrawForm({ suppliedUsd, cbbtcPriceUsd, styles, palette, t, onFocusI
     const onCancelSign = (): void =>
     {
         sign.cancel();
+        withdraw.reset();
         setProgress(null);
         setNotice(t("common.signCancelled"));
         setLastError(null);
@@ -815,6 +818,7 @@ function BorrowForm({ maxBorrowableUsd, styles, palette, t, onFocusInput }: Borr
     const onCancelSign = (): void =>
     {
         sign.cancel();
+        borrow.reset();
         setProgress(null);
         setNotice(t("common.signCancelled"));
         setLastError(null);
@@ -1000,6 +1004,7 @@ function RepayForm({ owner, borrowedUsd, styles, palette, t, onFocusInput }: Rep
     const onCancelSign = (): void =>
     {
         sign.cancel();
+        repay.reset();
         setProgress(null);
         setNotice(t("common.signCancelled"));
         setLastError(null);

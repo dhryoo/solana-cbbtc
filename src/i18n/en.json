@@ -344,7 +344,9 @@
         "receivedBody": "You received {{amount}} {{token}}.",
         "again": "Receive again",
         "expired": "The invoice expired. Please create a new one.",
-        "claimCancelled": "Settlement signature cancelled. If the payment already arrived, please try again."
+        "claimCancelled": "Settlement signature cancelled. If the payment already arrived, please try again.",
+        "cancelled": "Receive cancelled. If the sender already paid, it will be refunded automatically after a timeout.",
+        "cancelWaiting": "Cancel receive"
     },
     "walletStale": {
         "bannerTitle": "Your wallet session may have expired",

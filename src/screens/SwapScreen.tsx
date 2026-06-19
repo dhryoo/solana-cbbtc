@@ -16,6 +16,7 @@ import { SwapGuideScreen } from "@/screens/SwapGuideScreen";
 import { BRAND_PURPLE, type ThemePalette } from "@/constants/theme";
 import { useLabs } from "@/providers/LabsProvider";
 import { CBBTC, MIN_SOL_GAS_RESERVE_SOL, SOL, type TokenInfo } from "@/constants/tokens";
+import { useCancellableSign } from "@/hooks/useCancellableSign";
 import { useSwap } from "@/hooks/useSwap";
 import { useSwapQuote } from "@/hooks/useSwapQuote";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
@@ -59,6 +60,7 @@ export function SwapScreen(): React.JSX.Element
         slippageBps,
     });
     const swap = useSwap();
+    const sign = useCancellableSign();
     const { isOnline } = useNetworkStatus();
     // 가스비용 SOL 잔액 검증. 가스 reserve는 ATA 생성/priority fee를 합산한 보수적 floor.
     const solBalance = useTokenBalance(SOL, account?.publicKey ?? null);
@@ -146,17 +148,20 @@ export function SwapScreen(): React.JSX.Element
         if (inFlightRef.current) return;
         if (!quoteQuery.data) return;
         inFlightRef.current = true;
+        const token = sign.begin();
         setModalStatus({ kind: "pending" });
         swap.mutate(
             { quote: quoteQuery.data, inputToken, outputToken },
             {
                 onSuccess: (data) =>
                 {
+                    if (!sign.isCurrent(token)) return;
                     inFlightRef.current = false;
                     setModalStatus({ kind: "success", signature: data.signature });
                 },
                 onError: (err) =>
                 {
+                    if (!sign.isCurrent(token)) return;
                     inFlightRef.current = false;
                     const friendly = toFriendlySwapError(err);
                     setModalStatus({
@@ -166,7 +171,19 @@ export function SwapScreen(): React.JSX.Element
                 },
             },
         );
-    }, [quoteQuery.data, swap, t, inputToken, outputToken]);
+    }, [quoteQuery.data, swap, sign, t, inputToken, outputToken]);
+
+    // 멈춘 서명 폐기 탈출구. closeModal 은 swap.isPending 동안 닫기를 막으므로(중복 제출 방지)
+    // 여기서 isPending 가드를 우회해 강제로 닫는다. swap.reset() 으로 영구 pending 을 풀어
+    // 제출 버튼 잠김을 해제하고, token 가드가 뒤늦은 settle 을 무시한다.
+    const cancelSwap = useCallback((): void =>
+    {
+        sign.cancel();
+        inFlightRef.current = false;
+        swap.reset();
+        setModalOpen(false);
+        setModalStatus({ kind: "idle" });
+    }, [sign, swap]);
 
     useEffect(() =>
     {
@@ -323,6 +340,7 @@ export function SwapScreen(): React.JSX.Element
                 status={modalStatus}
                 onConfirm={confirmSwap}
                 onClose={closeModal}
+                onCancelPending={cancelSwap}
             />
         </ScrollView>
         <SwapGuideScreen visible={guideOpen} onClose={() => setGuideOpen(false)} />

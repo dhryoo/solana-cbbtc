@@ -8,6 +8,7 @@ import QRCode from "react-native-qrcode-svg";
 
 import { BRAND_PURPLE, type ThemePalette } from "@/constants/theme";
 import { SOL, USDC, type TokenInfo } from "@/constants/tokens";
+import { useCancellableSign } from "@/hooks/useCancellableSign";
 import { useCreateReceive, useWaitAndClaim } from "@/hooks/useLightning";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
 import { useTokenBalance } from "@/hooks/useTokenBalance";
@@ -45,6 +46,7 @@ export function LightningReceivePanel(): React.JSX.Element
 
     const createMutation = useCreateReceive();
     const claimMutation = useWaitAndClaim();
+    const sign = useCancellableSign();
     const solBalance = useTokenBalance(SOL, account?.publicKey ?? null);
 
     // SOL 잔액이 확인됐고 claim 여유분 미만이면 사전 경고 (잔액 로딩 전엔 경고 안 함)
@@ -71,27 +73,31 @@ export function LightningReceivePanel(): React.JSX.Element
             return;
         }
         reset();
+        const token = sign.begin();
         createMutation.mutate(
             { dstToken, amountSats },
             {
                 onSuccess: (r) =>
                 {
+                    if (!sign.isCurrent(token)) return;
                     setReceive(r);
                     // 인보이스 표시와 동시에 결제 대기·정산 시작
                     claimMutation.mutate(
                         {
                             receive: r,
-                            onPhase: (p) => setPhase(p),
+                            onPhase: (p) => { if (sign.isCurrent(token)) setPhase(p); },
                         },
                         {
                             onSuccess: (res) =>
                             {
+                                if (!sign.isCurrent(token)) return;
                                 setPhase(null);
                                 setOutcome(res);
                                 setReceive(null);
                             },
                             onError: (err) =>
                             {
+                                if (!sign.isCurrent(token)) return;
                                 setPhase(null);
                                 const cancelled = isUserRejection(err.message);
                                 const expired = /receive_invoice_expired/.test(err.message);
@@ -102,9 +108,26 @@ export function LightningReceivePanel(): React.JSX.Element
                         },
                     );
                 },
-                onError: (err) => setNotice(err.message),
+                onError: (err) =>
+                {
+                    if (!sign.isCurrent(token)) return;
+                    setNotice(err.message);
+                },
             },
         );
+    };
+
+    // 멈춘 받기/정산 폐기 탈출구. Seeker Seed Vault 는 거부 버튼이 없어 정산 서명 중 X 로 닫으면
+    // 서명이 멈춰 "정산 중" 스피너에 갇힌다. reset() 으로 영구 pending 을 풀고, token 가드가
+    // 뒤늦은 settle 을 무시한다. 결제가 이미 도착한 상태였다면 상대는 타임아웃 후 자동 환불됨.
+    const cancelReceive = (): void =>
+    {
+        sign.cancel();
+        createMutation.reset();
+        claimMutation.reset();
+        setReceive(null);
+        setPhase(null);
+        setNotice(t("receive.cancelled"));
     };
 
     const onCopy = async (): Promise<void> =>
@@ -204,6 +227,15 @@ export function LightningReceivePanel(): React.JSX.Element
                     <Text style={styles.expectHint}>
                         {t("receive.expectHint", { amount: formatRawAmount(receive.expectedOutBase, receive.dstToken.decimals), token: receive.dstToken.symbol })}
                     </Text>
+                    <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel={t("receive.cancelWaiting")}
+                        onPress={cancelReceive}
+                        style={({ pressed }) => [styles.cancelWaitBtn, pressed && { opacity: 0.6 }]}
+                    >
+                        <Ionicons name="close-circle-outline" size={16} color={palette.text} />
+                        <Text style={styles.secondaryText}>{t("receive.cancelWaiting")}</Text>
+                    </Pressable>
                 </View>
             )}
 
@@ -278,6 +310,7 @@ const makeStyles = (t: ThemePalette) => ({
     invoiceText: { fontSize: 11, color: t.textMuted, textAlign: "center" as const },
     actionRow: { flexDirection: "row" as const, gap: 8, justifyContent: "center" as const },
     secondaryBtn: { flexDirection: "row" as const, alignItems: "center" as const, justifyContent: "center" as const, gap: 6, paddingVertical: 10, paddingHorizontal: 18, borderRadius: 12, borderWidth: 1, borderColor: t.border, backgroundColor: t.surface },
+    cancelWaitBtn: { alignSelf: "center" as const, flexDirection: "row" as const, alignItems: "center" as const, justifyContent: "center" as const, gap: 6, marginTop: 4, paddingVertical: 10, paddingHorizontal: 22, borderRadius: 999, borderWidth: 1, borderColor: t.borderStrong, backgroundColor: t.surfaceMuted, minWidth: 140 },
     secondaryText: { fontSize: 14, fontWeight: "600" as const, color: t.text },
     statusRow: { flexDirection: "row" as const, alignItems: "center" as const, justifyContent: "center" as const, gap: 8, marginTop: 4 },
     statusText: { fontSize: 14, fontWeight: "600" as const, color: t.text },

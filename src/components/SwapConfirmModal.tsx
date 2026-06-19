@@ -35,6 +35,8 @@ interface SwapConfirmModalProps
     status: Status;
     onConfirm: () => void;
     onClose: () => void;
+    /** 진행 중 멈춘 서명을 폐기 (Seeker Seed Vault 는 거부 버튼이 없어 X 로 닫으면 서명이 멈춤) */
+    onCancelPending: () => void;
 }
 
 function bpsToPercent(bps: number): string
@@ -55,16 +57,21 @@ export function SwapConfirmModal({
     status,
     onConfirm,
     onClose,
+    onCancelPending,
 }: SwapConfirmModalProps): React.JSX.Element
 {
     const styles = useThemedStyles(makeStyles);
+
+    // 서명 진행 중에는 backdrop/뒤로가기 닫기가 idle 로 되돌리지 못하므로(closeModal 이
+    // isPending 가드로 막힘) onRequestClose 를 명시적 취소로 연결해 탈출구를 보장한다.
+    const onRequestClose = status.kind === "pending" ? onCancelPending : onClose;
 
     return (
         <Modal
             visible={visible}
             transparent
             animationType="fade"
-            onRequestClose={onClose}
+            onRequestClose={onRequestClose}
         >
             <View style={styles.backdrop}>
                 <View style={styles.sheet}>
@@ -79,7 +86,7 @@ export function SwapConfirmModal({
                     )}
 
                     {status.kind === "pending" && (
-                        <PendingStage />
+                        <PendingStage onCancel={onCancelPending} />
                     )}
 
                     {status.kind === "success" && quote && (
@@ -177,7 +184,7 @@ function ConfirmStage({
     );
 }
 
-function PendingStage(): React.JSX.Element
+function PendingStage({ onCancel }: { onCancel: () => void }): React.JSX.Element
 {
     const { t } = useTranslation();
     const styles = useThemedStyles(makeStyles);
@@ -186,6 +193,15 @@ function PendingStage(): React.JSX.Element
             <ActivityIndicator size="large" />
             <Text style={styles.pendingText}>{t("swap.pendingText")}</Text>
             <Text style={styles.pendingHint}>{t("swap.pendingHint")}</Text>
+            <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t("common.cancel_pending")}
+                onPress={onCancel}
+                style={({ pressed }) => [styles.cancelPending, pressed && styles.pressed]}
+            >
+                <Ionicons name="close-circle-outline" size={16} style={styles.iconSecondary} />
+                <Text style={styles.btnSecondaryText}>{t("common.cancel_pending")}</Text>
+            </Pressable>
         </View>
     );
 }
@@ -444,6 +460,20 @@ const makeStyles = (t: ThemePalette) => ({
     pendingHint: {
         fontSize: 12,
         color: t.textMuted,
+    },
+    cancelPending: {
+        marginTop: 8,
+        flexDirection: "row" as const,
+        alignItems: "center" as const,
+        justifyContent: "center" as const,
+        gap: 6,
+        paddingVertical: 11,
+        paddingHorizontal: 22,
+        borderRadius: 999,
+        borderWidth: 1,
+        borderColor: t.borderStrong,
+        backgroundColor: t.surfaceMuted,
+        minWidth: 140,
     },
     successLine: {
         fontSize: 14,
