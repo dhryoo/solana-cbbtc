@@ -177,6 +177,36 @@ function loadRuntime(): Promise<AtomiqRuntime>
     return runtimePromise;
 }
 
+/**
+ * 환불 가능한 swap 들을 순차 환불. **한 건 실패(예: MWA 서명 거부)가 나머지를 막지 않도록**
+ * 각 건을 try/catch 로 감싸고 성공 개수만 반환한다. 남은 건은 다음에 다시 환불 가능
+ * (getRefundableCount 로 재노출). 순수 함수 — 테스트 대상.
+ */
+export async function refundEachSwap(
+    swaps: readonly { refund(signer: unknown): Promise<string> }[],
+    atomiqSigner: unknown,
+): Promise<number>
+{
+    let done = 0;
+    for (const swap of swaps)
+    {
+        try
+        {
+            await swap.refund(atomiqSigner);
+            done += 1;
+        }
+        catch (e)
+        {
+            if (__DEV__)
+            {
+                // eslint-disable-next-line no-console
+                console.warn("[lightning] refund of one swap failed, continuing", e);
+            }
+        }
+    }
+    return done;
+}
+
 function toQuote(
     swap: AtomiqSwap,
     srcToken: TokenInfo,
@@ -336,13 +366,7 @@ export class AtomiqProvider implements LightningSwapProvider
         const rt = await loadRuntime();
         const refundable = await rt.swapper.getRefundableSwaps("SOLANA", signer.publicKey.toBase58());
         const atomiqSigner = rt.makeSigner(signer);
-        let done = 0;
-        for (const swap of refundable)
-        {
-            await swap.refund(atomiqSigner);
-            done += 1;
-        }
-        return done;
+        return refundEachSwap(refundable, atomiqSigner);
     }
 
     async createReceive(
