@@ -8,7 +8,8 @@
         "copyAddressHint": "Long-press to copy to clipboard",
         "copied": "Copied!",
         "cancel_pending": "Cancel",
-        "signCancelled": "Cancelled. If you didn't complete the signature, the transaction was not submitted."
+        "signCancelled": "Cancelled. If you didn't complete the signature, the transaction was not submitted.",
+        "max": "MAX"
     },
     "offline": {
         "banner": "No internet connection",

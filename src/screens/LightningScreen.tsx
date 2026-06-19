@@ -849,7 +849,7 @@ const makeStyles = (t: ThemePalette) => StyleSheet.create({
     scanButton: {
         flexDirection: "row" as const, alignItems: "center" as const, gap: 4,
         paddingVertical: 4, paddingHorizontal: 8,
-        borderRadius: 999, borderWidth: 1, borderColor: "#9945FF55", backgroundColor: t.surfaceMuted,
+        borderRadius: 999, borderWidth: 1, borderColor: BRAND_PURPLE + "55", backgroundColor: t.surfaceMuted,
     },
     scanButtonText: { fontSize: 12, fontWeight: "700" as const, color: t.text },
     modeToggle: {

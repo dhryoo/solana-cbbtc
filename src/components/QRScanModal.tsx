@@ -1,11 +1,11 @@
 /* eslint-disable react-native/no-unused-styles */
 import { Ionicons } from "@expo/vector-icons";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import React, { useCallback, useRef } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Linking, Modal, Platform, Pressable, StatusBar, StyleSheet, Text, View } from "react-native";
 
-import type { ThemePalette } from "@/constants/theme";
+import { BRAND_PURPLE, type ThemePalette } from "@/constants/theme";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
 import { useTheme } from "@/providers/ThemeProvider";
 
@@ -38,11 +38,15 @@ export function QRScanModal({ visible, onClose, onScanned }: QRScanModalProps): 
         onScanned(result.data.trim());
     }, [onScanned]);
 
-    // 모달이 닫혔다 다시 열릴 때 스캔 가드 리셋
-    if (!visible && handledRef.current)
+    // 모달이 닫히면 스캔 가드 리셋 — 다음에 열 때 다시 스캔 가능. render 중 ref 변이는
+    // React 안티패턴이라 effect 로 옮긴다(닫힘 시점에 1회 실행).
+    useEffect(() =>
     {
-        handledRef.current = false;
-    }
+        if (!visible)
+        {
+            handledRef.current = false;
+        }
+    }, [visible]);
 
     const granted = permission?.granted ?? false;
 
@@ -123,7 +127,7 @@ const makeStyles = (t: ThemePalette) => StyleSheet.create({
     cameraWrap: { flex: 1, alignItems: "center", justifyContent: "center" },
     reticle: {
         width: 240, height: 240,
-        borderWidth: 3, borderColor: "#9945FF", borderRadius: 20,
+        borderWidth: 3, borderColor: BRAND_PURPLE, borderRadius: 20,
         backgroundColor: "transparent",
     },
     hint: {

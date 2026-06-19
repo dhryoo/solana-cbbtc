@@ -196,7 +196,7 @@ export function SwapScreen(): React.JSX.Element
 
     return (
         <>
-        <ScrollView contentContainerStyle={styles.scroll}>
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
             <View style={styles.header}>
                 <Text style={styles.title} maxFontSizeMultiplier={1.4}>{t("swap.title")}</Text>
                 <Text style={styles.subtitle}>{t("swap.subtitle")}</Text>
@@ -236,12 +236,12 @@ export function SwapScreen(): React.JSX.Element
                             </Text>
                             <Pressable
                                 accessibilityRole="button"
-                                accessibilityLabel="MAX"
+                                accessibilityLabel={t("common.max")}
                                 onPress={() => setAmount(baseToDecimalString(availableBase, inputToken.decimals))}
                                 disabled={availableBase <= 0n}
                                 style={({ pressed }) => [styles.maxBtn, pressed && { opacity: 0.6 }]}
                             >
-                                <Text style={styles.maxBtnText}>MAX</Text>
+                                <Text style={styles.maxBtnText}>{t("common.max")}</Text>
                             </Pressable>
                         </View>
                     )
@@ -380,7 +380,7 @@ const makeStyles = (t: ThemePalette) => ({
         paddingHorizontal: 12,
         borderRadius: 999,
         borderWidth: 1,
-        borderColor: "#9945FF55",
+        borderColor: BRAND_PURPLE + "55",
         backgroundColor: t.surfaceMuted,
     },
     lightningChipText: {

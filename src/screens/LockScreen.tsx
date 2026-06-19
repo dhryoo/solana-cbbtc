@@ -3,6 +3,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { BRAND_PURPLE } from "@/constants/theme";
 import { useAppLock } from "@/providers/AppLockProvider";
 
 // 풀스크린 잠금 오버레이.
@@ -60,7 +61,7 @@ export function LockScreen(): React.JSX.Element | null
 const styles = StyleSheet.create({
     overlay: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: "#9945FF",
+        backgroundColor: BRAND_PURPLE,
         alignItems: "center",
         justifyContent: "center",
         gap: 18,

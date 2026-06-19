@@ -94,7 +94,7 @@ function Bullet({ styles, palette, children }: { styles: ReturnType<typeof makeS
 const makeStyles = (t: ThemePalette) => StyleSheet.create({
     backdrop: {
         flex: 1,
-        backgroundColor: "rgba(0,0,0,0.55)",
+        backgroundColor: t.overlay,
         justifyContent: "center",
         padding: 24,
     },

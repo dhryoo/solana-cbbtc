@@ -282,7 +282,7 @@ function AmountPad({ value, onChange, styles }: { value: string; onChange: (v: s
     return (
         <View style={styles.presetRow}>
             {presets.map((p) => (
-                <Pressable key={p} accessibilityRole="button" onPress={() => onChange(p)} style={({ pressed }) => [styles.presetChip, value === p && styles.presetChipActive, pressed && { opacity: 0.7 }]}>
+                <Pressable key={p} accessibilityRole="button" accessibilityState={{ selected: value === p }} onPress={() => onChange(p)} style={({ pressed }) => [styles.presetChip, value === p && styles.presetChipActive, pressed && { opacity: 0.7 }]}>
                     <Text style={[styles.presetText, value === p && styles.presetTextActive]}>{p}</Text>
                 </Pressable>
             ))}

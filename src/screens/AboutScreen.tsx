@@ -6,7 +6,7 @@ import { Modal, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, Vi
 import Markdown from "react-native-markdown-display";
 
 import { ABOUT_EN, ABOUT_KO } from "@/content/about";
-import type { ThemePalette } from "@/constants/theme";
+import { BRAND_PURPLE, type ThemePalette } from "@/constants/theme";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
 import { useLanguage } from "@/providers/I18nProvider";
 import { useTheme } from "@/providers/ThemeProvider";
@@ -179,7 +179,7 @@ function buildMarkdownStyles(t: ThemePalette): Record<string, object>
             marginVertical: 8,
         },
         link: {
-            color: "#9945FF",
+            color: BRAND_PURPLE,
         },
         hr: {
             backgroundColor: t.border,

@@ -2,7 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
-import type { ThemePalette } from "@/constants/theme";
+import { BRAND_PURPLE, type ThemePalette } from "@/constants/theme";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
 import { useSeekerIdentity } from "@/hooks/useSeekerIdentity";
 
@@ -50,7 +50,7 @@ const makeStyles = (t: ThemePalette) => ({
         alignSelf: "center" as const,
     },
     verified: {
-        backgroundColor: "#9945FF", // 브랜드 보라 — 강한 강조
+        backgroundColor: BRAND_PURPLE, // 브랜드 보라 — 강한 강조
     },
     verifiedText: {
         color: "#ffffff",

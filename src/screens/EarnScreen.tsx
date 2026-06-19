@@ -409,12 +409,12 @@ function SupplyForm({ owner, styles, palette, t, cbbtcPriceUsd, currentSuppliedU
                 <Text style={styles.cardTitle}>{t("earn.supply.heading")}</Text>
                 <Pressable
                     accessibilityRole="button"
-                    accessibilityLabel="MAX"
+                    accessibilityLabel={t("common.max")}
                     onPress={() => setAmount(baseToDecimalString(availableBase, CBBTC.decimals))}
                     disabled={availableBase <= 0n || supply.isPending}
                     style={({ pressed }) => [styles.maxBtn, pressed && { opacity: 0.6 }]}
                 >
-                    <Text style={styles.maxBtnText}>MAX</Text>
+                    <Text style={styles.maxBtnText}>{t("common.max")}</Text>
                 </Pressable>
             </View>
             <Text style={styles.balanceLine}>
@@ -643,12 +643,12 @@ function WithdrawForm({ suppliedUsd, cbbtcPriceUsd, styles, palette, t, onFocusI
                 <Text style={styles.cardTitle}>{t("earn.withdraw.heading")}</Text>
                 <Pressable
                     accessibilityRole="button"
-                    accessibilityLabel="MAX"
+                    accessibilityLabel={t("common.max")}
                     onPress={onMax}
                     disabled={suppliedBase <= 0n || withdraw.isPending}
                     style={({ pressed }) => [styles.maxBtn, pressed && { opacity: 0.6 }]}
                 >
-                    <Text style={styles.maxBtnText}>MAX</Text>
+                    <Text style={styles.maxBtnText}>{t("common.max")}</Text>
                 </Pressable>
             </View>
             <Text style={styles.balanceLine}>
@@ -1031,12 +1031,12 @@ function RepayForm({ owner, borrowedUsd, styles, palette, t, onFocusInput }: Rep
                 <Text style={styles.cardTitle}>{t("earn.repay.heading")}</Text>
                 <Pressable
                     accessibilityRole="button"
-                    accessibilityLabel="MAX"
+                    accessibilityLabel={t("common.max")}
                     onPress={onMax}
                     disabled={debtBase <= 0n || repay.isPending}
                     style={({ pressed }) => [styles.maxBtn, pressed && { opacity: 0.6 }]}
                 >
-                    <Text style={styles.maxBtnText}>MAX</Text>
+                    <Text style={styles.maxBtnText}>{t("common.max")}</Text>
                 </Pressable>
             </View>
             <Text style={styles.balanceLine}>

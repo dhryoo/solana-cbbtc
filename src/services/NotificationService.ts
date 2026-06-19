@@ -1,6 +1,8 @@
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 
+import { BRAND_PURPLE } from "@/constants/theme";
+
 // 앱 전역 알림 동작. 모듈 로드 시 한 번 등록.
 // foreground일 때도 배너로 표시 — swap 성공 모달과 약간 중복되지만 백그라운드 케이스 일관성 우선.
 Notifications.setNotificationHandler({
@@ -26,7 +28,7 @@ export async function ensureSwapChannel(): Promise<void>
         name: "Swap events",
         importance: Notifications.AndroidImportance.HIGH,
         vibrationPattern: [0, 200, 200, 200],
-        lightColor: "#9945FF",
+        lightColor: BRAND_PURPLE,
         showBadge: false,
     });
 }

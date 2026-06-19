@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Image, Text, View } from "react-native";
 
 import { EmptyView, ErrorView, SkeletonBlock } from "@/components/StateViews";
-import type { ThemePalette } from "@/constants/theme";
+import { BRAND_PURPLE, type ThemePalette } from "@/constants/theme";
 import type { TokenInfo } from "@/constants/tokens";
 import { useSeekerIdentity } from "@/hooks/useSeekerIdentity";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
@@ -160,7 +160,7 @@ const makeStyles = (t: ThemePalette) => ({
         width: 16,
         height: 16,
         borderRadius: 8,
-        backgroundColor: "#9945FF",
+        backgroundColor: BRAND_PURPLE,
         borderWidth: 2,
         borderColor: t.surface,
         alignItems: "center" as const,

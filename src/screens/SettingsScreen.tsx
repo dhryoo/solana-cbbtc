@@ -7,7 +7,7 @@ import { AboutScreen } from "@/screens/AboutScreen";
 import { HistoryScreen } from "@/screens/HistoryScreen";
 import appConfig from "../../app.json";
 import { getClusterId } from "@/constants/cluster";
-import type { ThemeMode, ThemePalette } from "@/constants/theme";
+import { BRAND_PURPLE, type ThemeMode, type ThemePalette } from "@/constants/theme";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
 import { SUPPORTED_LANGUAGES, type SupportedLanguage } from "@/i18n";
 import { useAppLock } from "@/providers/AppLockProvider";
@@ -188,7 +188,7 @@ export function SettingsScreen(): React.JSX.Element
                         value={appLock.enabled}
                         onValueChange={(next) => { void onToggleAppLock(next); }}
                         disabled={!appLockUsable && !appLock.enabled}
-                        trackColor={{ false: palette.borderStrong, true: "#9945FF" }}
+                        trackColor={{ false: palette.borderStrong, true: BRAND_PURPLE }}
                         thumbColor="#ffffff"
                     />
                 </View>
@@ -208,7 +208,7 @@ export function SettingsScreen(): React.JSX.Element
                         accessibilityLabel={t("settings.notificationsToggle")}
                         value={notifications.enabled}
                         onValueChange={onToggleNotifications}
-                        trackColor={{ false: palette.borderStrong, true: "#9945FF" }}
+                        trackColor={{ false: palette.borderStrong, true: BRAND_PURPLE }}
                         thumbColor="#ffffff"
                     />
                 </View>
@@ -229,7 +229,7 @@ export function SettingsScreen(): React.JSX.Element
                             void hapticSelection();
                             void labs.setLightningEnabled(next);
                         }}
-                        trackColor={{ false: palette.borderStrong, true: "#9945FF" }}
+                        trackColor={{ false: palette.borderStrong, true: BRAND_PURPLE }}
                         thumbColor="#ffffff"
                     />
                 </View>
@@ -439,7 +439,7 @@ const makeStyles = (t: ThemePalette) => ({
         fontWeight: "500" as const,
     },
     kvValueAccent: {
-        color: "#9945FF",
+        color: BRAND_PURPLE,
         fontWeight: "700" as const,
     },
     aboutRow: {

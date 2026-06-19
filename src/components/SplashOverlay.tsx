@@ -2,6 +2,7 @@ import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, Image, StyleSheet } from "react-native";
 
+import { BRAND_PURPLE } from "@/constants/theme";
 import { useTheme } from "@/providers/ThemeProvider";
 
 // 700ms 동안 풀스크린 splash 이미지를 표시한 뒤 fade out.
@@ -55,7 +56,7 @@ export function SplashOverlay(): React.JSX.Element | null
     }
 
     const source = palette.mode === "dark" ? SPLASH_DARK : SPLASH_LIGHT;
-    const bg = palette.mode === "dark" ? "#0E0E10" : "#9945FF";
+    const bg = palette.mode === "dark" ? "#0E0E10" : BRAND_PURPLE;
 
     return (
         <Animated.View
