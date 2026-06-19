@@ -18,7 +18,7 @@ import { useTheme } from "@/providers/ThemeProvider";
 import { useToast } from "@/providers/ToastProvider";
 import type { LightningReceive, LightningReceiveOutcome, LightningReceivePhase } from "@/services/lightning/types";
 import { formatRawAmount } from "@/utils/format";
-import { isUserRejection } from "@/utils/lendingErrors";
+import { toFriendlyErrorKey } from "@/utils/friendlyError";
 
 const DEST_TOKENS: TokenInfo[] = [USDC, SOL];
 
@@ -105,10 +105,9 @@ export function LightningReceivePanel(): React.JSX.Element
                             {
                                 if (!sign.isCurrent(token)) return;
                                 setPhase(null);
-                                const cancelled = isUserRejection(err.message);
-                                const expired = /receive_invoice_expired/.test(err.message);
-                                setNotice(expired ? t("receive.expired")
-                                    : cancelled ? t("receive.claimCancelled") : err.message);
+                                // raw err.message 노출 금지 — 중앙 매퍼로 친절 문구. 취소만 받기 전용 문구.
+                                const friendly = toFriendlyErrorKey(err.message);
+                                setNotice(friendly.isUserCancellation ? t("receive.claimCancelled") : t(friendly.key));
                                 setReceive(null);
                             },
                         },
@@ -117,7 +116,7 @@ export function LightningReceivePanel(): React.JSX.Element
                 onError: (err) =>
                 {
                     if (!sign.isCurrent(token)) return;
-                    setNotice(err.message);
+                    setNotice(t(toFriendlyErrorKey(err.message).key));
                 },
             },
         );

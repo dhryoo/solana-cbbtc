@@ -105,7 +105,7 @@ export function HistoryScreen({ visible, onClose }: HistoryScreenProps): React.J
                     <EmptyState
                         icon="alert-circle-outline"
                         title={t("history.loadError")}
-                        subtitle={history.error?.message ?? undefined}
+                        subtitle={t("history.loadErrorHint")}
                         styles={styles}
                         palette={palette}
                     />

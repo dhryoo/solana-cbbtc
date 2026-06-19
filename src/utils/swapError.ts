@@ -47,6 +47,11 @@ const PATTERNS: Array<{ test: (msg: string) => boolean; key: string; isCancel?: 
         key: "errors.rateLimit",
     },
     {
+        // 지갑 응답 타임아웃 — network 의 bare /timeout/ 보다 먼저 (MWA 서명 무응답 선점)
+        test: (m) => /TimeoutException|Timed out waiting for response/i.test(m),
+        key: "errors.walletTimeout",
+    },
+    {
         test: (m) => /network request failed|fetch failed|timeout/i.test(m),
         key: "errors.network",
     },
