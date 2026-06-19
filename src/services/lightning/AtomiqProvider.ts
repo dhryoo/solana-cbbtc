@@ -302,18 +302,13 @@ export class AtomiqProvider implements LightningSwapProvider
             }
             if (__DEV__)
             {
-                // 진단: 실패 파라미터 + 원본 에러 + stack (M17.1 디버깅 — abort 지점 특정)
+                // 진단: 실패 파라미터 + 원본 에러 (e 에 stack 포함)
                 // eslint-disable-next-line no-console
                 console.error(
                     `[lightning] quote failed — src=${srcToken.symbol} dest.kind=${dest.kind}`
                     + ` amount=${dest.kind === "lnurlOrAddress" ? dest.amountSats.toString() : "embedded"}`,
                     e,
                 );
-                if (e instanceof Error && e.stack)
-                {
-                    // eslint-disable-next-line no-console
-                    console.error("[lightning] quote failure stack:\n" + e.stack);
-                }
             }
             throw e;
         }

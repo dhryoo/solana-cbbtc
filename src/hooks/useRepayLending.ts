@@ -38,11 +38,6 @@ export function useRepayLending(): UseMutationResult<RepayResult, Error, RepayIn
             const step = (s: TxStep): void =>
             {
                 onStep?.(s);
-                if (__DEV__)
-                {
-                    // eslint-disable-next-line no-console
-                    console.log(`[repay] ${s}`);
-                }
             };
 
             step("preparing");

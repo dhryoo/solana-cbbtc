@@ -43,7 +43,7 @@ export function LightningGuideScreen({ visible, onClose }: LightningGuideScreenP
         <Modal visible={visible} animationType="slide" onRequestClose={onClose} statusBarTranslucent={false}>
             <View style={styles.container}>
                 <View style={styles.header}>
-                    <Text style={styles.headerTitle}>{t("lightningGuide.title")}</Text>
+                    <Text style={styles.headerTitle} maxFontSizeMultiplier={1.4}>{t("lightningGuide.title")}</Text>
                     <Pressable
                         accessibilityRole="button"
                         accessibilityLabel={t("common.close")}
@@ -130,7 +130,7 @@ function Section({ icon, title, styles, palette, children }: SectionProps): Reac
         <View style={styles.section}>
             <View style={styles.sectionHead}>
                 <Ionicons name={icon} size={20} color={palette.primary} />
-                <Text style={styles.sectionTitle}>{title}</Text>
+                <Text style={styles.sectionTitle} maxFontSizeMultiplier={1.4}>{title}</Text>
             </View>
             {children}
         </View>

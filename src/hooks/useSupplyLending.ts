@@ -44,15 +44,10 @@ export function useSupplyLending(): UseMutationResult<SupplyResult, Error, Suppl
                 throw new Error("Wallet is not connected.");
             }
 
-            // 진행 단계 콜백 (UI stepper 연동). dev 에서만 콘솔 breadcrumb 출력.
+            // 진행 단계 콜백 (UI stepper 연동).
             const step = (s: TxStep): void =>
             {
                 onStep?.(s);
-                if (__DEV__)
-                {
-                    // eslint-disable-next-line no-console
-                    console.log(`[supply] ${s}`);
-                }
             };
 
             step("preparing");

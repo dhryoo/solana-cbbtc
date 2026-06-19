@@ -250,7 +250,7 @@ export function LightningReceivePanel(): React.JSX.Element
                 <View style={styles.card}>
                     <View style={styles.resultRow}>
                         <Ionicons name="checkmark-circle" size={22} color={palette.success} />
-                        <Text style={styles.resultTitle}>{t("receive.receivedTitle")}</Text>
+                        <Text style={styles.resultTitle} maxFontSizeMultiplier={1.4}>{t("receive.receivedTitle")}</Text>
                     </View>
                     <Text style={styles.resultBody}>
                         {t("receive.receivedBody", { amount: formatRawAmount(outcome.outBase, dstToken.decimals), token: dstToken.symbol })}

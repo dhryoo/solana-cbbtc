@@ -384,11 +384,6 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
     // 서명 전이라 escrow 는 안 생기지만, 혹시 생겼더라도 화면 재진입 시 환불 배너가 잡는다.
     const onCancelPending = (): void =>
     {
-        if (__DEV__)
-        {
-            // eslint-disable-next-line no-console
-            console.log("[lightning] onCancelPending — abandoning stuck pay attempt");
-        }
         payTokenRef.current += 1;
         payAbortRef.current?.abort();
         // reset() 없으면 MWA 서명에서 멈춘 mutation 이 영원히 pending → 결제 버튼이 계속 잠긴다.
@@ -418,7 +413,7 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                     <View style={styles.headerText}>
                         <View style={styles.titleRow}>
                             <Ionicons name="flash" size={18} color={BRAND_PURPLE} />
-                            <Text style={styles.headerTitle}>{t("lightning.title")}</Text>
+                            <Text style={styles.headerTitle} maxFontSizeMultiplier={1.4}>{t("lightning.title")}</Text>
                             <View style={styles.labsBadge}>
                                 <Text style={styles.labsBadgeText}>{t("labs.badge")}</Text>
                             </View>
@@ -666,7 +661,7 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                                 <>
                                 <View style={styles.resultRow}>
                                     <Ionicons name="checkmark-circle" size={22} color={palette.success} />
-                                    <Text style={styles.resultTitle}>{t("lightning.paidTitle")}</Text>
+                                    <Text style={styles.resultTitle} maxFontSizeMultiplier={1.4}>{t("lightning.paidTitle")}</Text>
                                 </View>
                                 <Text style={styles.resultBody}>{t("lightning.paidBody")}</Text>
                                 </>
@@ -675,7 +670,7 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                                 <>
                                 <View style={styles.resultRow}>
                                     <Ionicons name="arrow-undo-circle-outline" size={22} color={palette.warn} />
-                                    <Text style={styles.resultTitle}>{t("lightning.refundedTitle")}</Text>
+                                    <Text style={styles.resultTitle} maxFontSizeMultiplier={1.4}>{t("lightning.refundedTitle")}</Text>
                                 </View>
                                 <Text style={styles.resultBody}>{t("lightning.refundedBody")}</Text>
                                 </>
@@ -684,7 +679,7 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                                 <>
                                 <View style={styles.resultRow}>
                                     <Ionicons name="alert-circle" size={22} color={palette.error} />
-                                    <Text style={styles.resultTitle}>{t("lightning.refundFailedTitle")}</Text>
+                                    <Text style={styles.resultTitle} maxFontSizeMultiplier={1.4}>{t("lightning.refundFailedTitle")}</Text>
                                 </View>
                                 <Text style={styles.resultBody}>{t("lightning.refundFailedBody")}</Text>
                                 </>

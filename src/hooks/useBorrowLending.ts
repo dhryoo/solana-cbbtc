@@ -38,11 +38,6 @@ export function useBorrowLending(): UseMutationResult<BorrowResult, Error, Borro
             const step = (s: TxStep): void =>
             {
                 onStep?.(s);
-                if (__DEV__)
-                {
-                    // eslint-disable-next-line no-console
-                    console.log(`[borrow] ${s}`);
-                }
             };
 
             step("preparing");

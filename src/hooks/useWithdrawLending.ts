@@ -38,11 +38,6 @@ export function useWithdrawLending(): UseMutationResult<WithdrawResult, Error, W
             const step = (s: TxStep): void =>
             {
                 onStep?.(s);
-                if (__DEV__)
-                {
-                    // eslint-disable-next-line no-console
-                    console.log(`[withdraw] ${s}`);
-                }
             };
 
             step("preparing");
