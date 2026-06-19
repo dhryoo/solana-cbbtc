@@ -80,62 +80,81 @@ export interface CbbtcPayResult
     outcome: LightningPayOutcome;
 }
 
-/** Jupiter swap 후 USDC 가 도착(=확정)할 때까지 대기. 초과/취소 시 throw. */
-async function waitForConfirmation(
+// 확정 폴링 간격(ms). deprecated 된 confirmTransaction(sig, commitment) 은 websocket
+// signatureSubscribe 에 의존하는데 모바일 RPC 에서 불안정 → getSignatureStatuses HTTP 폴링으로 대체.
+const CONFIRM_POLL_MS = 2_000;
+const CONFIRM_MAX_ATTEMPTS = Math.ceil(CONFIRM_TIMEOUT_MS / CONFIRM_POLL_MS);
+
+/** abortSignal 을 존중하는 sleep — 타이머/리스너를 항상 정리(누수 방지). */
+function abortableSleep(ms: number, abortSignal?: AbortSignal): Promise<void>
+{
+    return new Promise<void>((resolve, reject) =>
+    {
+        let onAbort: (() => void) | undefined;
+        const timer = setTimeout(() =>
+        {
+            if (onAbort && abortSignal)
+            {
+                abortSignal.removeEventListener("abort", onAbort);
+            }
+            resolve();
+        }, ms);
+        if (abortSignal)
+        {
+            onAbort = () =>
+            {
+                clearTimeout(timer);
+                reject(new Error("user_cancelled"));
+            };
+            if (abortSignal.aborted)
+            {
+                onAbort();
+            }
+            else
+            {
+                abortSignal.addEventListener("abort", onAbort, { once: true });
+            }
+        }
+    });
+}
+
+/**
+ * Jupiter swap 이 확정될 때까지 getSignatureStatuses 폴링. 확정 시 resolve, on-chain 실패/타임아웃/
+ * 취소 시 throw. websocket 미사용 — 모바일 RPC 안정 + deprecated confirmTransaction 의존 제거.
+ * (export 는 테스트용 — 자금 안전 경로라 분기별 단위 테스트 대상)
+ */
+export async function waitForConfirmation(
     connection: ReturnType<typeof useConnection>,
     signature: string,
     abortSignal?: AbortSignal,
 ): Promise<void>
 {
-    // 타이머/리스너를 finally 에서 반드시 정리 — race 가 먼저 끝나도 setTimeout 이 살아남아
-    // 90초 뒤 orphan reject 를 던지던 누수를 막는다.
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    let onAbort: (() => void) | undefined;
-    try
+    for (let attempt = 0; attempt < CONFIRM_MAX_ATTEMPTS; attempt += 1)
     {
-        const result = await Promise.race([
-            connection.confirmTransaction(signature, "confirmed"),
-            new Promise<never>((_, reject) =>
-            {
-                timer = setTimeout(() => reject(new Error("swap_confirm_timeout")), CONFIRM_TIMEOUT_MS);
-            }),
-            new Promise<never>((_, reject) =>
-            {
-                if (abortSignal)
-                {
-                    onAbort = () => reject(new Error("user_cancelled"));
-                    if (abortSignal.aborted)
-                    {
-                        onAbort();
-                    }
-                    else
-                    {
-                        abortSignal.addEventListener("abort", onAbort, { once: true });
-                    }
-                }
-            }),
-        ]);
-        // confirmTransaction 은 value.err 로 실패를 알림
-        if (typeof result === "object" && result !== null && "value" in result)
+        if (abortSignal?.aborted)
         {
-            const err = (result as { value?: { err?: unknown } }).value?.err;
-            if (err)
+            throw new Error("user_cancelled");
+        }
+        const { value } = await connection.getSignatureStatuses([signature]);
+        const status = value[0];
+        if (status)
+        {
+            if (status.err)
             {
-                throw new Error(`swap failed on-chain: ${JSON.stringify(err)}`);
+                throw new Error(`swap failed on-chain: ${JSON.stringify(status.err)}`);
+            }
+            if (status.confirmationStatus === "confirmed" || status.confirmationStatus === "finalized")
+            {
+                return;
             }
         }
-    }
-    finally
-    {
-        if (timer)
+        // 마지막 시도 뒤엔 자지 않고 바로 타임아웃
+        if (attempt < CONFIRM_MAX_ATTEMPTS - 1)
         {
-            clearTimeout(timer);
-        }
-        if (abortSignal && onAbort)
-        {
-            abortSignal.removeEventListener("abort", onAbort);
+            await abortableSleep(CONFIRM_POLL_MS, abortSignal);
         }
     }
+    throw new Error("swap_confirm_timeout");
 }
 
 export function useCbbtcLightningPay(): UseMutationResult<CbbtcPayResult, Error, CbbtcPayInput>
