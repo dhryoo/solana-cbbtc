@@ -230,9 +230,15 @@ export class AtomiqProvider implements LightningSwapProvider
 {
     readonly id = "atomiq";
 
+    // 런타임 로더 주입 — 기본은 실제 SDK 초기화(loadRuntime). 테스트는 mock 런타임을 주입해
+    // pay/waitAndClaim 의 결과 분기(paid/refunded/refund_failed, received/expired)를 검증한다.
+    constructor(private readonly runtimeLoader: () => Promise<AtomiqRuntime> = loadRuntime)
+    {
+    }
+
     async getSupportedSourceTokens(): Promise<TokenInfo[]>
     {
-        const rt = await loadRuntime();
+        const rt = await this.runtimeLoader();
         const supported = rt.swapper.getSupportedTokens(true);
         return APP_SOURCE_TOKENS
             .filter(({ atomiqSymbol }) =>
@@ -250,7 +256,7 @@ export class AtomiqProvider implements LightningSwapProvider
         srcAddress: string,
     ): Promise<LightningQuote>
     {
-        const rt = await loadRuntime();
+        const rt = await this.runtimeLoader();
         const entry = APP_SOURCE_TOKENS.find((t) => t.app.symbol === srcToken.symbol);
         if (!entry)
         {
@@ -320,7 +326,7 @@ export class AtomiqProvider implements LightningSwapProvider
         abortSignal?: AbortSignal,
     ): Promise<LightningPayOutcome>
     {
-        const rt = await loadRuntime();
+        const rt = await this.runtimeLoader();
         const swap = quote.ref as AtomiqSwap;
         const atomiqSigner = rt.makeSigner(signer);
 
@@ -358,14 +364,14 @@ export class AtomiqProvider implements LightningSwapProvider
 
     async getRefundableCount(srcAddress: string): Promise<number>
     {
-        const rt = await loadRuntime();
+        const rt = await this.runtimeLoader();
         const refundable = await rt.swapper.getRefundableSwaps("SOLANA", srcAddress);
         return refundable.length;
     }
 
     async refundAll(signer: SolanaSigningDelegate): Promise<number>
     {
-        const rt = await loadRuntime();
+        const rt = await this.runtimeLoader();
         const refundable = await rt.swapper.getRefundableSwaps("SOLANA", signer.publicKey.toBase58());
         const atomiqSigner = rt.makeSigner(signer);
         return refundEachSwap(refundable, atomiqSigner);
@@ -377,7 +383,7 @@ export class AtomiqProvider implements LightningSwapProvider
         dstAddress: string,
     ): Promise<LightningReceive>
     {
-        const rt = await loadRuntime();
+        const rt = await this.runtimeLoader();
         const entry = APP_SOURCE_TOKENS.find((t) => t.app.symbol === dstToken.symbol);
         if (!entry)
         {
@@ -427,7 +433,7 @@ export class AtomiqProvider implements LightningSwapProvider
         abortSignal?: AbortSignal,
     ): Promise<LightningReceiveOutcome>
     {
-        const rt = await loadRuntime();
+        const rt = await this.runtimeLoader();
         const swap = receive.ref as AtomiqReceiveSwap;
 
         // ① LN 인보이스 결제 대기 (서명 없음). 취소 시 abortSignal 로 폴링 중단
