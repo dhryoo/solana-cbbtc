@@ -153,6 +153,7 @@ export interface LightningSwapProvider
         quote: LightningQuote,
         signer: SolanaSigningDelegate,
         onPhase: (phase: LightningPayPhase) => void,
+        abortSignal?: AbortSignal,
     ): Promise<LightningPayOutcome>;
 
     /** 중단된(환불 가능한) 과거 swap — 화면 진입 시 안내용 */
@@ -169,5 +170,6 @@ export interface LightningSwapProvider
         receive: LightningReceive,
         signer: SolanaSigningDelegate,
         onPhase: (phase: LightningReceivePhase) => void,
+        abortSignal?: AbortSignal,
     ): Promise<LightningReceiveOutcome>;
 }

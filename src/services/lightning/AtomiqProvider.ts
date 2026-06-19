@@ -38,7 +38,7 @@ interface AtomiqSwap
     getFee(): { amountInSrcToken: AtomiqTokenAmount };
     getQuoteExpiry(): number;
     commit(signer: unknown, abortSignal?: AbortSignal, skipChecks?: boolean): Promise<string>;
-    waitForPayment(): Promise<boolean>;
+    waitForPayment(abortSignal?: AbortSignal): Promise<boolean>;
     refund(signer: unknown): Promise<string>;
     getSecret?(): string | null;
 }
@@ -49,8 +49,8 @@ interface AtomiqReceiveSwap
     getId(): string;
     getAddress(): string;          // 표시할 BOLT11 인보이스
     getOutput(): AtomiqTokenAmount; // 받게 될 Solana 토큰량
-    waitForPayment(): Promise<boolean>;
-    commitAndClaim(signer: unknown): Promise<string[]>;
+    waitForPayment(abortSignal?: AbortSignal): Promise<boolean>;
+    commitAndClaim(signer: unknown, abortSignal?: AbortSignal): Promise<string[]>;
 }
 
 interface AtomiqSwapperLike
@@ -317,6 +317,7 @@ export class AtomiqProvider implements LightningSwapProvider
         quote: LightningQuote,
         signer: SolanaSigningDelegate,
         onPhase: (phase: LightningPayPhase) => void,
+        abortSignal?: AbortSignal,
     ): Promise<LightningPayOutcome>
     {
         const rt = await loadRuntime();
@@ -325,11 +326,12 @@ export class AtomiqProvider implements LightningSwapProvider
 
         // ① Solana escrow lock — MWA 서명 1회
         onPhase("signing");
-        const commitTxId = await swap.commit(atomiqSigner);
+        const commitTxId = await swap.commit(atomiqSigner, abortSignal);
 
-        // ② LP 가 LN 인보이스 결제 — 폴링 대기
+        // ② LP 가 LN 인보이스 결제 — 폴링 대기. 사용자가 취소하면 abortSignal 로 폴링 중단
+        //    (escrow 는 남아 화면 재진입 시 환불 배너가 회수).
         onPhase("paying");
-        const paid = await swap.waitForPayment();
+        const paid = await swap.waitForPayment(abortSignal);
         if (paid)
         {
             return {
@@ -422,14 +424,15 @@ export class AtomiqProvider implements LightningSwapProvider
         receive: LightningReceive,
         signer: SolanaSigningDelegate,
         onPhase: (phase: LightningReceivePhase) => void,
+        abortSignal?: AbortSignal,
     ): Promise<LightningReceiveOutcome>
     {
         const rt = await loadRuntime();
         const swap = receive.ref as AtomiqReceiveSwap;
 
-        // ① LN 인보이스 결제 대기 (서명 없음)
+        // ① LN 인보이스 결제 대기 (서명 없음). 취소 시 abortSignal 로 폴링 중단
         onPhase("awaiting");
-        const paid = await swap.waitForPayment();
+        const paid = await swap.waitForPayment(abortSignal);
         if (!paid)
         {
             throw new Error("receive_invoice_expired");
@@ -438,7 +441,7 @@ export class AtomiqProvider implements LightningSwapProvider
         // ② Solana 정산 (claim, MWA 서명)
         onPhase("claiming");
         const atomiqSigner = rt.makeSigner(signer);
-        const txs = await swap.commitAndClaim(atomiqSigner);
+        const txs = await swap.commitAndClaim(atomiqSigner, abortSignal);
         return {
             status: "received",
             claimTxId: txs[txs.length - 1] ?? txs[0] ?? "",

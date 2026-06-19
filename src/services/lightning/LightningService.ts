@@ -116,10 +116,11 @@ export class LightningService
         quote: LightningQuote,
         account: ConnectedAccount,
         onPhase: (phase: LightningPayPhase) => void,
+        abortSignal?: AbortSignal,
     ): Promise<LightningPayOutcome>
     {
         const signer = createMwaSigningDelegate(account);
-        return this.provider.pay(quote, signer, onPhase);
+        return this.provider.pay(quote, signer, onPhase, abortSignal);
     }
 
     getRefundableCount(srcAddress: string): Promise<number>
@@ -143,9 +144,10 @@ export class LightningService
         receive: LightningReceive,
         account: ConnectedAccount,
         onPhase: (phase: LightningReceivePhase) => void,
+        abortSignal?: AbortSignal,
     ): Promise<LightningReceiveOutcome>
     {
-        return this.provider.waitAndClaim(receive, createMwaSigningDelegate(account), onPhase);
+        return this.provider.waitAndClaim(receive, createMwaSigningDelegate(account), onPhase, abortSignal);
     }
 }
 

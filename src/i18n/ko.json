@@ -333,7 +333,7 @@
         "amountLabel": "받을 금액 (sats)",
         "amountPlaceholder": "예: 5000",
         "createButton": "받기 인보이스 만들기",
-        "lowSolWarn": "SOL 이 부족할 수 있습니다. 받기는 상대가 결제한 뒤 내가 정산(claim) 서명을 해야 완료되는데, 이때 수수료·계정 보증금(rent)으로 SOL 이 필요합니다. SOL 을 조금 더 확보한 뒤 진행하는 걸 권합니다 (약 0.01 SOL 이상).",
+        "lowSolWarn": "SOL 이 부족해 받기를 시작할 수 없습니다. 받기는 상대가 결제한 뒤 내가 정산(claim) 서명을 해야 완료되는데, 이때 수수료·계정 보증금(rent)으로 SOL 이 필요합니다. 약 0.01 SOL 이상 확보한 뒤 다시 시도해 주세요.",
         "invoiceTitle": "{{sats}} sats → {{token}} 받기",
         "copy": "복사",
         "share": "공유",

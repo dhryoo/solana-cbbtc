@@ -1,7 +1,7 @@
 /* eslint-disable react-native/no-unused-styles */
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Linking, Pressable, Share, Text, TextInput, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
@@ -47,16 +47,20 @@ export function LightningReceivePanel(): React.JSX.Element
     const createMutation = useCreateReceive();
     const claimMutation = useWaitAndClaim();
     const sign = useCancellableSign();
+    // 취소 시 결제 대기/정산 폴링을 실제로 중단
+    const abortRef = useRef<AbortController | null>(null);
     const solBalance = useTokenBalance(SOL, account?.publicKey ?? null);
 
-    // SOL 잔액이 확인됐고 claim 여유분 미만이면 사전 경고 (잔액 로딩 전엔 경고 안 함)
+    // SOL 잔액이 확인됐고 claim 여유분 미만이면 경고 + 생성 차단 (잔액 로딩 전엔 차단 안 함).
+    // 받기는 "상대 결제 → 내 claim 서명" 순서라 SOL 이 없으면 "결제됐는데 못 받는" 상황이 되므로
+    // 단순 경고가 아니라 인보이스 생성 자체를 하드 차단한다.
     const lowSol = solBalance.data !== undefined && solBalance.data.amount < MIN_SOL_FOR_RECEIVE_CLAIM;
 
     const amountSats = /^\d+$/.test(amountText.trim()) && amountText.trim() !== "0"
         ? BigInt(amountText.trim())
         : null;
 
-    const canCreate = isOnline && Boolean(account) && amountSats !== null && !createMutation.isPending && !receive;
+    const canCreate = isOnline && Boolean(account) && amountSats !== null && !createMutation.isPending && !receive && !lowSol;
 
     const reset = (): void =>
     {
@@ -74,6 +78,7 @@ export function LightningReceivePanel(): React.JSX.Element
         }
         reset();
         const token = sign.begin();
+        abortRef.current = new AbortController();
         createMutation.mutate(
             { dstToken, amountSats },
             {
@@ -85,6 +90,7 @@ export function LightningReceivePanel(): React.JSX.Element
                     claimMutation.mutate(
                         {
                             receive: r,
+                            abortSignal: abortRef.current?.signal,
                             onPhase: (p) => { if (sign.isCurrent(token)) setPhase(p); },
                         },
                         {
@@ -123,6 +129,7 @@ export function LightningReceivePanel(): React.JSX.Element
     const cancelReceive = (): void =>
     {
         sign.cancel();
+        abortRef.current?.abort();
         createMutation.reset();
         claimMutation.reset();
         setReceive(null);

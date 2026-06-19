@@ -1,4 +1,4 @@
-import { usdcTargetWithBuffer, USDC_BUFFER_BPS } from "./cbbtcPreSwap";
+import { hasPreSwapShortfall, usdcTargetWithBuffer, USDC_BUFFER_BPS } from "./cbbtcPreSwap";
 
 describe("usdcTargetWithBuffer", () =>
 {
@@ -30,5 +30,26 @@ describe("usdcTargetWithBuffer", () =>
         {
             expect(usdcTargetWithBuffer(v)).toBeGreaterThan(v);
         }
+    });
+});
+
+describe("hasPreSwapShortfall", () =>
+{
+    it("no shortfall when obtained USDC exactly covers the re-quote", () =>
+    {
+        // 버퍼 덕에 확보분이 필요분과 같거나 많은 정상 경로
+        expect(hasPreSwapShortfall(1_000_000n, 1_015_000n)).toBe(false);
+        expect(hasPreSwapShortfall(1_000_000n, 1_000_000n)).toBe(false);
+    });
+
+    it("shortfall when the re-quote needs more USDC than was obtained", () =>
+    {
+        // 시세가 버퍼(1.5%)보다 더 올라 재견적이 확보분을 초과 → escrow 전에 차단해야 함
+        expect(hasPreSwapShortfall(1_020_000n, 1_015_000n)).toBe(true);
+    });
+
+    it("boundary: needed one base unit above obtained is a shortfall", () =>
+    {
+        expect(hasPreSwapShortfall(1_015_001n, 1_015_000n)).toBe(true);
     });
 });

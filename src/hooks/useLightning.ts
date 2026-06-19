@@ -54,6 +54,8 @@ export interface LightningPayInput
 {
     quote: LightningQuote;
     onPhase: (phase: LightningPayPhase) => void;
+    /** 취소 시 LP 결제 폴링을 중단 (escrow 는 환불 배너가 회수) */
+    abortSignal?: AbortSignal;
 }
 
 export function useLightningPay(): UseMutationResult<LightningPayOutcome, Error, LightningPayInput>
@@ -62,13 +64,13 @@ export function useLightningPay(): UseMutationResult<LightningPayOutcome, Error,
     const queryClient = useQueryClient();
 
     return useMutation<LightningPayOutcome, Error, LightningPayInput>({
-        mutationFn: async ({ quote, onPhase }) =>
+        mutationFn: async ({ quote, onPhase, abortSignal }) =>
         {
             if (!account)
             {
                 throw new Error("Wallet is not connected.");
             }
-            return getLightningService().pay(quote, account, onPhase);
+            return getLightningService().pay(quote, account, onPhase, abortSignal);
         },
         onSuccess: () =>
         {
@@ -131,6 +133,8 @@ export interface ReceiveClaimInput
 {
     receive: LightningReceive;
     onPhase: (phase: LightningReceivePhase) => void;
+    /** 취소 시 결제 대기/정산 폴링을 중단 */
+    abortSignal?: AbortSignal;
 }
 
 /** 인보이스 결제 대기 → Solana 정산(claim, MWA 서명) */
@@ -140,13 +144,13 @@ export function useWaitAndClaim(): UseMutationResult<LightningReceiveOutcome, Er
     const queryClient = useQueryClient();
 
     return useMutation<LightningReceiveOutcome, Error, ReceiveClaimInput>({
-        mutationFn: async ({ receive, onPhase }) =>
+        mutationFn: async ({ receive, onPhase, abortSignal }) =>
         {
             if (!account)
             {
                 throw new Error("Wallet is not connected.");
             }
-            return getLightningService().waitAndClaim(receive, account, onPhase);
+            return getLightningService().waitAndClaim(receive, account, onPhase, abortSignal);
         },
         onSuccess: () =>
         {

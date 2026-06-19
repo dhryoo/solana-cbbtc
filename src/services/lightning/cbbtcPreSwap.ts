@@ -28,6 +28,16 @@ export function usdcTargetWithBuffer(usdcNeededBase: bigint): bigint
     return (numerator + BPS_DENOM - 1n) / BPS_DENOM;
 }
 
+/**
+ * swap 으로 확보한 USDC(obtainedBase)가 Atomiq 재견적이 요구하는 USDC(freshNeededBase)보다
+ * 적은지. true 면 escrow 가 보유 USDC 를 다 끌어가도 모자라므로, escrow 시도 전에 차단해야 한다
+ * (시세가 버퍼보다 더 움직인 경우). 차단해도 USDC 는 손에 있으니 손실이 아니라 "USDC 로 재시도".
+ */
+export function hasPreSwapShortfall(freshNeededBase: bigint, obtainedBase: bigint): boolean
+{
+    return freshNeededBase > obtainedBase;
+}
+
 export interface CbbtcSwapQuote
 {
     jupiterQuote: QuoteResponse;

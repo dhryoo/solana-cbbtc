@@ -5,7 +5,7 @@ import { useWallet } from "@/hooks/useWallet";
 import { useConnection } from "@/providers/ConnectionProvider";
 import { getSwapTransaction } from "@/services/JupiterService";
 import { getLightningService } from "@/services/lightning/LightningService";
-import { quoteCbbtcToUsdc, usdcTargetWithBuffer, type CbbtcSwapQuote } from "@/services/lightning/cbbtcPreSwap";
+import { hasPreSwapShortfall, quoteCbbtcToUsdc, usdcTargetWithBuffer, type CbbtcSwapQuote } from "@/services/lightning/cbbtcPreSwap";
 import type { LightningPayOutcome, LightningPayPhase, LightningQuote } from "@/services/lightning/types";
 import { signAndSendTransactions } from "@/services/WalletService";
 
@@ -70,6 +70,8 @@ export interface CbbtcPayInput
     amountSats: bigint | null;
     swap: CbbtcSwapQuote;
     onPhase: (phase: CbbtcPayPhase) => void;
+    /** 취소 시 확정 대기/LP 결제 폴링을 중단 */
+    abortSignal?: AbortSignal;
 }
 
 export interface CbbtcPayResult
@@ -78,24 +80,60 @@ export interface CbbtcPayResult
     outcome: LightningPayOutcome;
 }
 
-/** Jupiter swap 후 USDC 가 도착(=확정)할 때까지 대기. 초과 시 throw. */
+/** Jupiter swap 후 USDC 가 도착(=확정)할 때까지 대기. 초과/취소 시 throw. */
 async function waitForConfirmation(
     connection: ReturnType<typeof useConnection>,
     signature: string,
+    abortSignal?: AbortSignal,
 ): Promise<void>
 {
-    const result = await Promise.race([
-        connection.confirmTransaction(signature, "confirmed"),
-        new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error("swap_confirm_timeout")), CONFIRM_TIMEOUT_MS)),
-    ]);
-    // confirmTransaction 은 value.err 로 실패를 알림
-    if (typeof result === "object" && result !== null && "value" in result)
+    // 타이머/리스너를 finally 에서 반드시 정리 — race 가 먼저 끝나도 setTimeout 이 살아남아
+    // 90초 뒤 orphan reject 를 던지던 누수를 막는다.
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let onAbort: (() => void) | undefined;
+    try
     {
-        const err = (result as { value?: { err?: unknown } }).value?.err;
-        if (err)
+        const result = await Promise.race([
+            connection.confirmTransaction(signature, "confirmed"),
+            new Promise<never>((_, reject) =>
+            {
+                timer = setTimeout(() => reject(new Error("swap_confirm_timeout")), CONFIRM_TIMEOUT_MS);
+            }),
+            new Promise<never>((_, reject) =>
+            {
+                if (abortSignal)
+                {
+                    onAbort = () => reject(new Error("user_cancelled"));
+                    if (abortSignal.aborted)
+                    {
+                        onAbort();
+                    }
+                    else
+                    {
+                        abortSignal.addEventListener("abort", onAbort, { once: true });
+                    }
+                }
+            }),
+        ]);
+        // confirmTransaction 은 value.err 로 실패를 알림
+        if (typeof result === "object" && result !== null && "value" in result)
         {
-            throw new Error(`swap failed on-chain: ${JSON.stringify(err)}`);
+            const err = (result as { value?: { err?: unknown } }).value?.err;
+            if (err)
+            {
+                throw new Error(`swap failed on-chain: ${JSON.stringify(err)}`);
+            }
+        }
+    }
+    finally
+    {
+        if (timer)
+        {
+            clearTimeout(timer);
+        }
+        if (abortSignal && onAbort)
+        {
+            abortSignal.removeEventListener("abort", onAbort);
         }
     }
 }
@@ -107,7 +145,7 @@ export function useCbbtcLightningPay(): UseMutationResult<CbbtcPayResult, Error,
     const queryClient = useQueryClient();
 
     return useMutation<CbbtcPayResult, Error, CbbtcPayInput>({
-        mutationFn: async ({ rawInput, amountSats, swap, onPhase }) =>
+        mutationFn: async ({ rawInput, amountSats, swap, onPhase, abortSignal }) =>
         {
             if (!account)
             {
@@ -129,7 +167,7 @@ export function useCbbtcLightningPay(): UseMutationResult<CbbtcPayResult, Error,
 
             // 2) USDC 도착 대기 (escrow 가 USDC 를 인출하므로 확정 필수)
             onPhase("confirming");
-            await waitForConfirmation(connection, swapSignature);
+            await waitForConfirmation(connection, swapSignature, abortSignal);
 
             // 3) USDC → LN (Atomiq) — 확정 후 fresh 재견적 → 결제 (서명2)
             const freshQuote = await getLightningService().getQuote({
@@ -138,10 +176,18 @@ export function useCbbtcLightningPay(): UseMutationResult<CbbtcPayResult, Error,
                 srcToken: USDC,
                 srcAddress: account.publicKey.toBase58(),
             });
+            // 환율이 ExactOut 버퍼(1.5%)보다 더 움직여 재견적 USDC 가 확보분을 초과하면, escrow 가
+            // 보유 USDC 를 다 끌어가고도 모자라 실패한다. escrow 시도 전에 차단하고 "USDC 로 재시도"로 유도 —
+            // 이미 USDC 는 손에 있으니 자금 손실이 아니라 단순 재시도.
+            if (hasPreSwapShortfall(freshQuote.inputBase, swap.usdcOutBase))
+            {
+                throw new Error("cbbtc_preswap_shortfall");
+            }
             const outcome = await getLightningService().pay(
                 freshQuote,
                 account,
                 (phase) => onPhase(phase),
+                abortSignal,
             );
 
             return { swapSignature, outcome };

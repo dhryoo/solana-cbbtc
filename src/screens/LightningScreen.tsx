@@ -223,6 +223,9 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
     // 결제 시도마다 토큰 증가. MWA 가 지갑 dismiss(X) 시 응답을 안 주고 멈추는 경우가 있어
     // (서명 promise 가 영원히 pending), '취소'로 그 시도를 폐기하고 settle 콜백을 무시한다.
     const payTokenRef = useRef(0);
+    // 취소 시 SDK 폴링(LP 결제 대기·확정 대기)을 실제로 중단하기 위한 controller. token 가드는 UI 만
+    // 풀고, abort 는 백그라운드 폴링을 멈춘다 (서명 자체는 native MWA 라 abort 불가 — token 가드 담당).
+    const payAbortRef = useRef<AbortController | null>(null);
 
     // cbBTC 결제: Jupiter swap(서명1) → 확정 → Atomiq 결제(서명2). 중간 실패 시 USDC 보유로 graceful.
     const onPayCbbtc = (): void =>
@@ -232,6 +235,7 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
             return;
         }
         const token = ++payTokenRef.current;
+        payAbortRef.current = new AbortController();
         // swap 단계를 넘어선 뒤(=cbBTC 가 이미 USDC 로 바뀜) 실패하면 USDC 로 재시도 안내
         let swapped = false;
         setNotice(null);
@@ -243,6 +247,7 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                 rawInput: destination,
                 amountSats,
                 swap: cbbtcQuote.swap,
+                abortSignal: payAbortRef.current.signal,
                 onPhase: (phase) =>
                 {
                     if (token !== payTokenRef.current)
@@ -317,12 +322,14 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
             return;
         }
         const token = ++payTokenRef.current;
+        payAbortRef.current = new AbortController();
         setNotice(null);
         setLastError(null);
         setProgress({ step: "signing", state: "running" });
         payMutation.mutate(
             {
                 quote,
+                abortSignal: payAbortRef.current.signal,
                 onPhase: (phase) =>
                 {
                     if (token !== payTokenRef.current)
@@ -383,6 +390,10 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
             console.log("[lightning] onCancelPending — abandoning stuck pay attempt");
         }
         payTokenRef.current += 1;
+        payAbortRef.current?.abort();
+        // reset() 없으면 MWA 서명에서 멈춘 mutation 이 영원히 pending → 결제 버튼이 계속 잠긴다.
+        payMutation.reset();
+        cbbtcPayMutation.reset();
         setProgress(null);
         setCbbtcStatus(null);
         setQuote(null);
@@ -394,6 +405,7 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
     const handleClose = (): void =>
     {
         payTokenRef.current += 1;
+        payAbortRef.current?.abort();
         setProgress(null);
         setCbbtcStatus(null);
         onClose();
