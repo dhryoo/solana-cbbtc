@@ -38,9 +38,14 @@ interface AtomiqSwap
     getFee(): { amountInSrcToken: AtomiqTokenAmount };
     getQuoteExpiry(): number;
     commit(signer: unknown, abortSignal?: AbortSignal, skipChecks?: boolean): Promise<string>;
-    waitForPayment(abortSignal?: AbortSignal): Promise<boolean>;
+    // ⚠️ 실제 SDK 시그니처는 (maxWaitTimeSeconds?, checkIntervalSeconds?, abortSignal?). abortSignal 을
+    // 1번째 인자로 넘기면 maxWaitTimeSeconds 로 해석돼 setTimeout(NaN→0) → 즉시 false timeout 이 난다.
+    waitForPayment(maxWaitTimeSeconds?: number, checkIntervalSeconds?: number, abortSignal?: AbortSignal): Promise<boolean>;
     refund(signer: unknown): Promise<string>;
     getSecret?(): string | null;
+    // 온체인 상태 재동기화 + 성공(CLAIMED) 여부 — waitForPayment 가 throw 해도 실제 정산됐는지 재확인용.
+    _sync?(save?: boolean): Promise<boolean>;
+    isSuccessful?(): boolean;
 }
 
 // FROM_BTCLN (받기) swap — 인보이스 생성 + 결제 대기 + Solana 정산(claim)
@@ -49,7 +54,8 @@ interface AtomiqReceiveSwap
     getId(): string;
     getAddress(): string;          // 표시할 BOLT11 인보이스
     getOutput(): AtomiqTokenAmount; // 받게 될 Solana 토큰량
-    waitForPayment(abortSignal?: AbortSignal): Promise<boolean>;
+    // 실제 시그니처 (onPaymentReceived?, checkIntervalSeconds?, abortSignal?) — abortSignal 은 3번째.
+    waitForPayment(onPaymentReceived?: (txId: string) => void, checkIntervalSeconds?: number, abortSignal?: AbortSignal): Promise<boolean>;
     commitAndClaim(signer: unknown, abortSignal?: AbortSignal): Promise<string[]>;
 }
 
@@ -207,6 +213,51 @@ export async function refundEachSwap(
     return done;
 }
 
+// waitForPayment 내성(resilient) 래퍼.
+//
+// (1) abortSignal 을 반드시 3번째 인자로 — 1번째(maxWaitTimeSeconds)로 넘기면 setTimeout(NaN→0) 로
+//     즉시 false timeout 이 떠서 "LP 타임아웃" 에러가 나는데 실제로는 escrow 가 정산되던 #242 회귀 수정.
+// (2) SDK 가 throw 해도(타임아웃 등) 온체인 상태를 _sync 로 재동기화 후 isSuccessful() 로 실제 정산
+//     여부를 재확인 → "에러는 떴지만 거래는 성공" false-negative 를 흡수.
+//
+// 반환 true=결제 성공, false=환불 필요(REFUNDABLE). 사용자 취소/실제 실패는 throw.
+export async function waitForPaymentResilient(
+    swap: {
+        waitForPayment(maxWaitTimeSeconds?: number, checkIntervalSeconds?: number, abortSignal?: AbortSignal): Promise<boolean>;
+        _sync?(save?: boolean): Promise<boolean>;
+        isSuccessful?(): boolean;
+    },
+    abortSignal?: AbortSignal,
+): Promise<boolean>
+{
+    try
+    {
+        return await swap.waitForPayment(undefined, undefined, abortSignal);
+    }
+    catch (e)
+    {
+        // 사용자 취소는 그대로 전파 (상위 token 가드가 무시).
+        if (abortSignal?.aborted)
+        {
+            throw e;
+        }
+        // LP 가 이미 escrow 를 claim 했을 수 있음 → 온체인 재동기화 후 성공 여부 직접 확인.
+        try
+        {
+            await swap._sync?.(true);
+        }
+        catch
+        {
+            // 재동기화 실패는 무시하고 원래 에러로 폴백 (아래에서 재-throw)
+        }
+        if (swap.isSuccessful?.())
+        {
+            return true;
+        }
+        throw e;
+    }
+}
+
 function toQuote(
     swap: AtomiqSwap,
     srcToken: TokenInfo,
@@ -329,10 +380,11 @@ export class AtomiqProvider implements LightningSwapProvider
         onPhase("signing");
         const commitTxId = await swap.commit(atomiqSigner, abortSignal);
 
-        // ② LP 가 LN 인보이스 결제 — 폴링 대기. 사용자가 취소하면 abortSignal 로 폴링 중단
-        //    (escrow 는 남아 화면 재진입 시 환불 배너가 회수).
+        // ② LP 가 LN 인보이스 결제 — 폴링 대기. abortSignal 은 반드시 3번째 인자 (1번째로 넘기면
+        //    maxWaitTimeSeconds 로 해석돼 즉시 false timeout). maxWaitTimeSeconds=undefined → SDK 내부
+        //    타임아웃 없이 CLAIMED/LP 응답까지 폴링, 취소는 abortSignal 로만.
         onPhase("paying");
-        const paid = await swap.waitForPayment(abortSignal);
+        const paid = await waitForPaymentResilient(swap, abortSignal);
         if (paid)
         {
             return {
@@ -431,9 +483,10 @@ export class AtomiqProvider implements LightningSwapProvider
         const rt = await this.runtimeLoader();
         const swap = receive.ref as AtomiqReceiveSwap;
 
-        // ① LN 인보이스 결제 대기 (서명 없음). 취소 시 abortSignal 로 폴링 중단
+        // ① LN 인보이스 결제 대기 (서명 없음). abortSignal 은 3번째 인자 — 1번째(onPaymentReceived
+        //    콜백)로 넘기면 SDK 가 콜백처럼 호출하려다 깨질 수 있다 (#242 회귀 수정).
         onPhase("awaiting");
-        const paid = await swap.waitForPayment(abortSignal);
+        const paid = await swap.waitForPayment(undefined, undefined, abortSignal);
         if (!paid)
         {
             throw new Error("receive_invoice_expired");
