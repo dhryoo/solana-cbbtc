@@ -1,16 +1,10 @@
-// MWA가 지갑(Seed Vault) 승인 화면에 표시할 dApp 메타데이터 (이름·아이콘·URL).
-//
-// icon 은 반드시 uri 기준 **상대 경로** 여야 한다. (MWA spec 은 data URI 도 허용하지만 Seeker
-//   Seed Vault 는 거부하고 -32602 "identity.icon must be a relative URL" 을 던진다 — 실측 확인.)
-//   지갑은 new URL(icon, uri) 로 합쳐 가져오므로:
-//   - uri 끝의 슬래시가 중요: ".../solana-cbbtc/" + "favicon.png" → ".../solana-cbbtc/favicon.png".
-//     (슬래시 없으면 마지막 경로 조각이 떨어져 ".../favicon.png" 로 잘못 해석됨)
-//   - 그 위치에 실제 파일을 호스팅해야 함 → docs/favicon.png (GitHub Pages, main /docs).
-//     아이콘 교체 시 docs/favicon.png 를 갱신하고 push 하면 Pages 가 재배포한다.
+// MWA가 지갑에 표시할 dApp 메타데이터.
+// uri는 dApp의 캐노니컬 URL이 가장 정확하지만 MVP 단계라 placeholder 사용.
+
 export const APP_IDENTITY = {
     name: "Solana cbBTC",
-    uri: "https://dhryoo.github.io/solana-cbbtc/",
-    icon: "favicon.png",
+    uri: "https://seeker-btcfi.app",
+    icon: "favicon.ico",
 } as const;
 
 // 버전 알림 (UpdateCheckService) 가 폴링할 GitHub repo. no-backend 정책 하에서 GitHub Releases
