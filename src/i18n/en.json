@@ -427,6 +427,7 @@
         "exceeds": "Exceeds your balance",
         "amountAccessibility": "Input amount",
         "flipAccessibility": "Flip token direction",
+        "selectToken": "Select token",
         "swapButton": "Execute swap",
         "btnConnectFirst": "Connect wallet to use",
         "btnAmountFirst": "Enter an amount",

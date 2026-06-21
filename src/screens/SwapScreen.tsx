@@ -11,11 +11,12 @@ import {
 
 import { QuoteDisplay } from "@/components/QuoteDisplay";
 import { SwapConfirmModal } from "@/components/SwapConfirmModal";
+import { TokenPickerModal } from "@/components/TokenPickerModal";
 import { LightningScreen } from "@/screens/LightningScreen";
 import { SwapGuideScreen } from "@/screens/SwapGuideScreen";
 import { BRAND_PURPLE, type ThemePalette } from "@/constants/theme";
 import { useLabs } from "@/providers/LabsProvider";
-import { CBBTC, MIN_SOL_GAS_RESERVE_SOL, SOL, type TokenInfo } from "@/constants/tokens";
+import { deriveSwapPair, MIN_SOL_GAS_RESERVE_SOL, OUTPUT_ATA_RENT_SOL, SOL, SWAP_COUNTER_TOKENS, type TokenInfo } from "@/constants/tokens";
 import { useCancellableSign } from "@/hooks/useCancellableSign";
 import { useSwap } from "@/hooks/useSwap";
 import { useSwapQuote } from "@/hooks/useSwapQuote";
@@ -42,8 +43,12 @@ export function SwapScreen(): React.JSX.Element
     const { account } = useWallet();
     const styles = useThemedStyles(makeStyles);
     const { palette } = useTheme();
-    const [inputToken, setInputToken] = useState<TokenInfo>(SOL);
-    const [outputToken, setOutputToken] = useState<TokenInfo>(CBBTC);
+    // cbBTC 를 고정축으로 두고 반대편 카운터 토큰(SOL/SKR/USDC)만 선택 (A 방식).
+    // 방향(cbBTC 매수/매도)은 cbbtcIsOutput 으로 표현하고, input/output 은 거기서 파생.
+    const [counterToken, setCounterToken] = useState<TokenInfo>(SOL);
+    const [cbbtcIsOutput, setCbbtcIsOutput] = useState(true);
+    const [pickerOpen, setPickerOpen] = useState(false);
+    const { input: inputToken, output: outputToken } = deriveSwapPair(counterToken, cbbtcIsOutput);
     const [amount, setAmount] = useState("");
     const [guideOpen, setGuideOpen] = useState(false);
     const { lightningEnabled } = useLabs();
@@ -66,9 +71,16 @@ export function SwapScreen(): React.JSX.Element
     const solBalance = useTokenBalance(SOL, account?.publicKey ?? null);
     // 입력 토큰 잔액 (보유량/MAX 표시용). SOL 입력이면 solBalance 와 동일 쿼리(캐시 공유).
     const inputBalance = useTokenBalance(inputToken, account?.publicKey ?? null);
+    // 출력 토큰 잔액 — ATA 존재 여부 추정용. 잔액 0(보통 ATA 미생성)이면 swap 이 ATA rent 를 더 쓴다.
+    const outputBalance = useTokenBalance(outputToken, account?.publicKey ?? null);
+
+    // 출력 토큰 ATA 가 없을 가능성(비-native + 잔액 0)이면 가스 reserve 에 ATA rent 를 더한다.
+    // → "사전검사는 통과했는데 on-chain 에서 rent 부족으로 실패"(특히 USDC/SKR 로 cbBTC 매수)를 예방.
+    const outputAtaLikelyMissing = !outputToken.isNative && (outputBalance.data?.amount ?? 0n) === 0n;
+    const requiredGasReserveSol = MIN_SOL_GAS_RESERVE_SOL + (outputAtaLikelyMissing ? OUTPUT_ATA_RENT_SOL : 0);
 
     // 입력 가능액(base). SOL 입력이면 가스 reserve 를 남겨야 하므로 차감.
-    const gasReserveBase = BigInt(Math.round(MIN_SOL_GAS_RESERVE_SOL * 10 ** SOL.decimals));
+    const gasReserveBase = BigInt(Math.round(requiredGasReserveSol * 10 ** SOL.decimals));
     const availableBase = useMemo((): bigint =>
     {
         const bal = inputBalance.data?.amount ?? 0n;
@@ -92,10 +104,17 @@ export function SwapScreen(): React.JSX.Element
 
     const onFlip = useCallback((): void =>
     {
-        setInputToken(outputToken);
-        setOutputToken(inputToken);
+        setCbbtcIsOutput((v) => !v);
         setAmount("");
-    }, [inputToken, outputToken]);
+    }, []);
+
+    // 카운터 토큰 변경 — 입력 토큰이 바뀌어 소수/잔액이 달라지므로 금액 초기화.
+    const onSelectCounter = useCallback((tok: TokenInfo): void =>
+    {
+        setCounterToken(tok);
+        setPickerOpen(false);
+        setAmount("");
+    }, []);
 
     const insufficientGas = useMemo((): boolean =>
     {
@@ -106,10 +125,10 @@ export function SwapScreen(): React.JSX.Element
         {
             // SOL 입력: 입력량 + 가스 reserve 가 잔액 이하여야 함.
             if (!Number.isFinite(amountNum)) return false;
-            return amountNum + MIN_SOL_GAS_RESERVE_SOL > solUi;
+            return amountNum + requiredGasReserveSol > solUi;
         }
-        return solUi < MIN_SOL_GAS_RESERVE_SOL;
-    }, [solBalance.data, amount, inputToken.isNative]);
+        return solUi < requiredGasReserveSol;
+    }, [solBalance.data, amount, inputToken.isNative, requiredGasReserveSol]);
 
     const canSwap = useMemo(() =>
     {
@@ -222,10 +241,7 @@ export function SwapScreen(): React.JSX.Element
             </View>
 
             <View style={styles.inputCard}>
-                <View style={styles.headerRow}>
-                    <Text style={styles.tokenSymbol}>{inputToken.symbol}</Text>
-                    <Text style={styles.tokenName}>{inputToken.name}</Text>
-                </View>
+                <SwapTokenHeader token={inputToken} selectable={cbbtcIsOutput} onPress={() => setPickerOpen(true)} />
                 {account
                     ? (
                         <View style={styles.balanceRow}>
@@ -276,10 +292,7 @@ export function SwapScreen(): React.JSX.Element
             </View>
 
             <View style={styles.outputCard}>
-                <View style={styles.headerRow}>
-                    <Text style={styles.tokenSymbol}>{outputToken.symbol}</Text>
-                    <Text style={styles.tokenName}>{outputToken.name}</Text>
-                </View>
+                <SwapTokenHeader token={outputToken} selectable={!cbbtcIsOutput} onPress={() => setPickerOpen(true)} />
                 {/* 견적이 도착했으면 아래 QuoteDisplay가 수치를 표시하므로 힌트는 숨김 */}
                 {!quoteQuery.data && (
                     <Text style={styles.placeholderHint}>{t("swap.outputHint")}</Text>
@@ -342,12 +355,56 @@ export function SwapScreen(): React.JSX.Element
                 onClose={closeModal}
                 onCancelPending={cancelSwap}
             />
+
+            <TokenPickerModal
+                visible={pickerOpen}
+                tokens={SWAP_COUNTER_TOKENS}
+                selectedMint={counterToken.mint}
+                onSelect={onSelectCounter}
+                onClose={() => setPickerOpen(false)}
+            />
         </ScrollView>
         <SwapGuideScreen visible={guideOpen} onClose={() => setGuideOpen(false)} />
         {lightningEnabled && (
             <LightningScreen visible={lightningOpen} onClose={() => setLightningOpen(false)} />
         )}
         </>
+    );
+}
+
+// 토큰 행 헤더. 카운터 토큰 쪽(selectable)은 chevron + Pressable 로 선택기를 열고,
+// cbBTC 쪽(고정축)은 일반 텍스트로 표시.
+function SwapTokenHeader({ token, selectable, onPress }: {
+    token: TokenInfo;
+    selectable: boolean;
+    onPress: () => void;
+}): React.JSX.Element
+{
+    const { t } = useTranslation();
+    const { palette } = useTheme();
+    const styles = useThemedStyles(makeStyles);
+
+    if (!selectable)
+    {
+        return (
+            <View style={styles.headerRow}>
+                <Text style={styles.tokenSymbol} maxFontSizeMultiplier={1.4}>{token.symbol}</Text>
+                <Text style={styles.tokenName} maxFontSizeMultiplier={1.4}>{token.name}</Text>
+            </View>
+        );
+    }
+    return (
+        <Pressable
+            accessibilityRole="button"
+            // 현재 선택된 토큰을 라벨에 포함 — 스크린리더가 "토큰 선택" 만 읽고 현재 값을 못 알리는 문제 방지
+            accessibilityLabel={`${t("swap.selectToken")}, ${token.symbol}`}
+            onPress={onPress}
+            style={({ pressed }) => [styles.headerRowSelectable, pressed && { opacity: 0.6 }]}
+        >
+            <Text style={styles.tokenSymbol} maxFontSizeMultiplier={1.4}>{token.symbol}</Text>
+            <Text style={styles.tokenName} maxFontSizeMultiplier={1.4}>{token.name}</Text>
+            <Ionicons name="chevron-down" size={16} color={palette.textMuted} style={styles.tokenChevron} />
+        </Pressable>
     );
 }
 
@@ -419,6 +476,16 @@ const makeStyles = (t: ThemePalette) => ({
         flexDirection: "row" as const,
         alignItems: "baseline" as const,
         gap: 8,
+    },
+    // 카운터 토큰 선택 행 — 탭 가능함을 chevron 으로 알린다.
+    headerRowSelectable: {
+        flexDirection: "row" as const,
+        alignItems: "center" as const,
+        alignSelf: "flex-start" as const,
+        gap: 8,
+    },
+    tokenChevron: {
+        marginLeft: 2,
     },
     tokenSymbol: {
         fontSize: 18,

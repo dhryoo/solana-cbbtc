@@ -427,6 +427,7 @@
         "exceeds": "보유량을 초과했습니다",
         "amountAccessibility": "입력 금액",
         "flipAccessibility": "토큰 방향 전환",
+        "selectToken": "토큰 선택",
         "swapButton": "Swap 실행",
         "btnConnectFirst": "지갑 연결 후 사용 가능",
         "btnAmountFirst": "금액을 입력하세요",
