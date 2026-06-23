@@ -56,8 +56,10 @@ export function useBorrowLending(): UseMutationResult<BorrowResult, Error, Borro
                 {
                     if (__DEV__)
                     {
+                        // 사전 시뮬레이션 실패는 잔액 부족 등 '예상된 사용자 사유'가 많고 UI 안내로 처리된다 →
+                        // 빨간 error 가 아니라 warn 으로 (release 엔 __DEV__ 라 어차피 안 찍힘).
                         // eslint-disable-next-line no-console
-                        console.error("[borrow] simulation failed", { err: sim.value.err, logs: sim.value.logs });
+                        console.warn("[borrow] simulation failed", { err: sim.value.err, logs: sim.value.logs });
                     }
                     throw new Error(msg);
                 }
