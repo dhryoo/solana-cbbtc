@@ -4,6 +4,7 @@ import React, { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
     ActivityIndicator,
+    Keyboard,
     Linking,
     Modal,
     Platform,
@@ -18,7 +19,7 @@ import {
 
 import { LightningReceivePanel } from "@/components/LightningReceivePanel";
 import { QRScanModal } from "@/components/QRScanModal";
-import { TxProgress } from "@/components/TxProgress";
+import { TxProgressModal } from "@/components/TxProgressModal";
 import { BRAND_PURPLE, type ThemePalette } from "@/constants/theme";
 import { CBBTC, SOL, USDC, type TokenInfo } from "@/constants/tokens";
 import {
@@ -240,6 +241,7 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
         let swapped = false;
         setNotice(null);
         setLastError(null);
+        Keyboard.dismiss();
         setProgress({ step: "signing", state: "running" });
         setCbbtcStatus(cbbtcPhaseLabel("swapping"));
         cbbtcPayMutation.mutate(
@@ -325,6 +327,7 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
         payAbortRef.current = new AbortController();
         setNotice(null);
         setLastError(null);
+        Keyboard.dismiss();
         setProgress({ step: "signing", state: "running" });
         payMutation.mutate(
             {
@@ -629,30 +632,13 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                         </View>
                     )}
 
-                    {(cbbtcStatus || progress) ? (
-                        <View style={styles.progressWrap}>
-                            {cbbtcStatus ? (
-                                <View style={styles.cbbtcStatusRow}>
-                                    <ActivityIndicator color={palette.text} />
-                                    <Text style={styles.cbbtcStatusText}>{cbbtcStatus}</Text>
-                                </View>
-                            ) : progress ? (
-                                <TxProgress current={progress.step} state={progress.state} />
-                            ) : null}
-                            {/* 진행 표시가 떠 있으면 상태와 무관하게 항상 노출 —
-                                Seeker Seed Vault 는 '거부' 버튼이 없고 X 로 닫으면 서명이 멈추므로,
-                                이 버튼이 이 기기의 기본 취소·복구 수단이다. */}
-                            <Pressable
-                                accessibilityRole="button"
-                                accessibilityLabel={t("lightning.cancelPending")}
-                                onPress={onCancelPending}
-                                style={({ pressed }) => [styles.cancelPending, pressed && styles.cancelPendingPressed]}
-                            >
-                                <Ionicons name="close-circle-outline" size={16} color={palette.text} />
-                                <Text style={styles.cancelPendingText}>{t("lightning.cancelPending")}</Text>
-                            </Pressable>
-                        </View>
-                    ) : null}
+                    <TxProgressModal
+                        progress={progress}
+                        statusText={cbbtcStatus}
+                        title={t("txProgress.processing")}
+                        onCancel={onCancelPending}
+                        cancelLabel={t("lightning.cancelPending")}
+                    />
 
                     {/* 결과 */}
                     {outcome && (
@@ -838,7 +824,6 @@ const makeStyles = (t: ThemePalette) => StyleSheet.create({
     buttonDisabled: { backgroundColor: t.disabled },
     buttonText: { fontSize: 15, fontWeight: "700", color: t.textInverse },
     initHint: { fontSize: 11, color: t.textDim, textAlign: "center" },
-    progressWrap: { gap: 12, alignItems: "center" as const },
     cbbtcChainHint: { fontSize: 12, color: t.textMuted, lineHeight: 17, marginBottom: 2 },
     destLabelRow: { flexDirection: "row" as const, alignItems: "center" as const, justifyContent: "space-between" as const },
     scanButton: {
@@ -858,24 +843,6 @@ const makeStyles = (t: ThemePalette) => StyleSheet.create({
     modeTabActive: { backgroundColor: t.primary },
     modeTabText: { fontSize: 14, fontWeight: "700" as const, color: t.textMuted },
     modeTabTextActive: { color: t.textInverse },
-    cbbtcStatusRow: { flexDirection: "row" as const, alignItems: "center" as const, gap: 10 },
-    cbbtcStatusText: { fontSize: 14, fontWeight: "600" as const, color: t.text },
-    cancelPending: {
-        flexDirection: "row" as const,
-        alignItems: "center" as const,
-        justifyContent: "center" as const,
-        gap: 6,
-        alignSelf: "center" as const,
-        paddingVertical: 11,
-        paddingHorizontal: 22,
-        borderRadius: 999,
-        borderWidth: 1,
-        borderColor: t.borderStrong,
-        backgroundColor: t.surfaceMuted,
-        minWidth: 140,
-    },
-    cancelPendingPressed: { opacity: 0.6 },
-    cancelPendingText: { fontSize: 14, fontWeight: "700" as const, color: t.text },
     row: { flexDirection: "row", justifyContent: "space-between", gap: 12 },
     rowLabel: { fontSize: 13, color: t.textMuted },
     rowValue: { flex: 1, fontSize: 13, fontWeight: "600", color: t.text, textAlign: "right" },

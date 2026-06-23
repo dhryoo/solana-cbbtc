@@ -16,7 +16,7 @@ import {
 } from "react-native";
 
 import { BorrowConsentModal } from "@/components/BorrowConsentModal";
-import { CancelableProgress } from "@/components/CancelableProgress";
+import { TxProgressModal } from "@/components/TxProgressModal";
 import { TxProgress } from "@/components/TxProgress";
 import { useCancellableSign } from "@/hooks/useCancellableSign";
 import { LendingGuideScreen } from "@/screens/LendingGuideScreen";
@@ -324,6 +324,7 @@ function SupplyForm({ owner, styles, palette, t, cbbtcPriceUsd, currentSuppliedU
         setLastError(null);
         setNotice(null);
         setResult(null);
+        Keyboard.dismiss();
         setProgress({ step: "preparing", state: "running" });
         const token = sign.begin();
         supply.mutate(
@@ -451,7 +452,7 @@ function SupplyForm({ owner, styles, palette, t, cbbtcPriceUsd, currentSuppliedU
                     : <Text style={styles.buttonText}>{t("earn.supply.button")}</Text>}
             </Pressable>
 
-            <CancelableProgress progress={progress} onCancel={onCancelSign} cancelLabel={t("common.cancel_pending")} />
+            <TxProgressModal progress={progress} title={t("txProgress.processing")} onCancel={onCancelSign} cancelLabel={t("common.cancel_pending")} />
 
             {notice
                 ? (
@@ -566,6 +567,7 @@ function WithdrawForm({ suppliedUsd, cbbtcPriceUsd, styles, palette, t, onFocusI
         setLastError(null);
         setNotice(null);
         setResult(null);
+        Keyboard.dismiss();
         setProgress({ step: "preparing", state: "running" });
         const token = sign.begin();
         withdraw.mutate(
@@ -681,7 +683,7 @@ function WithdrawForm({ suppliedUsd, cbbtcPriceUsd, styles, palette, t, onFocusI
                     : <Text style={styles.buttonText}>{t("earn.withdraw.button")}</Text>}
             </Pressable>
 
-            <CancelableProgress progress={progress} onCancel={onCancelSign} cancelLabel={t("common.cancel_pending")} />
+            <TxProgressModal progress={progress} title={t("txProgress.processing")} onCancel={onCancelSign} cancelLabel={t("common.cancel_pending")} />
 
             {notice
                 ? (
@@ -749,6 +751,7 @@ function BorrowForm({ maxBorrowableUsd, styles, palette, t, onFocusInput }: Borr
         setLastError(null);
         setNotice(null);
         setResult(null);
+        Keyboard.dismiss();
         setProgress({ step: "preparing", state: "running" });
         const token = sign.begin();
         borrow.mutate(
@@ -885,7 +888,7 @@ function BorrowForm({ maxBorrowableUsd, styles, palette, t, onFocusInput }: Borr
                     : <Text style={styles.buttonText}>{t("earn.borrow.button")}</Text>}
             </Pressable>
 
-            <CancelableProgress progress={progress} onCancel={onCancelSign} cancelLabel={t("common.cancel_pending")} />
+            <TxProgressModal progress={progress} title={t("txProgress.processing")} onCancel={onCancelSign} cancelLabel={t("common.cancel_pending")} />
 
             {notice
                 ? (
@@ -956,6 +959,7 @@ function RepayForm({ owner, borrowedUsd, styles, palette, t, onFocusInput }: Rep
         setLastError(null);
         setNotice(null);
         setResult(null);
+        Keyboard.dismiss();
         setProgress({ step: "preparing", state: "running" });
         const token = sign.begin();
         repay.mutate(
@@ -1071,7 +1075,7 @@ function RepayForm({ owner, borrowedUsd, styles, palette, t, onFocusInput }: Rep
                     : <Text style={styles.buttonText}>{t("earn.repay.button")}</Text>}
             </Pressable>
 
-            <CancelableProgress progress={progress} onCancel={onCancelSign} cancelLabel={t("common.cancel_pending")} />
+            <TxProgressModal progress={progress} title={t("txProgress.processing")} onCancel={onCancelSign} cancelLabel={t("common.cancel_pending")} />
 
             {lastError
                 ? (

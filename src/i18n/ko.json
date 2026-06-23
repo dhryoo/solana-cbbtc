@@ -112,7 +112,8 @@
         "simulating": "사전 검증 (시뮬레이션)",
         "signing": "지갑 서명 대기",
         "sending": "네트워크 전송",
-        "done": "완료"
+        "done": "완료",
+        "processing": "처리 중…"
     },
     "borrowConsent": {
         "title": "차입 위험 안내",

@@ -112,7 +112,8 @@
         "simulating": "Pre-flight check (simulation)",
         "signing": "Waiting for wallet signature",
         "sending": "Sending to network",
-        "done": "Done"
+        "done": "Done",
+        "processing": "Processing…"
     },
     "borrowConsent": {
         "title": "Borrowing risk notice",
