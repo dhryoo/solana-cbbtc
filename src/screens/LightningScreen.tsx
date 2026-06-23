@@ -30,6 +30,7 @@ import {
 } from "@/hooks/useCbbtcLightning";
 import { useLightningPay, useLightningQuote, useRefundableSwaps, useRefundAll } from "@/hooks/useLightning";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
+import { useTokenBalance } from "@/hooks/useTokenBalance";
 import { useWallet } from "@/hooks/useWallet";
 import { useNetworkStatus } from "@/providers/NetworkProvider";
 import { useTheme } from "@/providers/ThemeProvider";
@@ -39,6 +40,7 @@ import { LightningQuoteError } from "@/services/lightning/LightningService";
 import { isLightningAmountError } from "@/services/lightning/types";
 import type { LightningPayOutcome, LightningPayPhase, LightningQuote } from "@/services/lightning/types";
 import { formatRawAmount } from "@/utils/format";
+import { isSolGasLow } from "@/utils/gasCheck";
 import { isAuthFailure, isUserRejection, isWalletTimeout } from "@/utils/lendingErrors";
 import { parseLightningInput } from "@/utils/lightningInvoice";
 import type { ProgressState, TxStep } from "@/utils/txProgress";
@@ -72,6 +74,9 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
     const { palette } = useTheme();
     const styles = useThemedStyles(makeStyles);
     const { account } = useWallet();
+    // 보내기도 SOL 을 가스로 쓴다(Jupiter swap + Atomiq commit 서명). 받기처럼 사전 안내.
+    const solBalance = useTokenBalance(SOL, account?.publicKey ?? null);
+    const solGasLow = isSolGasLow(solBalance.data?.amount);
     const { isOnline } = useNetworkStatus();
     const { showToast } = useToast();
 
@@ -571,6 +576,19 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                             ))}
                         </View>
 
+                        {solGasLow && !notice && (
+                            <View
+                                style={styles.warnBox}
+                                accessible
+                                accessibilityRole="alert"
+                                accessibilityLabel={t("errors.lowSolGas", { amount: (solBalance.data?.uiAmount ?? 0).toFixed(4) })}
+                            >
+                                <View style={styles.warnRow}>
+                                    <Ionicons name="alert-circle-outline" size={16} color={palette.warn} importantForAccessibility="no" />
+                                    <Text style={styles.warnText}>{t("errors.lowSolGas", { amount: (solBalance.data?.uiAmount ?? 0).toFixed(4) })}</Text>
+                                </View>
+                            </View>
+                        )}
                         <Pressable
                             accessibilityRole="button"
                             accessibilityState={{ disabled: !canQuote, busy: quoteMutation.isPending || cbbtcQuoteMutation.isPending }}

@@ -21,7 +21,7 @@ import { TxProgress } from "@/components/TxProgress";
 import { useCancellableSign } from "@/hooks/useCancellableSign";
 import { LendingGuideScreen } from "@/screens/LendingGuideScreen";
 import { MIN_CBBTC_SUPPLY_BASE } from "@/constants/lending";
-import { CBBTC, USDC } from "@/constants/tokens";
+import { CBBTC, SOL, USDC } from "@/constants/tokens";
 import { BRAND_PURPLE, type ThemePalette } from "@/constants/theme";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
 import { useKaminoMarket } from "@/hooks/useKaminoMarket";
@@ -36,7 +36,9 @@ import { useNetworkStatus } from "@/providers/NetworkProvider";
 import { useTheme } from "@/providers/ThemeProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { loadBorrowConsent, saveBorrowConsent } from "@/utils/borrowConsent";
-import { isAuthFailure, isInsufficientFunds, isNoBorrowsToRepay, isOracleStaleError, isUserRejection, isWalletTimeout } from "@/utils/lendingErrors";
+import { pickEarnNoticeHintKey } from "@/utils/earnNoticeHint";
+import { FIRST_SUPPLY_GAS_THRESHOLD_LAMPORTS, isSolGasLow, LOW_SOL_GAS_THRESHOLD_LAMPORTS } from "@/utils/gasCheck";
+import { isAuthFailure, isInsufficientFunds, isInsufficientLamports, isUserRejection } from "@/utils/lendingErrors";
 import { markAuthFailureNow } from "@/utils/walletAuthAge";
 
 import { WalletReconnectBanner } from "@/components/WalletReconnectBanner";
@@ -193,6 +195,7 @@ export function EarnScreen(): React.JSX.Element
                                         t={t}
                                         cbbtcPriceUsd={market.data?.cbbtcPriceUsd}
                                         currentSuppliedUsd={position.data?.suppliedUsd}
+                                        firstTimeSupply={position.data?.hasPosition === false}
                                         onFocusInput={onFocusInput}
                                     />
                                 );
@@ -202,6 +205,7 @@ export function EarnScreen(): React.JSX.Element
                                 return hasSupplied
                                     ? (
                                         <WithdrawForm
+                                            owner={owner}
                                             suppliedUsd={position.data?.suppliedUsd ?? 0}
                                             cbbtcPriceUsd={market.data?.cbbtcPriceUsd}
                                             styles={styles}
@@ -215,7 +219,7 @@ export function EarnScreen(): React.JSX.Element
                             if (mode === "borrow")
                             {
                                 return hasSupplied
-                                    ? <BorrowForm maxBorrowableUsd={position.data?.maxBorrowableUsd ?? 0} styles={styles} palette={palette} t={t} onFocusInput={onFocusInput} />
+                                    ? <BorrowForm owner={owner} maxBorrowableUsd={position.data?.maxBorrowableUsd ?? 0} styles={styles} palette={palette} t={t} onFocusInput={onFocusInput} />
                                     : empty(t("earn.borrow.noCollateral"));
                             }
                             return hasDebt
@@ -273,6 +277,35 @@ function ActionToggle({ mode, onChange, styles, t }: ActionToggleProps): React.J
     );
 }
 
+interface LowSolGasWarnProps
+{
+    show: boolean;
+    uiAmount: number | undefined;
+    styles: ReturnType<typeof makeStyles>;
+    palette: ThemePalette;
+    t: ReturnType<typeof useTranslation>["t"];
+}
+
+// 가스로 쓸 SOL 이 부족할 수 있을 때의 사전 경고(비차단). 모든 Earn 액션 폼이 제출 버튼 위에 노출.
+// 실제 차단은 서명 전 시뮬레이션이 담당하고, 이건 원인을 미리 알려 주는 안내.
+// show 는 호출 폼이 작업별 임계치로 계산해 넘긴다(첫 공급은 더 높은 floor). 사후 notice 와
+// 같은 원인을 두 번 보여주지 않도록 폼에서 !notice 로 게이트한다.
+function LowSolGasWarn({ show, uiAmount, styles, palette, t }: LowSolGasWarnProps): React.JSX.Element | null
+{
+    if (!show)
+    {
+        return null;
+    }
+    const message = t("errors.lowSolGas", { amount: (uiAmount ?? 0).toFixed(4) });
+    return (
+        // 동적으로 등장하므로 TalkBack 이 한 노드로 즉시 읽도록 alert + 단일 라벨 (OfflineBanner 관례).
+        <View style={styles.gasWarnBox} accessible accessibilityRole="alert" accessibilityLabel={message}>
+            <Ionicons name="alert-circle-outline" size={16} color={palette.warn} importantForAccessibility="no" />
+            <Text style={styles.gasWarnText}>{message}</Text>
+        </View>
+    );
+}
+
 interface SupplyFormProps
 {
     owner: PublicKey;
@@ -281,6 +314,8 @@ interface SupplyFormProps
     t: ReturnType<typeof useTranslation>["t"];
     cbbtcPriceUsd: number | undefined;
     currentSuppliedUsd: number | undefined;
+    // obligation 미존재(첫 공급) — 계정 생성 rent 로 SOL 이 훨씬 많이 들어 더 높은 가스 floor 적용.
+    firstTimeSupply: boolean;
     onFocusInput: () => void;
 }
 
@@ -290,13 +325,17 @@ interface SupplyResultView
     signature: string;
 }
 
-function SupplyForm({ owner, styles, palette, t, cbbtcPriceUsd, currentSuppliedUsd, onFocusInput }: SupplyFormProps): React.JSX.Element
+function SupplyForm({ owner, styles, palette, t, cbbtcPriceUsd, currentSuppliedUsd, firstTimeSupply, onFocusInput }: SupplyFormProps): React.JSX.Element
 {
     const { isOnline } = useNetworkStatus();
     const { showToast } = useToast();
     const supply = useSupplyLending();
     const sign = useCancellableSign();
     const balance = useTokenBalance(CBBTC, owner);
+    const solBalance = useTokenBalance(SOL, owner);
+    // 첫 공급은 obligation/metadata/farm 계정 생성으로 SOL rent 가 훨씬 크다 → 더 높은 floor.
+    const gasThreshold = firstTimeSupply ? FIRST_SUPPLY_GAS_THRESHOLD_LAMPORTS : LOW_SOL_GAS_THRESHOLD_LAMPORTS;
+    const solGasLow = isSolGasLow(solBalance.data?.amount, gasThreshold);
     const [amount, setAmount] = useState("");
     const [lastError, setLastError] = useState<string | null>(null);
     const [notice, setNotice] = useState<string | null>(null);
@@ -352,12 +391,8 @@ function SupplyForm({ owner, styles, palette, t, cbbtcPriceUsd, currentSuppliedU
                         // 한 번이라도 인증 실패가 나면 그 시점부터 stale 로 마킹 — 다음 진입 즉시 배너 노출.
                         void markAuthFailureNow();
                     }
-                    const noticeMsg = isOracleStaleError(err.message)
-                        ? t("earn.oracleStaleHint")
-                        : isInsufficientFunds(err.message) ? t("earn.insufficientHint")
-                            : authFailed ? t("earn.authFailedHint")
-                                : isWalletTimeout(err.message) ? t("earn.walletTimeoutHint")
-                                    : isNoBorrowsToRepay(err.message) ? t("earn.noBorrowsHint") : null;
+                    const noticeKey = pickEarnNoticeHintKey({ message: err.message, authFailed, solGasLow, cancelled });
+                    const noticeMsg = noticeKey ? t(noticeKey) : null;
                     setNotice(noticeMsg);
                     setLastError(noticeMsg || cancelled ? null : err.message);
                     showToast(cancelled ? t("errors.userCancelled") : t("earn.supply.errorPrefix"), { variant: cancelled ? "info" : "error", durationMs: 5000 });
@@ -440,6 +475,7 @@ function SupplyForm({ owner, styles, palette, t, cbbtcPriceUsd, currentSuppliedU
                 : belowMin
                     ? <Text style={styles.exceedHint}>{t("earn.supply.belowMin", { amount: minLabel })}</Text>
                     : null}
+            <LowSolGasWarn show={solGasLow && !notice} uiAmount={solBalance.data?.uiAmount} styles={styles} palette={palette} t={t} />
             <Pressable
                 accessibilityRole="button"
                 accessibilityState={{ disabled: !canSubmit, busy: supply.isPending }}
@@ -522,6 +558,7 @@ function LendingResultCard(
 
 interface WithdrawFormProps
 {
+    owner: PublicKey;
     suppliedUsd: number;
     cbbtcPriceUsd: number | undefined;
     styles: ReturnType<typeof makeStyles>;
@@ -530,12 +567,14 @@ interface WithdrawFormProps
     onFocusInput: () => void;
 }
 
-function WithdrawForm({ suppliedUsd, cbbtcPriceUsd, styles, palette, t, onFocusInput }: WithdrawFormProps): React.JSX.Element
+function WithdrawForm({ owner, suppliedUsd, cbbtcPriceUsd, styles, palette, t, onFocusInput }: WithdrawFormProps): React.JSX.Element
 {
     const { isOnline } = useNetworkStatus();
     const { showToast } = useToast();
     const withdraw = useWithdrawLending();
     const sign = useCancellableSign();
+    const solBalance = useTokenBalance(SOL, owner);
+    const solGasLow = isSolGasLow(solBalance.data?.amount);
     const [amount, setAmount] = useState("");
     const [withdrawAll, setWithdrawAll] = useState(false);
     const [progress, setProgress] = useState<{ step: TxStep; state: ProgressState } | null>(null);
@@ -597,12 +636,8 @@ function WithdrawForm({ suppliedUsd, cbbtcPriceUsd, styles, palette, t, onFocusI
                         // 한 번이라도 인증 실패가 나면 그 시점부터 stale 로 마킹 — 다음 진입 즉시 배너 노출.
                         void markAuthFailureNow();
                     }
-                    const noticeMsg = isOracleStaleError(err.message)
-                        ? t("earn.oracleStaleHint")
-                        : isInsufficientFunds(err.message) ? t("earn.insufficientHint")
-                            : authFailed ? t("earn.authFailedHint")
-                                : isWalletTimeout(err.message) ? t("earn.walletTimeoutHint")
-                                    : isNoBorrowsToRepay(err.message) ? t("earn.noBorrowsHint") : null;
+                    const noticeKey = pickEarnNoticeHintKey({ message: err.message, authFailed, solGasLow, cancelled });
+                    const noticeMsg = noticeKey ? t(noticeKey) : null;
                     setNotice(noticeMsg);
                     setLastError(noticeMsg || cancelled ? null : err.message);
                     showToast(cancelled ? t("errors.userCancelled") : t("earn.withdraw.errorPrefix"), { variant: cancelled ? "info" : "error", durationMs: 5000 });
@@ -671,6 +706,7 @@ function WithdrawForm({ suppliedUsd, cbbtcPriceUsd, styles, palette, t, onFocusI
             {exceeds
                 ? <Text style={styles.exceedHint}>{t("earn.supply.exceeds")}</Text>
                 : null}
+            <LowSolGasWarn show={solGasLow && !notice} uiAmount={solBalance.data?.uiAmount} styles={styles} palette={palette} t={t} />
             <Pressable
                 accessibilityRole="button"
                 accessibilityState={{ disabled: !canSubmit, busy: withdraw.isPending }}
@@ -707,6 +743,7 @@ function WithdrawForm({ suppliedUsd, cbbtcPriceUsd, styles, palette, t, onFocusI
 
 interface BorrowFormProps
 {
+    owner: PublicKey;
     maxBorrowableUsd: number;
     styles: ReturnType<typeof makeStyles>;
     palette: ThemePalette;
@@ -714,12 +751,14 @@ interface BorrowFormProps
     onFocusInput: () => void;
 }
 
-function BorrowForm({ maxBorrowableUsd, styles, palette, t, onFocusInput }: BorrowFormProps): React.JSX.Element
+function BorrowForm({ owner, maxBorrowableUsd, styles, palette, t, onFocusInput }: BorrowFormProps): React.JSX.Element
 {
     const { isOnline } = useNetworkStatus();
     const { showToast } = useToast();
     const borrow = useBorrowLending();
     const sign = useCancellableSign();
+    const solBalance = useTokenBalance(SOL, owner);
+    const solGasLow = isSolGasLow(solBalance.data?.amount);
     const [amount, setAmount] = useState("");
     const [progress, setProgress] = useState<{ step: TxStep; state: ProgressState } | null>(null);
     const [result, setResult] = useState<SupplyResultView | null>(null);
@@ -780,12 +819,8 @@ function BorrowForm({ maxBorrowableUsd, styles, palette, t, onFocusInput }: Borr
                         void markAuthFailureNow();
                     }
                     // 오라클 지연·SOL 부족은 안내 박스로, 취소는 raw 숨김. 그 외만 raw 표시.
-                    const noticeMsg = isOracleStaleError(err.message)
-                        ? t("earn.oracleStaleHint")
-                        : isInsufficientFunds(err.message) ? t("earn.insufficientHint")
-                            : authFailed ? t("earn.authFailedHint")
-                                : isWalletTimeout(err.message) ? t("earn.walletTimeoutHint")
-                                    : isNoBorrowsToRepay(err.message) ? t("earn.noBorrowsHint") : null;
+                    const noticeKey = pickEarnNoticeHintKey({ message: err.message, authFailed, solGasLow, cancelled });
+                    const noticeMsg = noticeKey ? t(noticeKey) : null;
                     setNotice(noticeMsg);
                     setLastError(noticeMsg || cancelled ? null : err.message);
                     showToast(cancelled ? t("errors.userCancelled") : t("earn.borrow.errorPrefix"), { variant: cancelled ? "info" : "error", durationMs: 5000 });
@@ -876,6 +911,7 @@ function BorrowForm({ maxBorrowableUsd, styles, palette, t, onFocusInput }: Borr
             {exceedsMax
                 ? <Text style={styles.exceedHint}>{t("earn.borrow.exceedsMax")}</Text>
                 : null}
+            <LowSolGasWarn show={solGasLow && !notice} uiAmount={solBalance.data?.uiAmount} styles={styles} palette={palette} t={t} />
             <Pressable
                 accessibilityRole="button"
                 accessibilityState={{ disabled: !canSubmit, busy: borrow.isPending }}
@@ -928,6 +964,8 @@ function RepayForm({ owner, borrowedUsd, styles, palette, t, onFocusInput }: Rep
     const repay = useRepayLending();
     const sign = useCancellableSign();
     const walletUsdc = useTokenBalance(USDC, owner);
+    const solBalance = useTokenBalance(SOL, owner);
+    const solGasLow = isSolGasLow(solBalance.data?.amount);
     const [amount, setAmount] = useState("");
     const [repayAll, setRepayAll] = useState(false);
     const [progress, setProgress] = useState<{ step: TxStep; state: ProgressState } | null>(null);
@@ -939,8 +977,31 @@ function RepayForm({ owner, borrowedUsd, styles, palette, t, onFocusInput }: Rep
     const debtBase = BigInt(Math.ceil(borrowedUsd * 10 ** USDC.decimals));
     const amountBase = parseTokenAmount(amount, USDC.decimals);
     const exceeds = !repayAll && amountBase !== null && amountBase > debtBase;
+
+    // 지갑 USDC 가 상환액보다 적으면 트랜잭션은 SPL Token "insufficient funds"(0x1)로 실패한다.
+    // 부분 상환은 입력액(amountBase)이 그대로 온체인 전송되므로 정확히 비교 가능 → 사전 차단해 헛된
+    // 시뮬레이션/지갑 프롬프트를 막는다.
+    // 전액 상환(repayAll)은 온체인이 raw 토큰 부채를 u64::MAX 로 정산하는데, debtBase 는 USD 환산값
+    // (USDC oracle price 반영)이라 price>1 일 때 실제 토큰 부채를 과대평가할 수 있다 → 정상 거래를
+    // 잘못 막지 않도록 사전 차단하지 않고, 실패 시 reactive 안내(earn.repay.insufficientUsdc)에 맡긴다.
+    // 잔액 로딩 전(undefined)엔 막지 않는다.
+    const walletUsdcBase = walletUsdc.data?.amount ?? 0n;
+    const insufficientUsdc = !repayAll
+        && walletUsdc.data !== undefined
+        && amountBase !== null && amountBase > 0n
+        && walletUsdcBase < amountBase;
+
+    // 전액 상환(repayAll) 사전 경고(비차단): debtBase 는 USD 환산이라 USDC price≤1(상시 ~0.9998)에선
+    // 실제 토큰 부채를 과소평가한다 → walletUsdc < debtBase 면 전액 상환이 부족할 가능성이 매우 높다(오탐 거의 없음).
+    // 하드 차단은 price>1 의 과대평가 오탐을 피하려 하지 않는다 — 사용자가 갑작스러운 실패에 놀라지 않게 미리 안내만.
+    const usdcLikelyShortForAll = repayAll
+        && walletUsdc.data !== undefined
+        && debtBase > 0n
+        && walletUsdcBase < debtBase;
+
     const canSubmit = isOnline
         && !repay.isPending
+        && !insufficientUsdc
         && (repayAll || (amountBase !== null && amountBase > 0n && !exceeds));
 
     const onMax = (): void =>
@@ -990,12 +1051,11 @@ function RepayForm({ owner, borrowedUsd, styles, palette, t, onFocusInput }: Rep
                         // 한 번이라도 인증 실패가 나면 그 시점부터 stale 로 마킹 — 다음 진입 즉시 배너 노출.
                         void markAuthFailureNow();
                     }
-                    const noticeMsg = isOracleStaleError(err.message)
-                        ? t("earn.oracleStaleHint")
-                        : isInsufficientFunds(err.message) ? t("earn.insufficientHint")
-                            : authFailed ? t("earn.authFailedHint")
-                                : isWalletTimeout(err.message) ? t("earn.walletTimeoutHint")
-                                    : isNoBorrowsToRepay(err.message) ? t("earn.noBorrowsHint") : null;
+                    // USDC(상환 토큰) 부족 — Token program "insufficient funds"(lamports 아님). SOL 부족과 구분해
+                    // 전용 안내를 띄운다(이자로 부채가 빌린 액보다 커 전액 상환에 USDC 가 모자란 케이스 포함).
+                    const usdcShortfall = !cancelled && isInsufficientFunds(err.message) && !isInsufficientLamports(err.message);
+                    const noticeKey = pickEarnNoticeHintKey({ message: err.message, authFailed, solGasLow, cancelled });
+                    const noticeMsg = usdcShortfall ? t("earn.repay.insufficientUsdc") : (noticeKey ? t(noticeKey) : null);
                     setNotice(noticeMsg);
                     const isDust = /6092|remaining too small/i.test(err.message);
                     setLastError(noticeMsg || cancelled ? null : (isDust ? `${t("earn.repay.dustHint")}\n\n${err.message}` : err.message));
@@ -1063,6 +1123,15 @@ function RepayForm({ owner, borrowedUsd, styles, palette, t, onFocusInput }: Rep
                 maxLength={20}
                 accessibilityLabel={t("earn.repay.heading")}
             />
+            {(insufficientUsdc || usdcLikelyShortForAll) && !notice
+                ? (
+                    <View style={styles.gasWarnBox} accessible accessibilityRole="alert" accessibilityLabel={t("earn.repay.insufficientUsdc")}>
+                        <Ionicons name="alert-circle-outline" size={16} color={palette.warn} importantForAccessibility="no" />
+                        <Text style={styles.gasWarnText}>{t("earn.repay.insufficientUsdc")}</Text>
+                    </View>
+                )
+                : null}
+            <LowSolGasWarn show={solGasLow && !notice} uiAmount={solBalance.data?.uiAmount} styles={styles} palette={palette} t={t} />
             <Pressable
                 accessibilityRole="button"
                 accessibilityState={{ disabled: !canSubmit, busy: repay.isPending }}
@@ -1378,6 +1447,24 @@ const makeStyles = (t: ThemePalette) => ({
         fontSize: 13,
         lineHeight: 19,
         color: t.textMuted,
+    },
+    gasWarnBox: {
+        flexDirection: "row" as const,
+        alignItems: "flex-start" as const,
+        gap: 8,
+        marginTop: -4,
+        marginBottom: 12,
+        padding: 12,
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: t.warn,
+        backgroundColor: t.surfaceMuted,
+    },
+    gasWarnText: {
+        flex: 1,
+        fontSize: 12,
+        lineHeight: 17,
+        color: t.warn,
     },
     errorTitle: {
         fontSize: 11,

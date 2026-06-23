@@ -81,7 +81,8 @@
             "noDebt": "You have no borrowing to repay",
             "completed": "Repay complete",
             "errorPrefix": "Repay failed",
-            "dustHint": "To fully repay including interest, you need a little more USDC than you borrowed. Get a bit more USDC via Swap, then repay with MAX."
+            "dustHint": "To fully repay including interest, you need a little more USDC than you borrowed. Get a bit more USDC via Swap, then repay with MAX.",
+            "insufficientUsdc": "Your wallet's USDC is less than this repayment needs. The debt accrues interest, so it can exceed what you borrowed — swap for a little more USDC, or repay a smaller amount. (Your SOL is fine.)"
         },
         "borrow": {
             "heading": "Borrow USDC",
@@ -462,6 +463,7 @@
         "sessionTerminated": "Wallet session ended. Please try again.",
         "authExpired": "Wallet authorization expired. Reconnect your wallet and try again.",
         "insufficientBalance": "Insufficient balance. Check SOL and input token balances.",
+        "lowSolGas": "You may be low on SOL for gas (currently {{amount}} SOL). On-chain actions need SOL for network fees, and a first transaction also needs SOL for account rent. If it fails, top up a little SOL and try again.",
         "slippageExceeded": "Price moved beyond your slippage tolerance. Raise slippage and retry.",
         "blockhashExpired": "Transaction was rejected due to a stale blockhash. Please try again.",
         "computeBudget": "Transaction is too complex (compute budget exceeded). Try again shortly.",

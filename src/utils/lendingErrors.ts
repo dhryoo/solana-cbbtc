@@ -20,10 +20,23 @@ export function isUserRejection(message: string): boolean
 
 /**
  * SOL/토큰 잔액 부족 (첫 거래의 계정 rent·수수료 포함). raw 대신 친절 안내로 처리.
+ * 주의: 광범위 매칭 — SPL Token 의 "insufficient funds"(토큰 잔액 부족)와 System Program 의
+ * "insufficient lamports"(SOL 부족)를 모두 잡는다. SOL/토큰을 구분해야 할 때는
+ * isInsufficientLamports 와 함께 쓴다. (예: repay 실패는 USDC 부족이지 SOL 부족이 아님)
  */
 export function isInsufficientFunds(message: string): boolean
 {
     return /insufficient (lamports|funds|balance)/i.test(message);
+}
+
+/**
+ * SOL(가스/rent) 부족 — System Program 의 "insufficient lamports" 전용.
+ * SPL Token 의 "insufficient funds"(토큰 잔액 부족)는 잡지 않는다.
+ * 이 둘을 구분해야 "SOL 부족" 안내를 토큰 부족 실패에 잘못 띄우지 않는다.
+ */
+export function isInsufficientLamports(message: string): boolean
+{
+    return /insufficient lamports/i.test(message);
 }
 
 /**

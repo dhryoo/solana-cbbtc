@@ -81,7 +81,8 @@
             "noDebt": "상환할 차입(빚)이 없습니다",
             "completed": "상환 완료",
             "errorPrefix": "상환 실패",
-            "dustHint": "이자까지 전액 상환하려면 빌린 양보다 USDC 가 아주 조금 더 필요합니다. Swap 으로 USDC 를 약간 더 확보한 뒤 MAX 로 상환해 주세요."
+            "dustHint": "이자까지 전액 상환하려면 빌린 양보다 USDC 가 아주 조금 더 필요합니다. Swap 으로 USDC 를 약간 더 확보한 뒤 MAX 로 상환해 주세요.",
+            "insufficientUsdc": "지갑의 USDC 가 상환에 필요한 양보다 부족합니다. 부채는 이자가 붙어 빌린 금액보다 조금 많을 수 있어요 — Swap 으로 USDC 를 조금 더 확보하거나, 더 적은 금액을 상환해 주세요. (SOL 은 충분합니다)"
         },
         "borrow": {
             "heading": "USDC 차입",
@@ -462,6 +463,7 @@
         "sessionTerminated": "지갑 세션이 종료됐습니다. 다시 시도해 주세요.",
         "authExpired": "지갑 인증이 만료됐습니다. 지갑을 다시 연결한 뒤 시도해 주세요.",
         "insufficientBalance": "잔액이 부족합니다. SOL 또는 입력 토큰 잔액을 확인해 주세요.",
+        "lowSolGas": "가스로 쓸 SOL 이 부족할 수 있어요 (현재 {{amount}} SOL). 온체인 작업은 네트워크 수수료로 SOL 이 필요하고, 첫 거래는 계정 보증금(rent)까지 SOL 이 더 듭니다. 실패하면 SOL 을 조금 더 채운 뒤 다시 시도해 주세요.",
         "slippageExceeded": "가격 변동이 허용한 슬리피지를 초과했습니다. 슬리피지를 올리고 다시 시도해 주세요.",
         "blockhashExpired": "트랜잭션이 블록해시 만료로 거부됐습니다. 다시 시도해 주세요.",
         "computeBudget": "트랜잭션이 너무 복잡해 계산 한도를 넘었습니다. 잠시 후 다시 시도해 주세요.",
