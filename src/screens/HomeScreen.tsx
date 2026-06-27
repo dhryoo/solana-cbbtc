@@ -80,6 +80,17 @@ export function HomeScreen(): React.JSX.Element
                 </View>
             </View>
 
+            <View style={styles.heroCard}>
+                <View style={styles.heroRow}>
+                    <Ionicons name="logo-bitcoin" size={16} color={palette.textMuted} />
+                    <Text style={styles.heroText}>{t("home.aboutCbbtc")}</Text>
+                </View>
+                <View style={styles.heroRow}>
+                    <Ionicons name="shield-checkmark" size={16} color={palette.success} />
+                    <Text style={styles.heroText}>{t("home.moat")}</Text>
+                </View>
+            </View>
+
             <View style={styles.cards}>
                 <BalanceCard token={CBBTC} />
                 <BalanceCard token={SOL} />
@@ -155,6 +166,27 @@ const makeStyles = (t: ThemePalette) => ({
     subtitle: {
         marginTop: 4,
         fontSize: 13,
+        color: t.textMuted,
+    },
+    heroCard: {
+        backgroundColor: t.surface,
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: t.border,
+        paddingVertical: 12,
+        paddingHorizontal: 14,
+        marginBottom: 16,
+        gap: 8,
+    },
+    heroRow: {
+        flexDirection: "row" as const,
+        alignItems: "flex-start" as const,
+        gap: 8,
+    },
+    heroText: {
+        flex: 1,
+        fontSize: 12,
+        lineHeight: 17,
         color: t.textMuted,
     },
     cards: {

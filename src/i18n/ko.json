@@ -38,6 +38,7 @@
             "supplyApy": "cbBTC 공급 APY",
             "borrowApr": "USDC 차입 APR",
             "utilization": "이용률",
+            "utilizationHint": "공급된 cbBTC 중 현재 차입에 쓰이는 비율 — 높을수록 풀이 활발히 이용 중입니다.",
             "price": "cbBTC 가격"
         },
         "position": {
@@ -368,6 +369,8 @@
     },
     "home": {
         "subtitle": "Bitcoin on Solana",
+        "aboutCbbtc": "cbBTC 는 Coinbase 가 1:1 로 발행하는 비트코인 연동 토큰 — Solana 최대 wrapped BTC 입니다.",
+        "moat": "키는 Seeker 의 Seed Vault 하드웨어에 보관됩니다. 이 앱은 당신의 자금·키를 절대 보유하지 않습니다.",
         "connectPrompt": "지갑을 연결하면 잔액과 swap을 사용할 수 있습니다.",
         "connectedLabel": "연결된 지갑",
         "pullToRefresh": "아래로 당겨 새로고침",

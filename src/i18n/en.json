@@ -38,6 +38,7 @@
             "supplyApy": "cbBTC supply APY",
             "borrowApr": "USDC borrow APR",
             "utilization": "Utilization",
+            "utilizationHint": "Share of supplied cbBTC currently borrowed by others — higher means the pool is more in use.",
             "price": "cbBTC price"
         },
         "position": {
@@ -368,6 +369,8 @@
     },
     "home": {
         "subtitle": "Bitcoin on Solana",
+        "aboutCbbtc": "cbBTC is Coinbase's 1:1 Bitcoin-pegged token — the largest wrapped Bitcoin on Solana.",
+        "moat": "Your keys stay in the Seeker Seed Vault hardware. This app never holds your funds or keys.",
         "connectPrompt": "Connect your wallet to view balances and swap.",
         "connectedLabel": "Connected wallet",
         "pullToRefresh": "Pull down to refresh",

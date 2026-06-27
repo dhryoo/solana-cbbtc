@@ -16,6 +16,7 @@ import {
 } from "react-native";
 
 import { BorrowConsentModal } from "@/components/BorrowConsentModal";
+import { InfoDot } from "@/components/InfoDot";
 import { TxProgressModal } from "@/components/TxProgressModal";
 import { TxProgress } from "@/components/TxProgress";
 import { useCancellableSign } from "@/hooks/useCancellableSign";
@@ -151,7 +152,7 @@ export function EarnScreen(): React.JSX.Element
                                 <View style={styles.rows}>
                                     <Row label={t("earn.market.supplyApy")} value={formatPct(market.data.cbbtcSupplyApr)} styles={styles} />
                                     <Row label={t("earn.market.borrowApr")} value={formatPct(market.data.usdcBorrowApr)} styles={styles} />
-                                    <Row label={t("earn.market.utilization")} value={formatPct(market.data.cbbtcUtilization)} styles={styles} />
+                                    <Row label={t("earn.market.utilization")} value={formatPct(market.data.cbbtcUtilization)} styles={styles} hint={t("earn.market.utilizationHint")} hintLabel={t("earn.market.utilization")} />
                                     <Row label={t("earn.market.price")} value={formatUsd(market.data.cbbtcPriceUsd)} styles={styles} />
                                 </View>
                             )
@@ -1168,12 +1169,32 @@ function RepayForm({ owner, borrowedUsd, styles, palette, t, onFocusInput }: Rep
     );
 }
 
-function Row({ label, value, styles }: { label: string; value: string; styles: ReturnType<typeof makeStyles> }): React.JSX.Element
+function Row({ label, value, styles, hint, hintLabel }: { label: string; value: string; styles: ReturnType<typeof makeStyles>; hint?: string; hintLabel?: string }): React.JSX.Element
 {
+    const [expanded, setExpanded] = useState(false);
+    if (hint === undefined)
+    {
+        return (
+            <View style={styles.row}>
+                <Text style={styles.rowLabel}>{label}</Text>
+                <Text style={styles.rowValue}>{value}</Text>
+            </View>
+        );
+    }
     return (
-        <View style={styles.row}>
-            <Text style={styles.rowLabel}>{label}</Text>
-            <Text style={styles.rowValue}>{value}</Text>
+        <View>
+            <View style={styles.row}>
+                <View style={styles.rowLabelGroup}>
+                    <Text style={styles.rowLabel}>{label}</Text>
+                    <InfoDot
+                        expanded={expanded}
+                        onPress={() => setExpanded((v) => !v)}
+                        accessibilityLabel={hintLabel ?? label}
+                    />
+                </View>
+                <Text style={styles.rowValue}>{value}</Text>
+            </View>
+            {expanded && <Text style={styles.healthHint}>{hint}</Text>}
         </View>
     );
 }
@@ -1285,6 +1306,10 @@ const makeStyles = (t: ThemePalette) => ({
     rowLabel: {
         fontSize: 14,
         color: t.textMuted,
+    },
+    rowLabelGroup: {
+        flexDirection: "row" as const,
+        alignItems: "center" as const,
     },
     rowValue: {
         fontSize: 15,
