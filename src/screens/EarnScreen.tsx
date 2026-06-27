@@ -454,6 +454,7 @@ function SupplyForm({ owner, styles, palette, t, cbbtcPriceUsd, currentSuppliedU
                     <Text style={styles.maxBtnText}>{t("common.max")}</Text>
                 </Pressable>
             </View>
+            <Text style={styles.supplyHelper}>{t("earn.supply.helper")}</Text>
             <Text style={styles.balanceLine}>
                 {t("earn.supply.available", { amount: formatTokenAmount(balance.data?.uiAmount ?? 0, CBBTC.decimals) })}
                 {"  ·  "}
@@ -1322,6 +1323,14 @@ const makeStyles = (t: ThemePalette) => ({
         fontSize: 11,
         color: t.textDim,
         lineHeight: 15,
+    },
+    // "Supply" 동사가 초보에게 낯설어 행동 지점에서 예금 멘탈모델로 한 줄 글로스
+    supplyHelper: {
+        marginTop: 2,
+        marginBottom: 6,
+        fontSize: 12,
+        color: t.textMuted,
+        lineHeight: 16,
     },
     toggle: {
         flexDirection: "row" as const,

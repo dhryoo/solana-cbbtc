@@ -54,6 +54,7 @@
         },
         "supply": {
             "heading": "Supply cbBTC",
+            "helper": "“Supply” means depositing it — you can withdraw it yourself anytime.",
             "placeholder": "Amount of cbBTC to supply",
             "button": "Supply",
             "available": "Balance {{amount}} cbBTC",
@@ -149,9 +150,9 @@
         },
         "safe": {
             "title": "You stay in control",
-            "b1": "This app never holds your funds or keys (self-custody).",
+            "b1": "This app never holds your funds or keys.",
             "b2": "Every transaction is publicly recorded on Solana — verify on Explorer.",
-            "b3": "No backend servers, no analytics, no trackers.",
+            "b3": "No backend servers or trackers.",
             "b4": "Always keep a little SOL for fees (gas)."
         },
         "infographic": "How swap works: your wallet → Jupiter compares routes → best route to the token you receive",
@@ -170,12 +171,11 @@
             "title": "You stay in control — self-custody",
             "b1": "This app never holds your cbBTC or your private keys.",
             "b2": "Funds are managed directly by Kamino's audited smart contracts.",
-            "b3": "Every transaction runs only after you sign it with your Seed Vault.",
-            "b4": "You can withdraw your supplied cbBTC yourself at any time."
+            "b3": "Every transaction runs only after you sign it with your Seed Vault."
         },
         "example": {
             "title": "A simple example",
-            "body": "E.g. supply 0.001 cbBTC and it shows up under 'My position'. The cbBTC is still yours — tap 'Withdraw' to take it back anytime, just like withdrawing a deposit."
+            "body": "E.g. supply 0.001 cbBTC and it shows up under 'My position'. The cbBTC is still yours."
         },
         "withdrawSection": {
             "title": "Withdraw (take it back anytime)",
@@ -203,7 +203,7 @@
             "title": "Risk note",
             "body": "Supplying only carries no liquidation risk. If you later use borrowing (collateral loans), market moves can trigger liquidation — at that point, always check the health and liquidation price shown on screen."
         },
-        "infographic1": "Self-custody flow: your wallet → your signature (Seed Vault) → Kamino contract (the app never holds funds)",
+        "infographic1": "Self-custody flow: your wallet → your signature (Seed Vault) → Kamino contract",
         "infographic2": "Transparency: public on-chain records · no backend · open source",
         "infographic3": "Collateral loans & liquidation: cbBTC collateral → borrow USDC → health gauge (safe·caution·danger). Liquidated if price drops below the liquidation price",
         "infographic4": "Withdraw: your supply in Kamino → cbBTC back to your wallet (all or part, anytime)",
@@ -305,14 +305,13 @@
         },
         "qr": {
             "title": "QR scanning",
-            "body": "Instead of pasting an invoice, tap 'Scan' to read a QR and fill it automatically. The camera is used only while scanning — no photos or video are stored or sent."
+            "body": "Instead of pasting an invoice, tap 'Scan' to read a QR and fill it in automatically."
         },
         "refund": {
             "title": "What if it fails?",
             "body": "If the LN payment doesn't complete, your funds come back — that's the point of an atomic swap.",
             "b1": "On failure the app immediately walks you through a refund signature.",
-            "b2": "Even if the app closes mid-way, a refund notice appears next time you open this screen.",
-            "b3": "The LP can never take your funds without payment proof (enforced by the smart contract)."
+            "b2": "Even if the app closes mid-way, a refund notice appears next time you open this screen."
         },
         "fees": {
             "title": "Fees",

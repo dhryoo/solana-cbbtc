@@ -89,7 +89,6 @@ export function LightningGuideScreen({ visible, onClose }: LightningGuideScreenP
                         <Body styles={styles}>{t("lightningGuide.refund.body")}</Body>
                         <Bullet styles={styles} palette={palette}>{t("lightningGuide.refund.b1")}</Bullet>
                         <Bullet styles={styles} palette={palette}>{t("lightningGuide.refund.b2")}</Bullet>
-                        <Bullet styles={styles} palette={palette}>{t("lightningGuide.refund.b3")}</Bullet>
                     </Section>
 
                     <Section icon="cash-outline" title={t("lightningGuide.fees.title")} styles={styles} palette={palette}>

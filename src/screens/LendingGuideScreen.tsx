@@ -69,7 +69,6 @@ export function LendingGuideScreen({ visible, onClose }: LendingGuideScreenProps
                         <Bullet styles={styles} palette={palette}>{t("lendingGuide.safe.b1")}</Bullet>
                         <Bullet styles={styles} palette={palette}>{t("lendingGuide.safe.b2")}</Bullet>
                         <Bullet styles={styles} palette={palette}>{t("lendingGuide.safe.b3")}</Bullet>
-                        <Bullet styles={styles} palette={palette}>{t("lendingGuide.safe.b4")}</Bullet>
                         <Infographic source={INFOGRAPHIC_NON_CUSTODIAL} caption={t("lendingGuide.infographic1")} styles={styles} palette={palette} />
                     </Section>
 
