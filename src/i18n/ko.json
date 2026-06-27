@@ -29,7 +29,7 @@
         "subtitle": "Kamino 기반 cbBTC 렌딩",
         "loadError": "정보를 불러오지 못했습니다",
         "oracleStaleHint": "가격 오라클(Kamino)이 일시적으로 갱신 지연 중입니다. 잠시 후 다시 시도해 주세요. 안전을 위해 최신 시세가 확인될 때만 차입이 실행됩니다.",
-        "insufficientHint": "SOL 이 부족합니다. 첫 거래는 계정 생성 보증금(rent)과 수수료로 SOL 이 더 필요합니다. SOL 을 조금 더 확보한 뒤 다시 시도해 주세요.",
+        "insufficientHint": "SOL 이 부족합니다. 첫 거래에는 수수료와 함께, 돌려받을 수 있는 1회성 계정 보증금(Solana 의 ‘rent’ — 수수료가 아니라 계정을 닫으면 반환됨)으로 SOL 이 조금 더 필요합니다. SOL 을 조금 더 확보한 뒤 다시 시도해 주세요.",
         "authFailedHint": "지갑 인증에 실패했습니다. 지갑을 연결 해제 후 다시 연결한 뒤 시도해 주세요. (인증이 만료되었을 수 있습니다.)",
         "walletTimeoutHint": "지갑 응답이 시간 초과되었습니다. 승인 화면이 너무 오래 떠 있었거나, 지갑 앱이 백그라운드에서 일시 정지된 것일 수 있습니다. 다시 시도해 주세요.",
         "noBorrowsHint": "상환할 차입이 없습니다. 직전에 이미 전액 상환되었거나 화면이 잠시 오래된 정보일 수 있습니다. 아래로 당겨 새로고침해 주세요.",
@@ -48,6 +48,7 @@
             "borrowed": "차입",
             "net": "순자산",
             "health": "Health",
+            "healthHint": "1.0 에 가까울수록 청산 위험 ↑ (높을수록 안전).",
             "liqPrice": "청산가 (cbBTC)"
         },
         "supply": {
@@ -293,7 +294,7 @@
             "body": "반대로 Lightning 으로 받을 수도 있습니다. 받을 토큰(USDC·SOL)과 금액을 정하면 인보이스가 만들어지고, 상대가 그 인보이스를 결제하면 Solana 로 정산됩니다.",
             "b1": "만든 인보이스는 QR·복사·공유로 상대에게 전달하세요.",
             "b2": "상대가 결제하면 마지막에 정산(claim) 서명을 한 번 합니다.",
-            "b3": "정산에는 수수료·계정 보증금(rent)으로 SOL 이 필요하니 SOL 을 조금 남겨두세요."
+            "b3": "정산에는 수수료와 돌려받는 소액 계정 보증금(Solana 의 ‘rent’)으로 SOL 이 필요하니 SOL 을 조금 남겨두세요."
         },
         "cbbtc": {
             "title": "cbBTC 로 결제하기",
@@ -336,7 +337,7 @@
         "amountLabel": "받을 금액 (sats)",
         "amountPlaceholder": "예: 5000",
         "createButton": "받기 인보이스 만들기",
-        "lowSolWarn": "SOL 이 부족해 받기를 시작할 수 없습니다. 받기는 상대가 결제한 뒤 내가 정산(claim) 서명을 해야 완료되는데, 이때 수수료·계정 보증금(rent)으로 SOL 이 필요합니다. 약 0.01 SOL 이상 확보한 뒤 다시 시도해 주세요.",
+        "lowSolWarn": "SOL 이 부족해 받기를 시작할 수 없습니다. 받기는 상대가 결제한 뒤 내가 정산(claim) 서명을 해야 완료되는데, 이때 수수료와 돌려받는 소액 계정 보증금(Solana 의 ‘rent’)으로 SOL 이 필요합니다. 약 0.01 SOL 이상 확보한 뒤 다시 시도해 주세요.",
         "invoiceTitle": "{{sats}} sats → {{token}} 받기",
         "copy": "복사",
         "share": "공유",
@@ -446,7 +447,7 @@
         "amountPlaceholder": "금액을 입력하세요",
         "confirmTitle": "Swap 확인",
         "confirmInput": "입력",
-        "mainnetWarn": "지갑에서 한 번 더 승인이 필요합니다. mainnet 실거래입니다.",
+        "mainnetWarn": "지갑에서 한 번 더 승인이 필요합니다. 되돌릴 수 없는 mainnet 실거래이니, 위에 표시된 금액을 확인하고 서명하세요.",
         "successTitle": "Swap 성공",
         "successLine": "트랜잭션이 네트워크에 전송됐습니다.",
         "signatureLabel": "Signature",

@@ -1194,11 +1194,16 @@ function PositionDetail({ data, styles, palette, t }: PositionDetailProps): Reac
             <Row label={t("earn.position.supplied")} value={formatUsd(data.suppliedUsd)} styles={styles} />
             <Row label={t("earn.position.borrowed")} value={formatUsd(data.borrowedUsd)} styles={styles} />
             <Row label={t("earn.position.net")} value={formatUsd(data.netValueUsd)} styles={styles} />
-            <View style={styles.row}>
-                <Text style={styles.rowLabel}>{t("earn.position.health")}</Text>
-                <Text style={[styles.rowValue, { color: zoneColor }]}>
-                    {data.healthFactor === null ? "—" : data.healthFactor.toFixed(2)}
-                </Text>
+            <View>
+                <View style={styles.row}>
+                    <Text style={styles.rowLabel}>{t("earn.position.health")}</Text>
+                    <Text style={[styles.rowValue, { color: zoneColor }]}>
+                        {data.healthFactor === null ? "—" : data.healthFactor.toFixed(2)}
+                    </Text>
+                </View>
+                {data.healthFactor !== null && (
+                    <Text style={styles.healthHint}>{t("earn.position.healthHint")}</Text>
+                )}
             </View>
             <View style={styles.row}>
                 <Text style={styles.rowLabel}>{t("earn.position.liqPrice")}</Text>
@@ -1285,6 +1290,13 @@ const makeStyles = (t: ThemePalette) => ({
         fontSize: 15,
         fontWeight: "600" as const,
         color: t.text,
+    },
+    // Health 지표가 직관과 반대(1.0 에 가까울수록 위험)라 바로 아래 한 줄 설명을 붙임
+    healthHint: {
+        marginTop: 3,
+        fontSize: 11,
+        color: t.textDim,
+        lineHeight: 15,
     },
     toggle: {
         flexDirection: "row" as const,

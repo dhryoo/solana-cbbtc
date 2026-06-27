@@ -29,7 +29,7 @@
         "subtitle": "cbBTC lending via Kamino",
         "loadError": "Failed to load data",
         "oracleStaleHint": "The price oracle (Kamino) is temporarily behind on updates. Please try again shortly. For safety, borrowing only runs when the price is fresh.",
-        "insufficientHint": "Not enough SOL. Your first transaction needs extra SOL for account rent and fees. Add a little more SOL and try again.",
+        "insufficientHint": "Not enough SOL. Your first transaction needs a little extra SOL — for network fees and a one-time, refundable account deposit (Solana's “rent,” not a fee — it comes back if the account is closed). Add a little more SOL and try again.",
         "authFailedHint": "Wallet authorization failed. Disconnect and reconnect your wallet, then try again. (Your session may have expired.)",
         "walletTimeoutHint": "Wallet didn't respond in time. The approval screen may have been left open too long, or the wallet app was paused in the background. Please try again.",
         "noBorrowsHint": "There's no debt to repay. It may have already been fully repaid, or the screen is showing stale info. Pull down to refresh.",
@@ -48,6 +48,7 @@
             "borrowed": "Borrowed",
             "net": "Net value",
             "health": "Health",
+            "healthHint": "Closer to 1.0 = higher liquidation risk (higher is safer).",
             "liqPrice": "Liq. price (cbBTC)"
         },
         "supply": {
@@ -293,7 +294,7 @@
             "body": "You can also receive over Lightning. Pick the token (USDC·SOL) and amount, and the app generates an invoice; once the sender pays it, the funds settle to Solana.",
             "b1": "Share the generated invoice via QR, copy, or share.",
             "b2": "After the sender pays, you sign one claim to settle it.",
-            "b3": "The claim needs a little SOL for fees and account rent — keep some SOL spare."
+            "b3": "The claim needs a little SOL for fees and a small refundable account deposit (Solana's “rent”) — keep some SOL spare."
         },
         "cbbtc": {
             "title": "Paying with cbBTC",
@@ -336,7 +337,7 @@
         "amountLabel": "Amount to receive (sats)",
         "amountPlaceholder": "e.g. 5000",
         "createButton": "Create receive invoice",
-        "lowSolWarn": "Receiving is disabled because your SOL is too low. Receiving completes only after you sign a claim once the sender pays — and that needs SOL for fees and account rent. Add about 0.01 SOL or more, then try again.",
+        "lowSolWarn": "Receiving is disabled because your SOL is too low. Receiving completes only after you sign a claim once the sender pays — and that needs SOL for fees and a small refundable account deposit (Solana's “rent”). Add about 0.01 SOL or more, then try again.",
         "invoiceTitle": "Receive {{sats}} sats → {{token}}",
         "copy": "Copy",
         "share": "Share",
@@ -446,7 +447,7 @@
         "amountPlaceholder": "Enter amount",
         "confirmTitle": "Confirm swap",
         "confirmInput": "Input",
-        "mainnetWarn": "Wallet will ask for one more approval. This is a mainnet transaction.",
+        "mainnetWarn": "Wallet will ask for one more approval. This is a real mainnet transaction and can't be undone — check the amount above before you sign.",
         "successTitle": "Swap successful",
         "successLine": "Transaction was broadcast to the network.",
         "signatureLabel": "Signature",
