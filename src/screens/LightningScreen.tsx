@@ -37,6 +37,7 @@ import { useNetworkStatus } from "@/providers/NetworkProvider";
 import { useTheme } from "@/providers/ThemeProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { LightningGuideScreen } from "@/screens/LightningGuideScreen";
+import { hapticLight } from "@/services/HapticsService";
 import { LightningQuoteError } from "@/services/lightning/LightningService";
 import { isLightningAmountError } from "@/services/lightning/types";
 import type { LightningPayOutcome, LightningPayPhase, LightningQuote } from "@/services/lightning/types";
@@ -179,7 +180,8 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
             return;
         }
         await Clipboard.setStringAsync(secret);
-        showToast(t("common.copied"), { variant: "info", durationMs: 1500 });
+        void hapticLight();
+        showToast(t("common.copied"), { variant: "success", durationMs: 1500 });
     }, [showToast, t]);
 
     const onScanned = useCallback((value: string): void =>
@@ -712,8 +714,10 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                                         <Pressable
                                             accessibilityRole="button"
                                             accessibilityLabel={t("lightning.proofCopyA11y")}
+                                            accessibilityHint={t("common.copyAddressHint")}
                                             onLongPress={() => void onCopyPreimage(outcome.lnSecret)}
-                                            style={({ pressed }) => [pressed && { opacity: 0.6 }]}
+                                            delayLongPress={400}
+                                            style={({ pressed }) => [styles.proofValueWrap, pressed && { opacity: 0.6 }]}
                                         >
                                             <Text style={styles.proofValue} selectable>{outcome.lnSecret}</Text>
                                         </Pressable>
@@ -923,8 +927,9 @@ const makeStyles = (t: ThemePalette) => StyleSheet.create({
     proofHead: { flexDirection: "row", alignItems: "center", gap: 6 },
     proofLabel: { fontSize: 13, fontWeight: "700", color: t.text },
     proofHint: { fontSize: 11, lineHeight: 16, color: t.textMuted },
+    proofValueWrap: { paddingVertical: 4 },
     proofValue: { fontSize: 11, fontFamily: "monospace", color: t.text, lineHeight: 16 },
-    proofCopyHint: { fontSize: 10, color: t.textDim },
+    proofCopyHint: { fontSize: 12, color: t.textMuted },
     linkRow: { flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: 6 },
     linkText: { fontSize: 13, fontWeight: "600", color: BRAND_PURPLE },
     errorBox: {
