@@ -260,6 +260,7 @@
         "proofTitle": "Proof of payment (preimage)",
         "proofHint": "The SHA-256 hash of this preimage equals the invoice's payment_hash — cryptographic proof the invoice was really paid. The LP could only claim your escrow by revealing it on-chain.",
         "proofCopyA11y": "Copy proof of payment",
+        "proofCopyButton": "Copy",
         "refundedTitle": "Refunded",
         "refundedBody": "The LN payment didn't complete and your funds were refunded to your wallet. Please try again shortly.",
         "refundFailedTitle": "Refund pending",

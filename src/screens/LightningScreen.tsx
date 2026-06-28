@@ -711,17 +711,16 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                                             <Text style={styles.proofLabel}>{t("lightning.proofTitle")}</Text>
                                         </View>
                                         <Text style={styles.proofHint}>{t("lightning.proofHint")}</Text>
+                                        <Text style={styles.proofValue} selectable>{outcome.lnSecret}</Text>
                                         <Pressable
                                             accessibilityRole="button"
                                             accessibilityLabel={t("lightning.proofCopyA11y")}
-                                            accessibilityHint={t("common.copyAddressHint")}
-                                            onLongPress={() => void onCopyPreimage(outcome.lnSecret)}
-                                            delayLongPress={400}
-                                            style={({ pressed }) => [styles.proofValueWrap, pressed && { opacity: 0.6 }]}
+                                            onPress={() => void onCopyPreimage(outcome.lnSecret)}
+                                            style={({ pressed }) => [styles.proofCopyBtn, pressed && styles.proofCopyBtnPressed]}
                                         >
-                                            <Text style={styles.proofValue} selectable>{outcome.lnSecret}</Text>
+                                            <Ionicons name="copy-outline" size={15} color={BRAND_PURPLE} />
+                                            <Text style={styles.proofCopyBtnText}>{t("lightning.proofCopyButton")}</Text>
                                         </Pressable>
-                                        <Text style={styles.proofCopyHint}>{t("earn.supply.copyHint")}</Text>
                                     </View>
                                 )}
                                 </>
@@ -927,9 +926,22 @@ const makeStyles = (t: ThemePalette) => StyleSheet.create({
     proofHead: { flexDirection: "row", alignItems: "center", gap: 6 },
     proofLabel: { fontSize: 13, fontWeight: "700", color: t.text },
     proofHint: { fontSize: 11, lineHeight: 16, color: t.textMuted },
-    proofValueWrap: { paddingVertical: 4 },
     proofValue: { fontSize: 11, fontFamily: "monospace", color: t.text, lineHeight: 16 },
-    proofCopyHint: { fontSize: 12, color: t.textMuted },
+    proofCopyBtn: {
+        flexDirection: "row",
+        alignItems: "center",
+        alignSelf: "flex-start",
+        gap: 6,
+        marginTop: 4,
+        paddingVertical: 10,
+        paddingHorizontal: 16,
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: BRAND_PURPLE + "55",
+        backgroundColor: t.surface,
+    },
+    proofCopyBtnPressed: { opacity: 0.6, backgroundColor: t.surfaceMuted },
+    proofCopyBtnText: { fontSize: 13, fontWeight: "700", color: BRAND_PURPLE },
     linkRow: { flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: 6 },
     linkText: { fontSize: 13, fontWeight: "600", color: BRAND_PURPLE },
     errorBox: {
