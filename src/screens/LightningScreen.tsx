@@ -298,6 +298,10 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                         setDestination("");
                         setAmountSatsText("");
                     }
+                    else
+                    {
+                        void refundable.refetch();
+                    }
                 },
                 onError: (err) =>
                 {
@@ -307,6 +311,7 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                     }
                     setProgress((prev) => (prev ? { ...prev, state: "error" } : null));
                     setCbbtcStatus(null);
+                    void refundable.refetch();
                     const cancelled = isUserRejection(err.message);
                     const timedOut = /swap_confirm_timeout/.test(err.message);
                     // swap 후 실패 → 이미 USDC 보유 → USDC 로 재시도 안내 + 소스 자동 전환
@@ -379,6 +384,11 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                         setDestination("");
                         setAmountSatsText("");
                     }
+                    else
+                    {
+                        // refunded / refund_failed → escrow 상태 변화 → 환불 배너 즉시 갱신(staleTime 대기 안 함)
+                        void refundable.refetch();
+                    }
                 },
                 onError: (err) =>
                 {
@@ -396,6 +406,8 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                         return;
                     }
                     setProgress((prev) => (prev ? { ...prev, state: "error" } : null));
+                    // 실패 시 commit 된 escrow 가 잠겨 있을 수 있음 → 환불 배너 갱신
+                    void refundable.refetch();
                     const cancelled = isUserRejection(err.message);
                     const noticeMsg = isAuthFailure(err.message) ? t("earn.authFailedHint")
                         : isWalletTimeout(err.message) ? t("earn.walletTimeoutHint") : null;
