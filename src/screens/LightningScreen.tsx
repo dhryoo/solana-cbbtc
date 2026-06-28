@@ -1,5 +1,6 @@
 /* eslint-disable react-native/no-unused-styles */
 import { Ionicons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -169,6 +170,17 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
         setNotice(null);
         setLastError(null);
     }, []);
+
+    // preimage(=지불 증명) 복사 — 결제 완료(CLAIMED) 후 결과카드에서만 노출됨
+    const onCopyPreimage = useCallback(async (secret: string | null): Promise<void> =>
+    {
+        if (!secret)
+        {
+            return;
+        }
+        await Clipboard.setStringAsync(secret);
+        showToast(t("common.copied"), { variant: "info", durationMs: 1500 });
+    }, [showToast, t]);
 
     const onScanned = useCallback((value: string): void =>
     {
@@ -678,6 +690,24 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                                     <Text style={styles.resultTitle} maxFontSizeMultiplier={1.4}>{t("lightning.paidTitle")}</Text>
                                 </View>
                                 <Text style={styles.resultBody}>{t("lightning.paidBody")}</Text>
+                                {outcome.lnSecret && (
+                                    <View style={styles.proofBox}>
+                                        <View style={styles.proofHead}>
+                                            <Ionicons name="key-outline" size={15} color={palette.success} />
+                                            <Text style={styles.proofLabel}>{t("lightning.proofTitle")}</Text>
+                                        </View>
+                                        <Text style={styles.proofHint}>{t("lightning.proofHint")}</Text>
+                                        <Pressable
+                                            accessibilityRole="button"
+                                            accessibilityLabel={t("lightning.proofCopyA11y")}
+                                            onLongPress={() => void onCopyPreimage(outcome.lnSecret)}
+                                            style={({ pressed }) => [pressed && { opacity: 0.6 }]}
+                                        >
+                                            <Text style={styles.proofValue} selectable>{outcome.lnSecret}</Text>
+                                        </Pressable>
+                                        <Text style={styles.proofCopyHint}>{t("earn.supply.copyHint")}</Text>
+                                    </View>
+                                )}
                                 </>
                             )}
                             {outcome.status === "refunded" && (
@@ -877,6 +907,12 @@ const makeStyles = (t: ThemePalette) => StyleSheet.create({
     resultRow: { flexDirection: "row", alignItems: "center", gap: 8 },
     resultTitle: { fontSize: 16, fontWeight: "700", color: t.text },
     resultBody: { fontSize: 13, lineHeight: 19, color: t.textMuted },
+    proofBox: { marginTop: 2, padding: 12, borderRadius: 12, borderWidth: 1, borderColor: t.border, backgroundColor: t.surfaceMuted, gap: 6 },
+    proofHead: { flexDirection: "row", alignItems: "center", gap: 6 },
+    proofLabel: { fontSize: 13, fontWeight: "700", color: t.text },
+    proofHint: { fontSize: 11, lineHeight: 16, color: t.textMuted },
+    proofValue: { fontSize: 11, fontFamily: "monospace", color: t.text, lineHeight: 16 },
+    proofCopyHint: { fontSize: 10, color: t.textDim },
     linkRow: { flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: 6 },
     linkText: { fontSize: 13, fontWeight: "600", color: BRAND_PURPLE },
     errorBox: {
