@@ -1,6 +1,8 @@
+import { USDC } from "@/constants/tokens";
+
 import { AtomiqProvider, waitForPaymentResilient } from "./AtomiqProvider";
 import { LN_SENTINEL } from "./sentinels";
-import type { LightningQuote, LightningReceive, SolanaSigningDelegate } from "./types";
+import type { LightningDestination, LightningQuote, LightningReceive, SolanaSigningDelegate } from "./types";
 
 // loadRuntime DI 덕에 실제 Atomiq SDK 없이 결과 분기를 검증한다. makeSigner 는 identity 로 두어
 // swap 메서드에 전달되는 signer/abortSignal 을 그대로 단언할 수 있게 한다.
@@ -186,5 +188,147 @@ describe("AtomiqProvider.waitAndClaim", () =>
         await expect(provider().waitAndClaim(receive(swap), SIGNER, () => undefined))
             .rejects.toThrow(LN_SENTINEL.RECEIVE_EXPIRED);
         expect(swap.commitAndClaim).not.toHaveBeenCalled();
+    });
+});
+
+// --- quote() / createReceive(): swapper.swap 의 positional-arg 계약을 고정 ---
+// (현재 미테스트라 인자 순서가 틀려도 green 으로 통과하던 부분. 키 위치만 단언해 SDK 표면 변경에는
+//  의도적으로 깨지게 — 그게 회귀 탐지의 목적.)
+
+interface QuoteRuntime
+{
+    swapper: { swap: jest.Mock };
+    tokens: Record<string, { address: string }>;
+    btcLnToken: unknown;
+    exactOut: string;
+    exactIn: string;
+}
+
+function quoteRuntime(swapFn: jest.Mock): QuoteRuntime
+{
+    return {
+        swapper: { swap: swapFn },
+        tokens: { USDC: { address: "usdc-atomiq" }, SOL: { address: "sol-atomiq" } },
+        btcLnToken: { _t: "btcln" },
+        exactOut: "EXACT_OUT",
+        exactIn: "EXACT_IN",
+    };
+}
+
+function fakeQuoteSwap(): unknown
+{
+    return {
+        getInput: () => ({ rawAmount: 5_000_000n }),
+        getInputWithoutFee: () => ({ rawAmount: 4_970_000n }),
+        getFee: () => ({ amountInSrcToken: { rawAmount: 30_000n } }),
+        getOutput: () => ({ rawAmount: 7_400n }),
+        getQuoteExpiry: () => 1_700_000_000_000,
+    };
+}
+
+function withRuntime(swapFn: jest.Mock): AtomiqProvider
+{
+    return new AtomiqProvider(async () => quoteRuntime(swapFn) as never);
+}
+
+describe("AtomiqProvider.quote (positional-arg contract)", () =>
+{
+    it("bolt11: swap(token, btcLn, undefined, EXACT_OUT, srcAddress, paymentRequest) → LightningQuote", async () =>
+    {
+        const swapFn = jest.fn(async () => fakeQuoteSwap());
+        const dest = { kind: "bolt11", parsed: { paymentRequest: "lnbc2500u1pvjluez", description: "Coffee" } } as unknown as LightningDestination;
+        const q = await withRuntime(swapFn).quote(USDC, dest, "OWNER_ADDR");
+
+        const [tokenArg, btcLnArg, amountArg, exactArg, addrArg, prArg] = (swapFn.mock.calls[0] ?? []) as unknown[];
+        expect(tokenArg).toEqual({ address: "usdc-atomiq" });
+        expect(btcLnArg).toEqual({ _t: "btcln" });
+        expect(amountArg).toBeUndefined();
+        expect(exactArg).toBe("EXACT_OUT");
+        expect(addrArg).toBe("OWNER_ADDR");
+        expect(prArg).toBe("lnbc2500u1pvjluez");
+
+        expect(q.providerId).toBe("atomiq");
+        expect(q.inputBase).toBe(5_000_000n);
+        expect(q.inputWithoutFeeBase).toBe(4_970_000n);
+        expect(q.feeBase).toBe(30_000n);
+        expect(q.outputSats).toBe(7_400n);
+        expect(q.quoteExpiresAt).toBe(1_700_000_000_000);
+        expect(q.destinationLabel).toBe("Coffee");
+        expect(q.ref).toBeDefined();
+    });
+
+    it("lnurl/address: passes explicit amountSats + destination string (EXACT_OUT)", async () =>
+    {
+        const swapFn = jest.fn(async () => fakeQuoteSwap());
+        const dest = { kind: "lnurlOrAddress", destination: "jack@strike.me", amountSats: 7_400n } as unknown as LightningDestination;
+        const q = await withRuntime(swapFn).quote(USDC, dest, "OWNER_ADDR");
+
+        const [, , amountArg, exactArg, addrArg, destArg] = (swapFn.mock.calls[0] ?? []) as unknown[];
+        expect(amountArg).toBe(7_400n);
+        expect(exactArg).toBe("EXACT_OUT");
+        expect(addrArg).toBe("OWNER_ADDR");
+        expect(destArg).toBe("jack@strike.me");
+        expect(q.destinationLabel).toBe("jack@strike.me");
+    });
+
+    it("falls back to a truncated label when bolt11 has no description", async () =>
+    {
+        const swapFn = jest.fn(async () => fakeQuoteSwap());
+        const pr = "lnbc2500u1pvjluezABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const dest = { kind: "bolt11", parsed: { paymentRequest: pr, description: "" } } as unknown as LightningDestination;
+        const q = await withRuntime(swapFn).quote(USDC, dest, "OWNER_ADDR");
+        expect(q.destinationLabel).toBe(pr.slice(0, 24) + "…");
+    });
+
+    it("rejects an unsupported source token without touching the swapper", async () =>
+    {
+        const swapFn = jest.fn();
+        const fakeToken = { ...USDC, symbol: "WBTC" };
+        const dest = { kind: "lnurlOrAddress", destination: "x", amountSats: 1n } as unknown as LightningDestination;
+        await expect(withRuntime(swapFn).quote(fakeToken, dest, "A")).rejects.toThrow(/Unsupported source token/);
+        expect(swapFn).not.toHaveBeenCalled();
+    });
+
+    it("converts an SDK amount-out-of-bounds error to LightningAmountError", async () =>
+    {
+        const swapFn = jest.fn(async () => { throw { min: 1000, max: 1000000, message: "Swap amount too low" }; });
+        const dest = { kind: "lnurlOrAddress", destination: "jack@strike.me", amountSats: 1n } as unknown as LightningDestination;
+        await expect(withRuntime(swapFn).quote(USDC, dest, "A"))
+            .rejects.toMatchObject({ name: "LightningAmountError", tooLow: true });
+    });
+});
+
+describe("AtomiqProvider.createReceive (positional-arg contract)", () =>
+{
+    it("swap(btcLn, dstToken, amountSats, EXACT_IN, undefined, dstAddress) → LightningReceive", async () =>
+    {
+        const fakeReceiveSwap = { getAddress: () => "lnbc-invoice", getOutput: () => ({ rawAmount: 3_000n }) };
+        const swapFn = jest.fn(async () => fakeReceiveSwap);
+        const r = await withRuntime(swapFn).createReceive(USDC, 5_000n, "DST_ADDR");
+
+        const [btcLnArg, dstArg, amountArg, exactArg, srcArg, dstAddrArg] = (swapFn.mock.calls[0] ?? []) as unknown[];
+        expect(btcLnArg).toEqual({ _t: "btcln" });
+        expect(dstArg).toEqual({ address: "usdc-atomiq" });
+        expect(amountArg).toBe(5_000n);
+        expect(exactArg).toBe("EXACT_IN");
+        expect(srcArg).toBeUndefined();
+        expect(dstAddrArg).toBe("DST_ADDR");
+
+        expect(r).toEqual({
+            providerId: "atomiq",
+            invoice: "lnbc-invoice",
+            amountSats: 5_000n,
+            expectedOutBase: 3_000n,
+            dstToken: USDC,
+            ref: fakeReceiveSwap,
+        });
+    });
+
+    it("rejects an unsupported receive token without touching the swapper", async () =>
+    {
+        const swapFn = jest.fn();
+        const fakeToken = { ...USDC, symbol: "WBTC" };
+        await expect(withRuntime(swapFn).createReceive(fakeToken, 1n, "D")).rejects.toThrow(/Unsupported receive token/);
+        expect(swapFn).not.toHaveBeenCalled();
     });
 });
