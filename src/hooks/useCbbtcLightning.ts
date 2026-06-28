@@ -6,6 +6,7 @@ import { useConnection } from "@/providers/ConnectionProvider";
 import { getSwapTransaction } from "@/services/JupiterService";
 import { getLightningService } from "@/services/lightning/LightningService";
 import { hasPreSwapShortfall, quoteCbbtcToUsdc, usdcTargetWithBuffer, type CbbtcSwapQuote } from "@/services/lightning/cbbtcPreSwap";
+import { LN_SENTINEL } from "@/services/lightning/sentinels";
 import type { LightningPayOutcome, LightningPayPhase, LightningQuote } from "@/services/lightning/types";
 import { signAndSendTransactions } from "@/services/WalletService";
 
@@ -200,7 +201,7 @@ export function useCbbtcLightningPay(): UseMutationResult<CbbtcPayResult, Error,
             // 이미 USDC 는 손에 있으니 자금 손실이 아니라 단순 재시도.
             if (hasPreSwapShortfall(freshQuote.inputBase, swap.usdcOutBase))
             {
-                throw new Error("cbbtc_preswap_shortfall");
+                throw new Error(LN_SENTINEL.PRESWAP_SHORTFALL);
             }
             const outcome = await getLightningService().pay(
                 freshQuote,

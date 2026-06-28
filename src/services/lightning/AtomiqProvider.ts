@@ -1,6 +1,7 @@
 import { getRpcEndpoints } from "@/constants/cluster";
 import { SOL, USDC, type TokenInfo } from "@/constants/tokens";
 
+import { LN_SENTINEL } from "./sentinels";
 import { asLightningAmountError } from "./types";
 import type {
     LightningDestination,
@@ -489,7 +490,7 @@ export class AtomiqProvider implements LightningSwapProvider
         const paid = await swap.waitForPayment(undefined, undefined, abortSignal);
         if (!paid)
         {
-            throw new Error("receive_invoice_expired");
+            throw new Error(LN_SENTINEL.RECEIVE_EXPIRED);
         }
 
         // ② Solana 정산 (claim, MWA 서명)

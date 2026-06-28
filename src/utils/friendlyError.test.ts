@@ -1,3 +1,5 @@
+import { LN_SENTINEL } from "@/services/lightning/sentinels";
+
 import { toFriendlyErrorKey } from "./friendlyError";
 
 describe("toFriendlyErrorKey", () =>
@@ -31,14 +33,16 @@ describe("toFriendlyErrorKey", () =>
         expect(toFriendlyErrorKey("0x1785 ObligationBorrowsEmpty").key).toBe("errors.noBorrows");
     });
 
-    it("maps Lightning invoice expiry to receive.expired", () =>
+    // 계약 테스트: throw 처(useCbbtcLightning/AtomiqProvider)와 동일한 sentinel 상수를 통해
+    // 매핑을 검증 → 한쪽 리네이밍 시 상수 변경이 양쪽에 동시 반영(드리프트 방지)
+    it("maps Lightning invoice expiry to receive.expired (via shared sentinel)", () =>
     {
-        expect(toFriendlyErrorKey("receive_invoice_expired").key).toBe("receive.expired");
+        expect(toFriendlyErrorKey(new Error(LN_SENTINEL.RECEIVE_EXPIRED).message).key).toBe("receive.expired");
     });
 
-    it("maps cbBTC pre-swap shortfall to the USDC-retry hint", () =>
+    it("maps cbBTC pre-swap shortfall to the USDC-retry hint (via shared sentinel)", () =>
     {
-        expect(toFriendlyErrorKey("cbbtc_preswap_shortfall").key).toBe("lightning.cbbtcRetryWithUsdc");
+        expect(toFriendlyErrorKey(new Error(LN_SENTINEL.PRESWAP_SHORTFALL).message).key).toBe("lightning.cbbtcRetryWithUsdc");
     });
 
     it("maps insufficient funds to insufficientBalance", () =>

@@ -2,6 +2,7 @@
 // swap 은 JupiterApiError 특수처리가 있어 toFriendlySwapError 를 유지하되, 그 외(Lightning 받기,
 // 환불, History 로드 등)는 이 매퍼로 통일한다. 판별은 lendingErrors 의 술어를 재사용.
 
+import { LN_SENTINEL } from "@/services/lightning/sentinels";
 import {
     isAuthFailure,
     isInsufficientFunds,
@@ -50,13 +51,13 @@ export function toFriendlyErrorKey(message: string): FriendlyErrorResult
     {
         return { key: "errors.noBorrows", isUserCancellation: false };
     }
-    // 6) LN 인보이스 만료 (받기: 결제 대기 시간 초과)
-    if (/receive_invoice_expired/.test(message))
+    // 6) LN 인보이스 만료 (받기: 결제 대기 시간 초과) — throw 처와 sentinel 상수 공유
+    if (message.includes(LN_SENTINEL.RECEIVE_EXPIRED))
     {
         return { key: "receive.expired", isUserCancellation: false };
     }
     // 7) cbBTC pre-swap 환율 초과 → USDC 로 재시도 (이미 USDC 보유, 손실 아님)
-    if (/cbbtc_preswap_shortfall/.test(message))
+    if (message.includes(LN_SENTINEL.PRESWAP_SHORTFALL))
     {
         return { key: "lightning.cbbtcRetryWithUsdc", isUserCancellation: false };
     }

@@ -1,4 +1,5 @@
 import { AtomiqProvider, waitForPaymentResilient } from "./AtomiqProvider";
+import { LN_SENTINEL } from "./sentinels";
 import type { LightningQuote, LightningReceive, SolanaSigningDelegate } from "./types";
 
 // loadRuntime DI 덕에 실제 Atomiq SDK 없이 결과 분기를 검증한다. makeSigner 는 identity 로 두어
@@ -183,7 +184,7 @@ describe("AtomiqProvider.waitAndClaim", () =>
             getOutput: () => ({ rawAmount: 0n }),
         };
         await expect(provider().waitAndClaim(receive(swap), SIGNER, () => undefined))
-            .rejects.toThrow("receive_invoice_expired");
+            .rejects.toThrow(LN_SENTINEL.RECEIVE_EXPIRED);
         expect(swap.commitAndClaim).not.toHaveBeenCalled();
     });
 });
