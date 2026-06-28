@@ -14,6 +14,10 @@
 #   ./run.sh --release --skip-prebuild    # release 에서 prebuild 생략
 #   ./run.sh -h | --help
 #
+#   릴리스 후 (Layer 0 자가측정 — design/A3-onchain-self-measurement.md):
+#     scripts/release-apk.sh <tag>    # 빌드된 APK 를 GitHub release 에 첨부 → download_count 신호
+#     scripts/usage-report.sh         # release asset 다운로드 수 조회
+#
 # 서명 불일치(INSTALL_FAILED_UPDATE_INCOMPATIBLE): 기기에 다른 키로 서명된 앱이 이미
 #   설치돼 있을 때 발생. `./run.sh --reinstall` 로 한 번 제거 후 설치하면 해결 (데이터 초기화).
 #
@@ -38,7 +42,7 @@ for arg in "$@"; do
         --skip-prebuild) SKIP_PREBUILD=1 ;;
         --reinstall) REINSTALL=1 ;;
         -h|--help)
-            sed -n '2,25p' "$0"
+            sed -n '2,28p' "$0"
             exit 0
             ;;
         *)
