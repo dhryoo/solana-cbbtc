@@ -233,6 +233,7 @@
         "embeddedAmount": "Amount embedded in invoice: {{sats}} sats",
         "srcTokenLabel": "Pay with",
         "quoteButton": "Get quote",
+        "quoteExpired": "This quote expired — Lightning rates refresh often. Tap “Get quote” again for a fresh one.",
         "initHint": "The first quote may take a few seconds while connecting to the LP",
         "quoteHeading": "Quote",
         "quoteSend": "You send",

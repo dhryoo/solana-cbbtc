@@ -65,6 +65,28 @@ export function asLightningAmountError(e: unknown): LightningAmountError | null
     return new LightningAmountError({ minSats: toBig(o.min), maxSats: toBig(o.max), tooLow });
 }
 
+/** quote→commit 사이 여유 (ms). 이 시간 안에 만료될 quote 는 commit 직전에 차단해 재견적을 유도. */
+export const QUOTE_EXPIRY_SAFETY_MS = 5_000;
+
+/**
+ * quote 가 (안전 여유 포함) 만료됐는지 판정.
+ * WHY: HTLC commit 은 되돌릴 수 없으므로, 모바일에서 quote→서명 간극(읽기·지갑 intent 전환·백그라운딩)에
+ *      stale quote 로 escrow 를 잠그면 raw SDK 에러로 실패한다. 그 전에 막아 친절한 재견적으로 유도한다.
+ * 만료 정보가 없으면(0/비유한값) 차단하지 않음 — 레거시/누락 안전.
+ */
+export function isLightningQuoteExpired(
+    quoteExpiresAt: number,
+    nowMs: number,
+    safetyMs: number = QUOTE_EXPIRY_SAFETY_MS,
+): boolean
+{
+    if (!Number.isFinite(quoteExpiresAt) || quoteExpiresAt <= 0)
+    {
+        return false;
+    }
+    return nowMs + safetyMs >= quoteExpiresAt;
+}
+
 /** UI 진행 단계 — 기존 TxProgress 의 TxStep 으로 매핑해 표시 */
 export type LightningPayPhase =
     | "signing"     // Solana 측 escrow lock 서명 (MWA)

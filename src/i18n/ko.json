@@ -233,6 +233,7 @@
         "embeddedAmount": "인보이스에 명시된 금액: {{sats}} sats",
         "srcTokenLabel": "지불할 토큰",
         "quoteButton": "견적 받기",
+        "quoteExpired": "견적이 만료됐어요 — 라이트닝 시세는 자주 갱신됩니다. ‘견적 받기’를 다시 눌러 새 견적을 받아주세요.",
         "initHint": "첫 견적은 LP 연결 때문에 몇 초 걸릴 수 있습니다",
         "quoteHeading": "견적",
         "quoteSend": "보내는 금액",

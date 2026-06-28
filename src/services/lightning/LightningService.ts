@@ -4,6 +4,7 @@ import { parseLightningInput } from "@/utils/lightningInvoice";
 
 import { AtomiqProvider } from "./AtomiqProvider";
 import { createMwaSigningDelegate } from "./MwaWalletAdapter";
+import { isLightningQuoteExpired } from "./types";
 import type {
     LightningDestination,
     LightningPayOutcome,
@@ -23,7 +24,8 @@ export type QuoteRequestError =
     | "invalid_input"          // 파싱 불가
     | "expired_invoice"        // BOLT11 만료
     | "amount_required"        // amountless 인보이스 또는 address 인데 금액 없음
-    | "amount_not_allowed";    // 금액 있는 BOLT11 에 별도 금액 지정
+    | "amount_not_allowed"     // 금액 있는 BOLT11 에 별도 금액 지정
+    | "quote_expired";         // quote 유효시간 경과 → 재견적 필요 (commit 전 차단)
 
 export class LightningQuoteError extends Error
 {
@@ -119,6 +121,12 @@ export class LightningService
         abortSignal?: AbortSignal,
     ): Promise<LightningPayOutcome>
     {
+        // quote 만료 가드 — stale quote 로 escrow commit(되돌릴 수 없는 HTLC lock)을 막고 재견적 유도.
+        // provider.pay 위임 전, 즉 어떤 서명도 일어나기 전에 차단한다.
+        if (isLightningQuoteExpired(quote.quoteExpiresAt, Date.now()))
+        {
+            throw new LightningQuoteError("quote_expired");
+        }
         const signer = createMwaSigningDelegate(account);
         return this.provider.pay(quote, signer, onPhase, abortSignal);
     }

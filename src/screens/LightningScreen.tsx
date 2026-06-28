@@ -187,6 +187,7 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                 case "expired_invoice": return t("lightning.errExpiredInvoice");
                 case "amount_required": return t("lightning.errAmountRequired");
                 case "amount_not_allowed": return t("lightning.errAmountNotAllowed");
+                case "quote_expired": return t("lightning.quoteExpired");
             }
         }
         if (isLightningAmountError(err))
@@ -371,6 +372,15 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                 {
                     if (token !== payTokenRef.current)
                     {
+                        return;
+                    }
+                    // quote 만료(서명 전 차단) → quote 카드를 비워 재견적 유도
+                    if (err instanceof LightningQuoteError && err.code === "quote_expired")
+                    {
+                        setProgress(null);
+                        setQuote(null);
+                        setNotice(t("lightning.quoteExpired"));
+                        showToast(t("lightning.quoteExpired"), { variant: "info", durationMs: 5000 });
                         return;
                     }
                     setProgress((prev) => (prev ? { ...prev, state: "error" } : null));

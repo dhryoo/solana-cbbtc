@@ -4,7 +4,7 @@ import { USDC } from "@/constants/tokens";
 import type { ConnectedAccount } from "@/services/WalletService";
 
 import { LightningQuoteError, LightningService, resolveDestination } from "./LightningService";
-import { asLightningAmountError, isLightningAmountError } from "./types";
+import { asLightningAmountError, isLightningAmountError, isLightningQuoteExpired } from "./types";
 import type {
     LightningDestination,
     LightningPayOutcome,
@@ -152,6 +152,34 @@ describe("asLightningAmountError", () =>
     });
 });
 
+describe("isLightningQuoteExpired", () =>
+{
+    const NOW = 1_000_000_000_000;
+
+    it("not expired when expiry is comfortably in the future", () =>
+    {
+        expect(isLightningQuoteExpired(NOW + 60_000, NOW)).toBe(false);
+    });
+
+    it("expired when expiry is already in the past", () =>
+    {
+        expect(isLightningQuoteExpired(NOW - 1, NOW)).toBe(true);
+    });
+
+    it("treats an about-to-expire quote (within the safety margin) as expired", () =>
+    {
+        // 기본 마진 5s — 3초 뒤 만료면 commit 직전 차단, 10초 뒤면 통과
+        expect(isLightningQuoteExpired(NOW + 3_000, NOW)).toBe(true);
+        expect(isLightningQuoteExpired(NOW + 10_000, NOW)).toBe(false);
+    });
+
+    it("does not block when expiry info is missing (0 / non-finite)", () =>
+    {
+        expect(isLightningQuoteExpired(0, NOW)).toBe(false);
+        expect(isLightningQuoteExpired(Number.NaN, NOW)).toBe(false);
+    });
+});
+
 describe("LightningService (Facade + mock provider)", () =>
 {
     const OWNER = new PublicKey("9xQeWvG816bUx9EPSWvPjW8TQ6E7KqkbszxbjGAxAJat");
@@ -243,5 +271,32 @@ describe("LightningService (Facade + mock provider)", () =>
         expect(phases).toEqual(["signing", "paying"]);
         const [, signerArg] = (provider.pay as jest.Mock).mock.calls[0];
         expect((signerArg as SolanaSigningDelegate).publicKey.equals(OWNER)).toBe(true);
+    });
+
+    it("pay rejects an expired quote with quote_expired and never touches the provider", async () =>
+    {
+        const provider = makeMockProvider();
+        const svc = new LightningService(provider);
+        const expiredQuote: LightningQuote = {
+            providerId: "mock",
+            srcToken: USDC,
+            inputBase: 5_000_000n,
+            inputWithoutFeeBase: 4_970_000n,
+            feeBase: 30_000n,
+            outputSats: 7_400n,
+            quoteExpiresAt: Date.now() - 1_000, // 이미 만료
+            destinationLabel: "jack@strike.me",
+            ref: {},
+        };
+        await expect(svc.pay(expiredQuote, account, () => {})).rejects.toThrow(LightningQuoteError);
+        try
+        {
+            await svc.pay(expiredQuote, account, () => {});
+        }
+        catch (e)
+        {
+            expect((e as LightningQuoteError).code).toBe("quote_expired");
+        }
+        expect(provider.pay).not.toHaveBeenCalled();
     });
 });
