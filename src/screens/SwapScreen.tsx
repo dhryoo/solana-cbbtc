@@ -12,10 +12,8 @@ import {
 import { QuoteDisplay } from "@/components/QuoteDisplay";
 import { SwapConfirmModal } from "@/components/SwapConfirmModal";
 import { TokenPickerModal } from "@/components/TokenPickerModal";
-import { LightningScreen } from "@/screens/LightningScreen";
 import { SwapGuideScreen } from "@/screens/SwapGuideScreen";
-import { BRAND_PURPLE, type ThemePalette } from "@/constants/theme";
-import { useLabs } from "@/providers/LabsProvider";
+import { type ThemePalette } from "@/constants/theme";
 import { deriveSwapPair, MIN_SOL_GAS_RESERVE_SOL, OUTPUT_ATA_RENT_SOL, SOL, SWAP_COUNTER_TOKENS, type TokenInfo } from "@/constants/tokens";
 import { useCancellableSign } from "@/hooks/useCancellableSign";
 import { useSwap } from "@/hooks/useSwap";
@@ -51,8 +49,6 @@ export function SwapScreen(): React.JSX.Element
     const { input: inputToken, output: outputToken } = deriveSwapPair(counterToken, cbbtcIsOutput);
     const [amount, setAmount] = useState("");
     const [guideOpen, setGuideOpen] = useState(false);
-    const { lightningEnabled } = useLabs();
-    const [lightningOpen, setLightningOpen] = useState(false);
     const [slippageBps, setSlippageBps] = useState<number>(DEFAULT_SLIPPAGE_BPS);
 
     const [modalOpen, setModalOpen] = useState(false);
@@ -227,17 +223,6 @@ export function SwapScreen(): React.JSX.Element
                 >
                     <Ionicons name="help-circle-outline" size={26} color={palette.textMuted} />
                 </Pressable>
-                {lightningEnabled && (
-                    <Pressable
-                        accessibilityRole="button"
-                        accessibilityLabel={t("lightning.title")}
-                        onPress={() => setLightningOpen(true)}
-                        style={({ pressed }) => [styles.lightningChip, pressed && { opacity: 0.7 }]}
-                    >
-                        <Ionicons name="flash" size={13} color={BRAND_PURPLE} />
-                        <Text style={styles.lightningChipText}>{t("lightning.chipLabel")}</Text>
-                    </Pressable>
-                )}
             </View>
 
             <View style={styles.inputCard}>
@@ -365,9 +350,6 @@ export function SwapScreen(): React.JSX.Element
             />
         </ScrollView>
         <SwapGuideScreen visible={guideOpen} onClose={() => setGuideOpen(false)} />
-        {lightningEnabled && (
-            <LightningScreen visible={lightningOpen} onClose={() => setLightningOpen(false)} />
-        )}
         </>
     );
 }
@@ -426,24 +408,6 @@ const makeStyles = (t: ThemePalette) => ({
         right: 0,
         top: 0,
         padding: 4,
-    },
-    // Labs(실험) 토글 ON 일 때만 보이는 Lightning 진입 칩
-    lightningChip: {
-        flexDirection: "row" as const,
-        alignItems: "center" as const,
-        gap: 4,
-        marginTop: 10,
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        borderRadius: 999,
-        borderWidth: 1,
-        borderColor: BRAND_PURPLE + "55",
-        backgroundColor: t.surfaceMuted,
-    },
-    lightningChipText: {
-        fontSize: 12,
-        fontWeight: "700" as const,
-        color: t.text,
     },
     title: {
         fontSize: 28,

@@ -7,7 +7,6 @@ import {
     ActivityIndicator,
     Keyboard,
     Linking,
-    Modal,
     Platform,
     Pressable,
     ScrollView,
@@ -53,12 +52,6 @@ import type { ProgressState, TxStep } from "@/utils/txProgress";
 
 const SOURCE_TOKENS: TokenInfo[] = [USDC, SOL, CBBTC];
 
-interface LightningScreenProps
-{
-    visible: boolean;
-    onClose: () => void;
-}
-
 // LightningPayPhase → 기존 TxProgress 단계 매핑 (TxProgress 무수정 재사용)
 function phaseToStep(phase: LightningPayPhase): TxStep
 {
@@ -70,7 +63,8 @@ function phaseToStep(phase: LightningPayPhase): TxStep
     }
 }
 
-export function LightningScreen({ visible, onClose }: LightningScreenProps): React.JSX.Element
+// 5번째 하단 탭으로 분리(실험적 Labs 토글에서 승격). 모달이 아니라 인라인 탭 화면으로 렌더.
+export function LightningScreen(): React.JSX.Element
 {
     const { t } = useTranslation();
     const { palette } = useTheme();
@@ -102,7 +96,7 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
     const payMutation = useLightningPay();
     const cbbtcQuoteMutation = useCbbtcLightningQuote();
     const cbbtcPayMutation = useCbbtcLightningPay();
-    const refundable = useRefundableSwaps(visible);
+    const refundable = useRefundableSwaps(true);
     const refundAllMutation = useRefundAll();
 
     // cbBTC 결제 단계 → 상태 라벨
@@ -440,18 +434,8 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
         setNotice(t("lightning.cancelledPendingNotice"));
     };
 
-    // 화면을 닫을 때도 멈춘 진행 상태를 정리 — 다시 열면 깨끗한 입력 폼.
-    const handleClose = (): void =>
-    {
-        payTokenRef.current += 1;
-        payAbortRef.current?.abort();
-        setProgress(null);
-        setCbbtcStatus(null);
-        onClose();
-    };
-
     return (
-        <Modal visible={visible} animationType="slide" onRequestClose={handleClose} statusBarTranslucent={false}>
+        <>
             <View style={styles.container}>
                 <View style={styles.header}>
                     <View style={styles.headerText}>
@@ -471,14 +455,6 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
                         style={({ pressed }) => [styles.closeButton, pressed && { opacity: 0.7 }]}
                     >
                         <Ionicons name="help-circle-outline" size={22} color={palette.textMuted} />
-                    </Pressable>
-                    <Pressable
-                        accessibilityRole="button"
-                        accessibilityLabel={t("common.close")}
-                        onPress={handleClose}
-                        style={({ pressed }) => [styles.closeButton, pressed && { opacity: 0.7 }]}
-                    >
-                        <Ionicons name="close" size={22} color={palette.text} />
                     </Pressable>
                 </View>
 
@@ -777,7 +753,7 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
             </View>
             <LightningGuideScreen visible={guideOpen} onClose={() => setGuideOpen(false)} />
             <QRScanModal visible={scanOpen} onClose={() => setScanOpen(false)} onScanned={onScanned} />
-        </Modal>
+        </>
     );
 }
 

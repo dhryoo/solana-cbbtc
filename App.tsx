@@ -8,7 +8,6 @@ import { SplashOverlay } from "@/components/SplashOverlay";
 import { AppLockProvider } from "@/providers/AppLockProvider";
 import { ConnectionProvider } from "@/providers/ConnectionProvider";
 import { I18nProvider } from "@/providers/I18nProvider";
-import { LabsProvider } from "@/providers/LabsProvider";
 import { NetworkProvider } from "@/providers/NetworkProvider";
 import { NotificationProvider } from "@/providers/NotificationProvider";
 import { QueryProvider } from "@/providers/QueryProvider";
@@ -48,9 +47,7 @@ export default function App(): React.JSX.Element
                                      */}
                                     <AppLockProvider>
                                         <WalletProvider>
-                                            <LabsProvider>
-                                                <AppShell />
-                                            </LabsProvider>
+                                            <AppShell />
                                             <ThemedStatusBar />
                                             <SplashOverlay />
                                         </WalletProvider>
