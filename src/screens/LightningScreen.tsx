@@ -20,6 +20,7 @@ import {
 import { LightningReceivePanel } from "@/components/LightningReceivePanel";
 import { QRScanModal } from "@/components/QRScanModal";
 import { TxProgressModal } from "@/components/TxProgressModal";
+import { LN_EXPERIMENTAL_MAX_SATS } from "@/constants/lightning";
 import { BRAND_PURPLE, type ThemePalette } from "@/constants/theme";
 import { CBBTC, SOL, USDC, type TokenInfo } from "@/constants/tokens";
 import {
@@ -62,6 +63,9 @@ function phaseToStep(phase: LightningPayPhase): TxStep
         case "refunding": return "sending";
     }
 }
+
+// 소액 상한 표시용 라벨 (Hermes Intl 한계 회피 — 수동 천단위 콤마)
+const MAX_SATS_LABEL = LN_EXPERIMENTAL_MAX_SATS.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
 // 5번째 하단 탭으로 분리(실험적 Labs 토글에서 승격). 모달이 아니라 인라인 탭 화면으로 렌더.
 export function LightningScreen(): React.JSX.Element
@@ -195,6 +199,7 @@ export function LightningScreen(): React.JSX.Element
                 case "expired_invoice": return t("lightning.errExpiredInvoice");
                 case "amount_required": return t("lightning.errAmountRequired");
                 case "amount_not_allowed": return t("lightning.errAmountNotAllowed");
+                case "amount_too_large": return t("lightning.errAmountTooLargeExperimental", { max: MAX_SATS_LABEL });
                 case "quote_expired": return t("lightning.quoteExpired");
             }
         }
@@ -553,6 +558,7 @@ export function LightningScreen(): React.JSX.Element
                                 editable={!payMutation.isPending}
                                 accessibilityLabel={t("lightning.amountLabel")}
                             />
+                            <Text style={styles.maxSatsHint}>{t("lightning.maxSatsHint", { max: MAX_SATS_LABEL })}</Text>
                             </>
                         )}
                         {amountEmbedded && parsedInput.kind === "bolt11" && (
@@ -851,6 +857,7 @@ const makeStyles = (t: ThemePalette) => StyleSheet.create({
         minHeight: 44,
     },
     embeddedAmount: { fontSize: 12, color: t.textMuted },
+    maxSatsHint: { fontSize: 11, color: t.textDim, marginTop: 4 },
     tokenRow: { flexDirection: "row", gap: 8 },
     tokenChip: {
         paddingVertical: 8,

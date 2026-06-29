@@ -271,7 +271,9 @@
         "errAmountRequired": "보낼 금액(sats)을 입력해 주세요.",
         "errAmountNotAllowed": "금액이 명시된 인보이스에는 금액을 따로 입력할 수 없습니다.",
         "errAmountTooLow": "금액이 너무 적습니다. 최소 {{min}} sats 이상으로 시도해 주세요.",
-        "errAmountTooHigh": "금액이 너무 큽니다. 최대 {{max}} sats 이하로 시도해 주세요."
+        "errAmountTooHigh": "금액이 너무 큽니다. 최대 {{max}} sats 이하로 시도해 주세요.",
+        "errAmountTooLargeExperimental": "실험 기능은 결제당 최대 {{max}} sats 입니다. 더 작은 금액을 입력해 주세요.",
+        "maxSatsHint": "실험 기능 — 결제당 최대 {{max}} sats"
     },
     "qrScan": {
         "title": "QR 스캔",
@@ -328,7 +330,7 @@
         "experimental": {
             "title": "실험 기능 주의",
             "body": "Labs 에서 켜는 실험 기능입니다. 안정화까지는 보수적으로 사용해 주세요.",
-            "b1": "소액(수천 sats)으로만 사용하세요.",
+            "b1": "소액만 사용하세요 — 결제당 최대 100,000 sats.",
             "b2": "금액이 명시된 인보이스 또는 lightning address(금액 입력)를 지원합니다.",
             "b3": "문제가 생기면 설정 → 문의/제보로 알려주세요."
         },

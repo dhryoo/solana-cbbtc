@@ -1,3 +1,4 @@
+import { LN_EXPERIMENTAL_MAX_SATS } from "@/constants/lightning";
 import type { TokenInfo } from "@/constants/tokens";
 import type { ConnectedAccount } from "@/services/WalletService";
 import { parseLightningInput } from "@/utils/lightningInvoice";
@@ -25,6 +26,7 @@ export type QuoteRequestError =
     | "expired_invoice"        // BOLT11 만료
     | "amount_required"        // amountless 인보이스 또는 address 인데 금액 없음
     | "amount_not_allowed"     // 금액 있는 BOLT11 에 별도 금액 지정
+    | "amount_too_large"       // 실험 기능 소액 상한(LN_EXPERIMENTAL_MAX_SATS) 초과
     | "quote_expired";         // quote 유효시간 경과 → 재견적 필요 (commit 전 차단)
 
 export class LightningQuoteError extends Error
@@ -65,17 +67,29 @@ export function resolveDestination(
             {
                 throw new LightningQuoteError("amount_not_allowed");
             }
+            if (parsed.amountSats > LN_EXPERIMENTAL_MAX_SATS)
+            {
+                throw new LightningQuoteError("amount_too_large");
+            }
             return { kind: "bolt11", parsed };
         case "lightningAddress":
             if (amountSats === null || amountSats <= 0n)
             {
                 throw new LightningQuoteError("amount_required");
             }
+            if (amountSats > LN_EXPERIMENTAL_MAX_SATS)
+            {
+                throw new LightningQuoteError("amount_too_large");
+            }
             return { kind: "lnurlOrAddress", destination: parsed.address, amountSats, parsed };
         case "lnurl":
             if (amountSats === null || amountSats <= 0n)
             {
                 throw new LightningQuoteError("amount_required");
+            }
+            if (amountSats > LN_EXPERIMENTAL_MAX_SATS)
+            {
+                throw new LightningQuoteError("amount_too_large");
             }
             return { kind: "lnurlOrAddress", destination: parsed.lnurl, amountSats, parsed };
     }

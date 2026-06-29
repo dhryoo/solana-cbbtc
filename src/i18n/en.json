@@ -271,7 +271,9 @@
         "errAmountRequired": "Please enter the amount to send (sats).",
         "errAmountNotAllowed": "This invoice already specifies an amount — you can't enter one separately.",
         "errAmountTooLow": "Amount is too small. Please try at least {{min}} sats.",
-        "errAmountTooHigh": "Amount is too large. Please try at most {{max}} sats."
+        "errAmountTooHigh": "Amount is too large. Please try at most {{max}} sats.",
+        "errAmountTooLargeExperimental": "Experimental feature: up to {{max}} sats per payment. Please enter a smaller amount.",
+        "maxSatsHint": "Experimental — up to {{max}} sats per payment"
     },
     "qrScan": {
         "title": "Scan QR",
@@ -328,7 +330,7 @@
         "experimental": {
             "title": "Experimental — use with care",
             "body": "This is a Labs feature. Please use it conservatively until it stabilizes.",
-            "b1": "Use small amounts only (a few thousand sats).",
+            "b1": "Use small amounts only — up to 100,000 sats per payment.",
             "b2": "Supports amount-bearing invoices and lightning addresses (you enter the amount).",
             "b3": "If anything looks wrong, reach us via Settings → Feedback."
         },

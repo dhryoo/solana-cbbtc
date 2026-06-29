@@ -1,5 +1,6 @@
 import { PublicKey } from "@solana/web3.js";
 
+import { LN_EXPERIMENTAL_MAX_SATS } from "@/constants/lightning";
 import { USDC } from "@/constants/tokens";
 import type { ConnectedAccount } from "@/services/WalletService";
 
@@ -23,10 +24,37 @@ const COFFEE_TS = 1496314658;
 
 describe("resolveDestination", () =>
 {
-    it("accepts a non-expired bolt11 with embedded amount (no explicit amount)", () =>
+    it("rejects a bolt11 whose embedded amount exceeds the experimental small-amounts cap", () =>
     {
-        const d = resolveDestination(COFFEE_INVOICE, null, COFFEE_TS + 10);
-        expect(d.kind).toBe("bolt11");
+        // COFFEE_INVOICE = lnbc2500u = 250,000 sats > LN_EXPERIMENTAL_MAX_SATS (100,000)
+        try
+        {
+            resolveDestination(COFFEE_INVOICE, null, COFFEE_TS + 10);
+            fail("should throw");
+        }
+        catch (e)
+        {
+            expect((e as LightningQuoteError).code).toBe("amount_too_large");
+        }
+    });
+
+    it("accepts a lightning address at exactly the experimental cap", () =>
+    {
+        const d = resolveDestination("jack@strike.me", LN_EXPERIMENTAL_MAX_SATS);
+        expect(d.kind).toBe("lnurlOrAddress");
+    });
+
+    it("rejects a lightning address amount just over the experimental cap", () =>
+    {
+        try
+        {
+            resolveDestination("jack@strike.me", LN_EXPERIMENTAL_MAX_SATS + 1n);
+            fail("should throw");
+        }
+        catch (e)
+        {
+            expect((e as LightningQuoteError).code).toBe("amount_too_large");
+        }
     });
 
     it("rejects an expired bolt11", () =>
