@@ -1,14 +1,15 @@
-# Release notes — v0.4.3 (versionCode 21)
+# Release notes — v0.4.4 (versionCode 22)
 
 dApp Store 제출 시 "release notes / What's new" 필드에 복사.
 
-스토어 배포본이 **v0.4.2(versionCode 20)** 이므로 이번 업데이트는 **0.4.2 → 0.4.3 단독**입니다.
+스토어 배포본이 **v0.4.2(versionCode 20)** 이므로 이번 업데이트는 **0.4.2 → 0.4.4 단독**입니다.
+(v0.4.3/vc21 은 포털 publish 단계에서 **publisher 지갑 SOL 부족(Release NFT 민팅 rent)**으로 실패 → 동일 코드를 vc22/0.4.4 로 재시도. 코드·기능 차이 없음.)
 새 권한·새 네이티브 모듈·새 네트워크 호스트 **없음**. 핵심 변경 = 기존 실험 기능 **Lightning 이 Labs 토글에서 전용 탭으로 승격**(실질은 비수탁·무수수료 그대로).
 
 ## 한국어 (ko)
 
 ```
-v0.4.3 — Bitcoin Lightning 전용 탭 + 더 친절한 안내
+v0.4.4 — Bitcoin Lightning 전용 탭 + 더 친절한 안내
 
 • Bitcoin Lightning 전용 탭 — 실험 기능을 Labs 토글에서 독립 탭으로 분리했어요. ‘Bitcoin Lightning’임을 명확히 표시하고, 결제당 소액 상한(최대 100,000 sats)을 적용했습니다 (실험적 — 소액만 권장)
 • 지불 증명(preimage) — 라이트닝 결제가 완료되면 인보이스가 실제 지불됐다는 암호학적 증거를 보여주고 복사할 수 있어요
@@ -20,7 +21,7 @@ v0.4.3 — Bitcoin Lightning 전용 탭 + 더 친절한 안내
 ## English (en)
 
 ```
-v0.4.3 — Bitcoin Lightning gets its own tab + clearer guidance
+v0.4.4 — Bitcoin Lightning gets its own tab + clearer guidance
 
 • Bitcoin Lightning, now its own tab — moved the experimental feature out of the Labs toggle into a dedicated tab, made it clear it's Bitcoin's Lightning, and added a small per-payment cap (up to 100,000 sats). Experimental — small amounts only.
 • Proof of payment (preimage) — after a successful Lightning payment, see and copy the cryptographic proof that the invoice was actually paid
@@ -32,7 +33,7 @@ v0.4.3 — Bitcoin Lightning gets its own tab + clearer guidance
 ## dApp Store 심사 노트 (제출 시 reviewer notes / "Notes for review" 에 영문 입력)
 
 ```
-REVIEWER NOTES — Solana cbBTC (com.seekerbtcfi.app), v0.4.3 (versionCode 21)
+REVIEWER NOTES — Solana cbBTC (com.seekerbtcfi.app), v0.4.4 (versionCode 22)
 
 WHAT CHANGED SINCE THE LIVE BUILD (v0.4.2, versionCode 20)
 - NO permission changes. No permission was added, removed, or modified vs v0.4.2.
