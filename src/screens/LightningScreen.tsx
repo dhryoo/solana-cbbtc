@@ -18,6 +18,7 @@ import {
 } from "react-native";
 
 import { LightningReceivePanel } from "@/components/LightningReceivePanel";
+import { MaxSatsHint } from "@/components/MaxSatsHint";
 import { QRScanModal } from "@/components/QRScanModal";
 import { TxProgressModal } from "@/components/TxProgressModal";
 import { WalletButton } from "@/components/WalletButton";
@@ -579,7 +580,7 @@ export function LightningScreen(): React.JSX.Element
                                 editable={!payMutation.isPending}
                                 accessibilityLabel={t("lightning.amountLabel")}
                             />
-                            <Text style={styles.maxSatsHint}>{t("lightning.maxSatsHint", { max: MAX_SATS_LABEL })}</Text>
+                            <MaxSatsHint />
                             </>
                         )}
                         {amountEmbedded && parsedInput.kind === "bolt11" && (
@@ -891,7 +892,6 @@ const makeStyles = (t: ThemePalette) => StyleSheet.create({
         minHeight: 44,
     },
     embeddedAmount: { fontSize: 12, color: t.textMuted },
-    maxSatsHint: { fontSize: 11, color: t.textDim, marginTop: 4 },
     tokenRow: { flexDirection: "row", gap: 8 },
     tokenChip: {
         paddingVertical: 8,

@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Linking, Pressable, Share, Text, TextInput, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 
+import { MaxSatsHint } from "@/components/MaxSatsHint";
 import { LN_EXPERIMENTAL_MAX_SATS } from "@/constants/lightning";
 import { BRAND_PURPLE, type ThemePalette } from "@/constants/theme";
 import { SOL, USDC, type TokenInfo } from "@/constants/tokens";
@@ -27,9 +28,6 @@ const DEST_TOKENS: TokenInfo[] = [USDC, SOL];
 // 받기는 "상대 결제 → 내 claim 서명" 순서라, SOL 이 없으면 결제는 됐는데 못 받는 상황이 됨.
 // 그래서 인보이스 생성 전에 이 값 미만이면 미리 경고한다. rent 는 escrow 닫힐 때 대부분 회수.
 const MIN_SOL_FOR_RECEIVE_CLAIM = 10_000_000n; // 0.01 SOL
-
-// 실험 기능 소액 상한(송금과 동일) — 받기 금액도 제한. 표시용 콤마 라벨(Hermes Intl 회피).
-const MAX_SATS_LABEL = LN_EXPERIMENTAL_MAX_SATS.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
 // LN 받기 (FROM_BTCLN): dst 토큰·금액 → 인보이스 생성 → QR 표시 + 결제 대기 → 정산(claim).
 export function LightningReceivePanel(): React.JSX.Element
@@ -190,7 +188,7 @@ export function LightningReceivePanel(): React.JSX.Element
                         maxLength={12}
                         accessibilityLabel={t("receive.amountLabel")}
                     />
-                    <Text style={styles.maxSatsHint}>{t("lightning.maxSatsHint", { max: MAX_SATS_LABEL })}</Text>
+                    <MaxSatsHint />
                     <AmountPad onChange={(v) => { setAmountText(v); reset(); }} value={amountText} styles={styles} />
                     {lowSol && (
                         <View style={styles.warnBox}>
@@ -309,7 +307,6 @@ const makeStyles = (t: ThemePalette) => ({
     tokenChipText: { fontSize: 14, fontWeight: "600" as const, color: t.text },
     tokenChipTextActive: { color: t.textInverse },
     amountInput: { borderWidth: 1, borderColor: t.borderStrong, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 18, fontWeight: "700" as const, color: t.text, backgroundColor: t.background },
-    maxSatsHint: { fontSize: 11, color: t.textDim, marginTop: 6 },
     presetRow: { flexDirection: "row" as const, gap: 8, flexWrap: "wrap" as const },
     presetChip: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 999, borderWidth: 1, borderColor: t.border, backgroundColor: t.surfaceMuted },
     presetChipActive: { borderColor: t.primary },
