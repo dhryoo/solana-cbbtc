@@ -32,7 +32,7 @@ Solana Seeker에서 cbBTC를 swap·예치·대출하는 BTCfi 모바일 앱.
 ```
 Solana cbBTC는 Solana Seeker 사용자를 위한 BTCfi 모바일 앱입니다.
 
-cbBTC는 Coinbase가 발행한 비트코인 1:1 페그 토큰으로, Solana 메인넷에서 시총 $340M+ 규모의 가장 안정적인 wrapped Bitcoin입니다. 본 앱은 cbBTC를 Solana 모바일 환경에서 안전하게 다룰 수 있는 가장 간결한 경로를 제공합니다.
+cbBTC는 Coinbase가 발행한 비트코인 1:1 페그 토큰으로, Solana 메인넷에서 시총 $340M+ 규모의 가장 안정적인 wrapped Bitcoin입니다. 본 앱은 Seeker에서 cbBTC를 스왑·공급·차입하고, 이제 비트코인 라이트닝 네트워크로 결제·수신까지 — 하드웨어로 안전하게 다룰 수 있는 가장 간결한 경로를 제공합니다.
 
 🔑 핵심 기능
 
@@ -52,13 +52,13 @@ cbBTC는 Coinbase가 발행한 비트코인 1:1 페그 토큰으로, Solana 메�
 • 비수탁(self-custody) — 앱은 자금·키를 보관하지 않음, 모든 거래는 Seed Vault로 직접 서명
 • 진행 시각화 + 안내 화면 — 단계별 진행 표시, 작동 방식·투명성·위험을 인포그래픽으로 설명
 
-🧪 실험실 (Labs) — ⚡ Lightning 결제 (Phase 3 베타)
+⚡ Bitcoin Lightning (실험적) — 전용 탭으로 분리
 
-• 설정 → 실험실에서 켜는 opt-in 기능 (기본 꺼짐)
-• Bitcoin 결제망(Lightning Network) 인보이스를 USDC·SOL 로 바로 지불
-• Atomiq atomic swap (HTLC) — 감사받은 escrow, 서명은 전부 Solana 쪽에서만
-• 실패해도 안전 — LN 지급이 안 되면 자금 환불 (LP 는 지급 증명 없이 자금 못 가져감)
-• 앱 수수료 0 — LP 수수료(~0.5%)만 견적에 표시. 소액 사용 권장
+• 비트코인 라이트닝 인보이스를 Solana 자산(USDC · SOL · cbBTC)으로 결제·수신, 전용 탭에서
+• 완전 비수탁 — 서명은 Solana 쪽에서만, 라이트닝 지급은 독립 LP(Liquidity Provider)가 수행
+• Atomiq atomic swap (HTLC) — 감사받은 escrow. 실패 시 온체인 HTLC가 자동 환불 (LP는 지급 증명 없이 자금 못 가져감)
+• 지불 증명 — 인보이스가 실제 지불됐음을 증명하는 암호학적 preimage를 보여주고 복사
+• 앱 수수료 0 — LP 수수료(~0.5%)만 견적에 표시 · 실험적, 결제당 소액 상한(100,000 sats)
 
 🛡️ 보안 우선
 
@@ -103,12 +103,12 @@ cbBTC는 Coinbase가 발행한 비트코인 1:1 페그 토큰으로, Solana 메�
 • Phase 1: cbBTC ↔ SOL swap (Jupiter) — 완료 ✅
 • Phase 2: cbBTC 기반 lending (Kamino) — 공급·인출·차입·상환 완료 ✅
 • Phase 2.5: 멀티 프로토콜 비교 (marginfi/Solend 추가)
-• 🧪 Phase 3: Lightning Network 결제 — 베타 출시 (실험실 토글, USDC·SOL 발신. cbBTC 발신은 후속)
+• ⚡ Phase 3: Bitcoin Lightning 결제 — 전용 탭으로 출시 (송신/수신, USDC · SOL · cbBTC)
 • Phase 4: 다양한 wrapped BTC 비교/통합 swap (cbBTC · tBTC · BTC.b 등)
 
 📊 기술 스택
 
-React Native · Expo SDK 54 · TypeScript strict · Solana Mobile Wallet Adapter · Jupiter Swap v6 · Kamino Lend · TanStack Query
+React Native · Expo SDK 54 · TypeScript strict · Solana Mobile Wallet Adapter · Jupiter Swap v6 · Kamino Lend · Atomiq Lightning · TanStack Query
 
 🌐 오픈소스
 

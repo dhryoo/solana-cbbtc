@@ -30,7 +30,7 @@ Alternatives:
 ```
 Solana cbBTC is the mobile BTCfi app for Solana Seeker users.
 
-cbBTC is Coinbase's 1:1 Bitcoin-pegged token — currently the largest wrapped Bitcoin on Solana mainnet with $340M+ market cap. This app gives you the most direct, hardware-secured path to hold and swap cbBTC from your Seeker.
+cbBTC is Coinbase's 1:1 Bitcoin-pegged token — currently the largest wrapped Bitcoin on Solana mainnet with $340M+ market cap. This app gives you the most direct, hardware-secured path to swap, supply, and borrow cbBTC — and now pay and receive over Bitcoin's Lightning Network — from your Seeker.
 
 🔑 Core features
 
@@ -50,13 +50,13 @@ cbBTC is Coinbase's 1:1 Bitcoin-pegged token — currently the largest wrapped B
 • Self-custody — the app never holds your funds or keys; every transaction is signed with your Seed Vault
 • Progress visualization + guide — step-by-step progress, with how-it-works, transparency, and risk explained via infographics
 
-🧪 Labs — ⚡ Lightning payments (Phase 3 beta)
+⚡ Bitcoin Lightning (experimental) — now its own tab
 
-• Opt-in feature under Settings → Labs (off by default)
-• Pay Lightning Network invoices (Bitcoin's payment rail) directly with USDC · SOL
-• Atomiq atomic swaps (HTLC) — audited escrow, every signature stays on Solana
-• Safe on failure — funds are refunded if the LN payment doesn't complete (the LP can't claim without payment proof)
-• Zero app fee — only the LP fee (~0.5%), shown in the quote. Small amounts recommended
+• Pay and receive Bitcoin Lightning invoices with your Solana assets (USDC · SOL · cbBTC) from a dedicated tab
+• Fully non-custodial — you sign only on the Solana side; an independent liquidity provider settles the Lightning leg
+• Atomiq atomic swaps (HTLC) — audited escrow; if a payment fails, an on-chain HTLC refunds you automatically (the LP can't claim without payment proof)
+• Proof of payment — see and copy the cryptographic preimage that proves your invoice was paid
+• Zero app fee — only the LP fee (~0.5%), shown in the quote · experimental, with a small per-payment cap (100,000 sats)
 
 🛡️ Security first
 
@@ -101,12 +101,12 @@ cbBTC is Coinbase's 1:1 Bitcoin-pegged token — currently the largest wrapped B
 • Phase 1: cbBTC ↔ SOL swap (Jupiter) — done ✅
 • Phase 2: cbBTC-backed lending (Kamino) — supply · withdraw · borrow · repay done ✅
 • Phase 2.5: Multi-protocol comparison (add marginfi / Solend)
-• 🧪 Phase 3: Lightning Network payments — in beta (Labs toggle; USDC · SOL as source, cbBTC next)
+• ⚡ Phase 3: Bitcoin Lightning payments — shipped as a dedicated tab (send/receive; USDC · SOL · cbBTC)
 • Phase 4: Cross-asset wrapped BTC comparison and routing (cbBTC · tBTC · BTC.b ...)
 
 📊 Tech stack
 
-React Native · Expo SDK 54 · TypeScript strict · Solana Mobile Wallet Adapter · Jupiter Swap v6 · Kamino Lend · TanStack Query
+React Native · Expo SDK 54 · TypeScript strict · Solana Mobile Wallet Adapter · Jupiter Swap v6 · Kamino Lend · Atomiq Lightning · TanStack Query
 
 🌐 Open source
 
