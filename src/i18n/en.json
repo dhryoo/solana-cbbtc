@@ -217,8 +217,10 @@
         "badge": "BETA"
     },
     "lightning": {
-        "title": "Lightning payment",
-        "subtitle": "Pay LN invoices via Atomiq atomic swaps",
+        "title": "Bitcoin Lightning",
+        "subtitle": "Pay Bitcoin Lightning invoices with your Solana assets",
+        "whatIsLink": "What is Bitcoin Lightning?",
+        "connectPrompt": "Connect your wallet to use Lightning.",
         "chipLabel": "Lightning (Labs)",
         "modeSend": "Send",
         "modeReceive": "Receive",

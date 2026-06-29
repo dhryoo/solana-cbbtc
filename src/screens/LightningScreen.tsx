@@ -20,6 +20,7 @@ import {
 import { LightningReceivePanel } from "@/components/LightningReceivePanel";
 import { QRScanModal } from "@/components/QRScanModal";
 import { TxProgressModal } from "@/components/TxProgressModal";
+import { WalletButton } from "@/components/WalletButton";
 import { LN_EXPERIMENTAL_MAX_SATS } from "@/constants/lightning";
 import { BRAND_PURPLE, type ThemePalette } from "@/constants/theme";
 import { CBBTC, SOL, USDC, type TokenInfo } from "@/constants/tokens";
@@ -470,6 +471,26 @@ export function LightningScreen(): React.JSX.Element
                         <Text style={styles.experimentText}>{t("lightning.experimentNotice")}</Text>
                     </View>
 
+                    {/* 비트코인 라이트닝 안내 링크 (Solana 사용자 대상 — 무엇인지 가이드로 연결) */}
+                    <Pressable
+                        accessibilityRole="link"
+                        accessibilityLabel={t("lightningGuide.title")}
+                        onPress={() => setGuideOpen(true)}
+                        style={({ pressed }) => [styles.whatIsRow, pressed && { opacity: 0.6 }]}
+                    >
+                        <Ionicons name="information-circle-outline" size={15} color={BRAND_PURPLE} />
+                        <Text style={styles.whatIsText}>{t("lightning.whatIsLink")}</Text>
+                    </Pressable>
+
+                    {/* 지갑 미연결 안내 — 다른 탭과 동일하게 연결 유도 */}
+                    {!account && (
+                        <View style={styles.connectCard}>
+                            <Ionicons name="wallet-outline" size={18} color={palette.textMuted} />
+                            <Text style={styles.connectText}>{t("lightning.connectPrompt")}</Text>
+                            <WalletButton />
+                        </View>
+                    )}
+
                     {/* 보내기 / 받기 토글 */}
                     <View style={styles.modeToggle}>
                         {(["send", "receive"] as const).map((m) => (
@@ -814,6 +835,19 @@ const makeStyles = (t: ThemePalette) => StyleSheet.create({
         borderColor: t.border,
     },
     experimentText: { flex: 1, fontSize: 12, lineHeight: 17, color: t.textMuted },
+    whatIsRow: { flexDirection: "row" as const, alignItems: "center" as const, gap: 5, alignSelf: "flex-start" as const, paddingVertical: 6 },
+    whatIsText: { fontSize: 13, fontWeight: "700" as const, color: BRAND_PURPLE },
+    connectCard: {
+        alignItems: "center" as const,
+        gap: 10,
+        padding: 16,
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: t.border,
+        backgroundColor: t.surface,
+        marginBottom: 4,
+    },
+    connectText: { fontSize: 13, lineHeight: 18, color: t.text, textAlign: "center" as const },
     warnBox: {
         gap: 10,
         padding: 12,

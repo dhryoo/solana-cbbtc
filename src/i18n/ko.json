@@ -217,8 +217,10 @@
         "badge": "실험"
     },
     "lightning": {
-        "title": "Lightning 결제",
-        "subtitle": "Atomiq atomic swap 으로 LN 인보이스 결제",
+        "title": "비트코인 라이트닝",
+        "subtitle": "Solana 자산으로 비트코인 라이트닝 인보이스를 결제하세요",
+        "whatIsLink": "비트코인 라이트닝이란?",
+        "connectPrompt": "라이트닝을 사용하려면 지갑을 연결하세요.",
         "chipLabel": "Lightning (실험)",
         "modeSend": "보내기",
         "modeReceive": "받기",
