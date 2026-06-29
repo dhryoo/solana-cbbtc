@@ -258,7 +258,7 @@
         "paidTitle": "결제 완료",
         "paidBody": "Lightning 인보이스가 결제되었습니다. 받는 쪽 지갑에는 잠시 후(보통 1분 내) 표시될 수 있습니다.",
         "proofTitle": "지불 증명 (preimage)",
-        "proofHint": "이 preimage의 SHA-256 해시는 인보이스의 payment_hash와 같습니다 — 인보이스가 실제로 지불됐다는 암호학적 증명이에요. LP는 이걸 온체인에 공개해야만 당신의 escrow를 가져갈 수 있었습니다.",
+        "proofHint": "결제가 완료됐다는 암호학적 증거(영수증)입니다. 이 preimage의 SHA-256 해시가 인보이스의 payment_hash와 일치해요 — LP는 인보이스를 실제로 지불했기에 이 값을 알 수 있었고, 그렇게 당신의 escrow를 받아갔습니다.",
         "proofCopyA11y": "지불 증명 복사",
         "proofCopyButton": "복사",
         "refundedTitle": "환불 완료",

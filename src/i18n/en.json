@@ -258,7 +258,7 @@
         "paidTitle": "Payment complete",
         "paidBody": "The Lightning invoice has been paid. It may take a short moment (usually within a minute) to appear in the recipient's wallet.",
         "proofTitle": "Proof of payment (preimage)",
-        "proofHint": "The SHA-256 hash of this preimage equals the invoice's payment_hash — cryptographic proof the invoice was really paid. The LP could only claim your escrow by revealing it on-chain.",
+        "proofHint": "Cryptographic proof the payment completed: this preimage's SHA-256 hash matches the invoice's payment_hash. The LP could obtain it only by actually paying the invoice — and that is how it claimed your escrow.",
         "proofCopyA11y": "Copy proof of payment",
         "proofCopyButton": "Copy",
         "refundedTitle": "Refunded",

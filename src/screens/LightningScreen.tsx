@@ -37,7 +37,7 @@ import { useNetworkStatus } from "@/providers/NetworkProvider";
 import { useTheme } from "@/providers/ThemeProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { LightningGuideScreen } from "@/screens/LightningGuideScreen";
-import { hapticLight } from "@/services/HapticsService";
+import { hapticSuccess } from "@/services/HapticsService";
 import { LightningQuoteError } from "@/services/lightning/LightningService";
 import { isLightningAmountError } from "@/services/lightning/types";
 import type { LightningPayOutcome, LightningPayPhase, LightningQuote } from "@/services/lightning/types";
@@ -180,7 +180,7 @@ export function LightningScreen({ visible, onClose }: LightningScreenProps): Rea
             return;
         }
         await Clipboard.setStringAsync(secret);
-        void hapticLight();
+        void hapticSuccess();
         showToast(t("common.copied"), { variant: "success", durationMs: 1500 });
     }, [showToast, t]);
 
