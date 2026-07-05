@@ -1,12 +1,18 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { BRAND_PURPLE } from "@/constants/theme";
 import { useAppLock } from "@/providers/AppLockProvider";
 
 // 풀스크린 잠금 오버레이.
+//
+// 네이티브 Modal 로 감싼다: Android 에서 RN Modal 은 액티비티 뷰 계층 위에 별도 Dialog
+// 윈도우로 그려진다. LockScreen 이 평범한 absolute View(zIndex) 였을 땐 History/SwapConfirm
+// 등 다른 네이티브 Modal 이 그 위에 떠서 잠금 상태에서도 민감 내용(잔액·주소·서명 액션)이
+// 노출될 수 있었다(R19). 잠금 시점에 새로 mount 되는 Modal 은 나중에 추가된 윈도우라 기존
+// Modal 위에 스택된다. onRequestClose(뒤로가기)는 no-op 으로 잠금을 못 닫게 한다.
 //
 // UX (v0.1.7 이후):
 //   화면 전체가 Pressable. 사용자가 어디든 탭하면 unlock() 호출 → biometric prompt 표시.
@@ -30,31 +36,40 @@ export function LockScreen(): React.JSX.Element | null
     const isAuthenticating = state === "unlocking";
 
     return (
-        <Pressable
-            style={styles.overlay}
-            accessibilityRole="button"
-            accessibilityLabel={t("lock.unlockAction")}
-            accessibilityHint={t("lock.tapHint")}
-            onPress={() => { void unlock(); }}
+        <Modal
+            visible
+            transparent
+            animationType="fade"
+            statusBarTranslucent
+            // 잠금 화면은 Android 뒤로가기로 닫히면 안 된다 — no-op 로 잠금 유지.
+            onRequestClose={() => { /* keep locked */ }}
         >
-            <View style={styles.iconWrap}>
-                <Ionicons
-                    name="finger-print"
-                    size={88}
-                    color="#ffffff"
-                />
-            </View>
-            <Text style={styles.title}>{t("lock.title")}</Text>
-            <Text style={styles.subtitle}>
-                {isAuthenticating ? t("lock.authenticating") : t("lock.tapToUnlock")}
-            </Text>
-            {!isAuthenticating && (
-                <View style={styles.hintWrap}>
-                    <Ionicons name="hand-left-outline" size={14} color="#EAD8FF" />
-                    <Text style={styles.hint}>{t("lock.subtitle")}</Text>
+            <Pressable
+                style={styles.overlay}
+                accessibilityRole="button"
+                accessibilityLabel={t("lock.unlockAction")}
+                accessibilityHint={t("lock.tapHint")}
+                onPress={() => { void unlock(); }}
+            >
+                <View style={styles.iconWrap}>
+                    <Ionicons
+                        name="finger-print"
+                        size={88}
+                        color="#ffffff"
+                    />
                 </View>
-            )}
-        </Pressable>
+                <Text style={styles.title}>{t("lock.title")}</Text>
+                <Text style={styles.subtitle}>
+                    {isAuthenticating ? t("lock.authenticating") : t("lock.tapToUnlock")}
+                </Text>
+                {!isAuthenticating && (
+                    <View style={styles.hintWrap}>
+                        <Ionicons name="hand-left-outline" size={14} color="#EAD8FF" />
+                        <Text style={styles.hint}>{t("lock.subtitle")}</Text>
+                    </View>
+                )}
+            </Pressable>
+        </Modal>
     );
 }
 
