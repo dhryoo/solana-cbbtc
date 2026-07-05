@@ -112,6 +112,7 @@ export function LightningScreen(): React.JSX.Element
         {
             case "swapping": return t("lightning.cbbtcSwapping");
             case "confirming": return t("lightning.cbbtcConfirming");
+            case "confirmed": return t("lightning.cbbtcConfirming");
             case "signing": return t("lightning.cbbtcPaySigning");
             case "paying": return t("lightning.cbbtcPaying");
             case "refunding": return t("lightning.refundingNotice");
@@ -277,7 +278,9 @@ export function LightningScreen(): React.JSX.Element
                     {
                         return;
                     }
-                    if (phase === "confirming" || phase === "signing")
+                    // swap 이 확정(=USDC 확보)된 이후에만 true. confirming 중 on-chain 실패면
+                    // cbBTC 는 그대로이므로 여기서 true 로 잡으면 안 된다(R12).
+                    if (phase === "confirmed" || phase === "signing" || phase === "paying" || phase === "refunding")
                     {
                         swapped = true;
                     }
@@ -317,15 +320,31 @@ export function LightningScreen(): React.JSX.Element
                     void refundable.refetch();
                     const cancelled = isUserRejection(err.message);
                     const timedOut = /confirm_timeout/.test(err.message);
-                    // swap 후 실패 → 이미 USDC 보유 → USDC 로 재시도 안내 + 소스 자동 전환
-                    const afterSwap = swapped || timedOut;
-                    const noticeMsg = afterSwap ? t("lightning.cbbtcRetryWithUsdc")
-                        : isAuthFailure(err.message) ? t("earn.authFailedHint")
-                            : isWalletTimeout(err.message) ? t("earn.walletTimeoutHint") : null;
-                    if (afterSwap)
+                    const swapFailedOnChain = /failed on-chain/.test(err.message);
+                    // swap 확정(USDC 확보) 후 실패 → USDC 로 재시도 안내 + 소스 자동 전환.
+                    let noticeMsg: string | null;
+                    if (swapped)
                     {
+                        noticeMsg = t("lightning.cbbtcRetryWithUsdc");
                         setSrcToken(USDC);
                         setCbbtcQuote(null);
+                    }
+                    else if (swapFailedOnChain)
+                    {
+                        // swap 이 온체인에서 실패 → cbBTC 그대로. 소스 전환 금지, 재견적만 유도(R12).
+                        noticeMsg = t("lightning.cbbtcSwapFailed");
+                        setCbbtcQuote(null);
+                    }
+                    else if (timedOut)
+                    {
+                        // 확정 지연 — USDC 도착 여부 불명. 성공 주장/소스 전환 금지, 내역 확인 유도.
+                        noticeMsg = t("lightning.cbbtcConfirmSlow");
+                        setCbbtcQuote(null);
+                    }
+                    else
+                    {
+                        noticeMsg = isAuthFailure(err.message) ? t("earn.authFailedHint")
+                            : isWalletTimeout(err.message) ? t("earn.walletTimeoutHint") : null;
                     }
                     setNotice(noticeMsg);
                     setLastError(noticeMsg || cancelled ? null : err.message);
@@ -412,10 +431,20 @@ export function LightningScreen(): React.JSX.Element
                     // 실패 시 commit 된 escrow 가 잠겨 있을 수 있음 → 환불 배너 갱신
                     void refundable.refetch();
                     const cancelled = isUserRejection(err.message);
-                    const noticeMsg = isAuthFailure(err.message) ? t("earn.authFailedHint")
+                    // 서명 후 결제 도중 실패면 escrow 가 COMMITED 로 잠겨 quote 의 ref swap 이 소비됐을 수
+                    // 있다. 같은 quote 로 재결제하면 이중 commit 이 되므로 quote 카드를 비워 재견적을 강제한다.
+                    // COMMITED(아직 REFUNDABLE 아님) 구간이라 환불 배너가 0 일 수 있으니, escrow 확인/환불을
+                    // 아래 섹션에서 하도록 안내한다(R13). 취소는 서명 전이라 escrow 없음 → quote 유지.
+                    if (!cancelled)
+                    {
+                        setQuote(null);
+                    }
+                    const hint = isAuthFailure(err.message) ? t("earn.authFailedHint")
                         : isWalletTimeout(err.message) ? t("earn.walletTimeoutHint") : null;
+                    const noticeMsg = hint ?? (!cancelled ? t("lightning.payUnknownCheckRefund") : null);
                     setNotice(noticeMsg);
-                    setLastError(noticeMsg || cancelled ? null : err.message);
+                    // 알려진 hint/취소는 raw 숨김, 그 외(불명)는 notice + raw detail 병행(신고/디버깅).
+                    setLastError(cancelled || hint ? null : err.message);
                     showToast(
                         cancelled ? t("errors.userCancelled") : t("lightning.payFailed"),
                         { variant: cancelled ? "info" : "error", durationMs: 5000 },

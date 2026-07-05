@@ -17,8 +17,11 @@ import { signAndSendTransactions } from "@/services/WalletService";
 // cbBTC swap 의 Jupiter slippage (입력 cbBTC 측 여유). ExactOut 이라 출력 USDC 는 고정.
 const JUPITER_SLIPPAGE_BPS = 50;
 
-// cbBTC 결제 진행 단계 (USDC/SOL 직결제의 LightningPayPhase 앞에 2단계 추가)
-export type CbbtcPayPhase = "swapping" | "confirming" | LightningPayPhase;
+// cbBTC 결제 진행 단계 (USDC/SOL 직결제의 LightningPayPhase 앞에 3단계 추가)
+//   swapping   : cbBTC→USDC swap 서명·전송
+//   confirming : swap 온체인 확정 대기 (아직 USDC 확보 전)
+//   confirmed  : swap 확정됨 = USDC 확보 (이 시점 이후 실패는 'USDC 로 재시도'가 맞다)
+export type CbbtcPayPhase = "swapping" | "confirming" | "confirmed" | LightningPayPhase;
 
 export interface CbbtcLightningQuote
 {
@@ -109,6 +112,9 @@ export function useCbbtcLightningPay(): UseMutationResult<CbbtcPayResult, Error,
             // 2) USDC 도착 대기 (escrow 가 USDC 를 인출하므로 확정 필수)
             onPhase("confirming");
             await waitForConfirmation(connection, swapSignature, abortSignal);
+            // 확정 성공 = USDC 확보. 이 phase 이후의 실패만 "USDC 로 재시도"가 맞다.
+            // (confirming 중 on-chain 실패면 cbBTC 그대로이므로 소스 전환하면 안 됨 — R12.)
+            onPhase("confirmed");
 
             // 3) USDC → LN (Atomiq) — 확정 후 fresh 재견적 → 결제 (서명2)
             const freshQuote = await getLightningService().getQuote({
