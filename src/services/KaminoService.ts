@@ -15,10 +15,11 @@ import {
     borrowAprFromCurve,
     supplyAprFromCurve,
     healthFactor,
-    liquidationPrice,
+    liquidationPriceFromCollateral,
     riskZone,
     type CurvePoint,
 } from "@/utils/lendingMath";
+import { liquidityFromCollateral } from "@/utils/kaminoExchange";
 
 // Kamino 의 scaled fraction 스케일 = 2^60 (Fraction.FRACTIONS = 60). M8.4 실측 검증.
 const FRACTION_SCALE = 2 ** 60;
@@ -38,6 +39,9 @@ export interface ReserveLike
         marketPriceSf: BNLike;
         mintDecimals: BNLike;
     };
+    collateral: {
+        mintTotalSupply: BNLike;
+    };
     config: {
         protocolTakeRatePct: number;
         borrowRateCurve: { points: { utilizationRateBps: number | BNLike; borrowRateBps: number | BNLike }[] };
@@ -51,6 +55,7 @@ export interface ObligationLike
     borrowFactorAdjustedDebtValueSf: BNLike;
     allowedBorrowValueSf: BNLike;
     unhealthyBorrowValueSf: BNLike;
+    deposits?: { depositReserve: BNLike; depositedAmount: BNLike }[];
 }
 
 // --- 순수 변환/계산 ---
@@ -107,11 +112,36 @@ export function mapReservesToMarketInfo(
     };
 }
 
+/** cbBTC 담보 수량(human units). obligation 의 cToken 예치량 × reserve 환율.
+ *  청산가를 가격 드리프트 없이 계산하기 위해 필요. cbBTC 예치가 없으면 0. */
+export function cbbtcCollateralAmount(
+    obligation: ObligationLike,
+    reserve: ReserveLike,
+    cbbtcReserveKey: string,
+): number
+{
+    const deposit = (obligation.deposits ?? []).find((d) => d.depositReserve.toString() === cbbtcReserveKey);
+    if (!deposit)
+    {
+        return 0;
+    }
+    const collateralCToken = BigInt(deposit.depositedAmount.toString());
+    const available = BigInt(reserve.liquidity.availableAmount.toString());
+    const borrowedSf = BigInt(reserve.liquidity.borrowedAmountSf.toString());
+    const totalLiquidity = available + (borrowedSf >> 60n);
+    const cTokenSupply = BigInt(reserve.collateral.mintTotalSupply.toString());
+    const liquidityBase = liquidityFromCollateral(collateralCToken, totalLiquidity, cTokenSupply);
+    const decimals = Number(reserve.liquidity.mintDecimals.toString());
+    return Number(liquidityBase) / 10 ** decimals;
+}
+
 /** Obligation(또는 없음) → 사용자 포지션 + 위험 지표.
- *  청산가는 cbBTC 단일 담보 가정 (우리 앱의 주 시나리오). 혼합 담보면 근사값. */
+ *  청산가는 cbBTC 단일 담보 가정 (우리 앱의 주 시나리오). 혼합 담보면 근사값.
+ *  cbbtcCollateralAmount = 예치된 cbBTC 수량(human). 청산가를 fresh 가격이 아닌 수량으로 역산해
+ *  가격 드리프트 오차를 없앤다(R02). */
 export function mapObligationToPosition(
     obligation: ObligationLike | null,
-    cbbtcPriceUsd: number,
+    cbbtcCollateralAmount: number,
 ): KaminoPosition
 {
     if (!obligation)
@@ -141,7 +171,7 @@ export function mapObligationToPosition(
         liquidationLtv,
         healthFactor: hf,
         riskZone: riskZone(hf),
-        cbbtcLiquidationPriceUsd: liquidationPrice(cbbtcPriceUsd, currentLtv, liquidationLtv),
+        cbbtcLiquidationPriceUsd: liquidationPriceFromCollateral(bfDebtUsd, cbbtcCollateralAmount, liquidationLtv),
         maxBorrowableUsd,
     };
 }
@@ -216,12 +246,14 @@ export async function getUserPosition(
         throw new Error("Kamino cbBTC reserve account not found");
     }
     const cbbtc = Reserve.decode(cbbtcAcc.data) as unknown as ReserveLike;
-    const cbbtcPriceUsd = sfToNumber(cbbtc.liquidity.marketPriceSf);
 
     if (!obligationAcc)
     {
-        return mapObligationToPosition(null, cbbtcPriceUsd);
+        return mapObligationToPosition(null, 0);
     }
     const obligation = Obligation.decode(obligationAcc.data) as unknown as ObligationLike;
-    return mapObligationToPosition(obligation, cbbtcPriceUsd);
+    // 청산가는 예치 cbBTC 수량으로 역산(가격 드리프트 무관). fresh reserve 가격을 곱하던 이전 방식은
+    // obligation LTV(마지막 refresh)와 스냅샷이 어긋나 청산가를 잘못 표시했음(R02).
+    const collateral = cbbtcCollateralAmount(obligation, cbbtc, cbbtcReservePubkey().toBase58());
+    return mapObligationToPosition(obligation, collateral);
 }

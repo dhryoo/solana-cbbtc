@@ -19,12 +19,16 @@ import {
     computeUtilization,
     mapReservesToMarketInfo,
     mapObligationToPosition,
+    cbbtcCollateralAmount,
     deriveObligationPda,
     getMarketInfo,
     getUserPosition,
     type ReserveLike,
     type ObligationLike,
 } from "./KaminoService";
+
+// cbBTC main-market reserve (constants/lending 과 동일). obligation deposit 매칭용.
+const CBBTC_RESERVE = "37Jk2zkz23vkAYBT66HM2gaqJuNg2nYLsCreQAVt5MWK";
 
 // 테스트 간 mock 상태 격리 (codegen decoder 를 virtual mock 하므로 순서 의존 방지).
 beforeEach(() => jest.clearAllMocks());
@@ -43,6 +47,12 @@ function bnLike(value: number): { toString(): string }
     return { toString: () => String(value) };
 }
 
+// base58 문자열을 toString() 으로 돌려주는 BN-like (depositReserve 매칭용).
+function bnLike58(s: string): { toString(): string }
+{
+    return { toString: () => s };
+}
+
 const CURVE = [
     { utilizationRateBps: 0, borrowRateBps: 1 },
     { utilizationRateBps: 7000, borrowRateBps: 300 },
@@ -53,10 +63,14 @@ function mockCbbtcReserve(): ReserveLike
 {
     return {
         liquidity: {
-            availableAmount: bnLike(900),
-            borrowedAmountSf: toSf(100),     // borrowed 100 → util 100/1000 = 0.1
-            marketPriceSf: toSf(77_000),     // $77,000
+            availableAmount: bnLike(9_000_000),
+            borrowedAmountSf: toSf(1_000_000), // borrowed 1M → util 1M/10M = 0.1
+            marketPriceSf: toSf(77_000),       // $77,000
             mintDecimals: bnLike(8),
+        },
+        // totalLiquidity(10M) == cTokenSupply(10M) → cToken 환율 1:1 (테스트 단순화).
+        collateral: {
+            mintTotalSupply: bnLike(10_000_000),
         },
         config: {
             protocolTakeRatePct: 20,
@@ -73,6 +87,9 @@ function mockUsdcReserve(): ReserveLike
             borrowedAmountSf: toSf(500),     // util 0.5
             marketPriceSf: toSf(1),
             mintDecimals: bnLike(6),
+        },
+        collateral: {
+            mintTotalSupply: bnLike(1000),
         },
         config: {
             protocolTakeRatePct: 0,
@@ -145,7 +162,7 @@ describe("mapObligationToPosition", () =>
 {
     it("포지션 없음(null) → 빈 포지션", () =>
     {
-        const p = mapObligationToPosition(null, 77_000);
+        const p = mapObligationToPosition(null, 0);
         expect(p.hasPosition).toBe(false);
         expect(p.suppliedUsd).toBe(0);
         expect(p.borrowedUsd).toBe(0);
@@ -163,7 +180,8 @@ describe("mapObligationToPosition", () =>
             allowedBorrowValueSf: toSf(650),
             unhealthyBorrowValueSf: toSf(800),
         };
-        const p = mapObligationToPosition(ob, 77_000);
+        // 담보 0.01 cbBTC(≈ $1000 @ $100k). 청산가 = 부채400 / (0.01 × 임계0.8) = $50,000.
+        const p = mapObligationToPosition(ob, 0.01);
         expect(p.hasPosition).toBe(true);
         expect(p.suppliedUsd).toBeCloseTo(1000, 2);
         expect(p.borrowedUsd).toBeCloseTo(400, 2);
@@ -172,7 +190,7 @@ describe("mapObligationToPosition", () =>
         expect(p.liquidationLtv).toBeCloseTo(0.8, 5);
         expect(p.healthFactor).toBeCloseTo(2.0, 5);
         expect(p.riskZone).toBe("safe");
-        expect(p.cbbtcLiquidationPriceUsd).toBeCloseTo(38_500, 1);
+        expect(p.cbbtcLiquidationPriceUsd).toBeCloseTo(50_000, 2);
         expect(p.maxBorrowableUsd).toBeCloseTo(250, 2); // allowed 650 − debt 400
     });
 
@@ -185,12 +203,60 @@ describe("mapObligationToPosition", () =>
             allowedBorrowValueSf: toSf(650),
             unhealthyBorrowValueSf: toSf(800),
         };
-        const p = mapObligationToPosition(ob, 77_000);
+        const p = mapObligationToPosition(ob, 0.01);
         expect(p.hasPosition).toBe(true);
         expect(p.healthFactor).toBeNull();
         expect(p.riskZone).toBe("none");
-        expect(p.cbbtcLiquidationPriceUsd).toBeNull();
+        expect(p.cbbtcLiquidationPriceUsd).toBeNull(); // 부채 0 → 청산가 없음
         expect(p.maxBorrowableUsd).toBeCloseTo(650, 2); // 차입 없음 → allowed 전액
+    });
+});
+
+describe("cbbtcCollateralAmount", () =>
+{
+    it("cbBTC 예치가 없으면 0", () =>
+    {
+        const ob: ObligationLike = {
+            depositedValueSf: toSf(0),
+            borrowedAssetsMarketValueSf: toSf(0),
+            borrowFactorAdjustedDebtValueSf: toSf(0),
+            allowedBorrowValueSf: toSf(0),
+            unhealthyBorrowValueSf: toSf(0),
+            deposits: [],
+        };
+        expect(cbbtcCollateralAmount(ob, mockCbbtcReserve(), CBBTC_RESERVE)).toBe(0);
+    });
+
+    it("cToken 예치량 × 환율(1:1) / 10^8 = cbBTC 수량", () =>
+    {
+        const ob: ObligationLike = {
+            depositedValueSf: toSf(0),
+            borrowedAssetsMarketValueSf: toSf(0),
+            borrowFactorAdjustedDebtValueSf: toSf(0),
+            allowedBorrowValueSf: toSf(0),
+            unhealthyBorrowValueSf: toSf(0),
+            deposits: [{ depositReserve: bnLike58(CBBTC_RESERVE), depositedAmount: bnLike(1_000_000) }],
+        };
+        // 환율 1 (total 10M == supply 10M), decimals 8 → 1,000,000 / 1e8 = 0.01
+        expect(cbbtcCollateralAmount(ob, mockCbbtcReserve(), CBBTC_RESERVE)).toBeCloseTo(0.01, 10);
+    });
+
+    it("cToken 환율이 1 이 아니면(이자 누적) 환율을 반영", () =>
+    {
+        // totalLiquidity 20M, cTokenSupply 10M → 환율 2. 500k cToken → 1M cbBTC base → 0.01 cbBTC.
+        const reserve = mockCbbtcReserve();
+        reserve.liquidity.availableAmount = bnLike(19_000_000);
+        reserve.liquidity.borrowedAmountSf = toSf(1_000_000);
+        reserve.collateral.mintTotalSupply = bnLike(10_000_000);
+        const ob: ObligationLike = {
+            depositedValueSf: toSf(0),
+            borrowedAssetsMarketValueSf: toSf(0),
+            borrowFactorAdjustedDebtValueSf: toSf(0),
+            allowedBorrowValueSf: toSf(0),
+            unhealthyBorrowValueSf: toSf(0),
+            deposits: [{ depositReserve: bnLike58(CBBTC_RESERVE), depositedAmount: bnLike(500_000) }],
+        };
+        expect(cbbtcCollateralAmount(ob, reserve, CBBTC_RESERVE)).toBeCloseTo(0.01, 10);
     });
 });
 
@@ -263,6 +329,8 @@ describe("getUserPosition", () =>
             borrowFactorAdjustedDebtValueSf: toSf(400),
             allowedBorrowValueSf: toSf(650),
             unhealthyBorrowValueSf: toSf(800),
+            // cbBTC 예치 1,000,000 cToken × 환율 1 / 10^8 = 0.01 cbBTC.
+            deposits: [{ depositReserve: bnLike58(CBBTC_RESERVE), depositedAmount: bnLike(1_000_000) }],
         });
         (Reserve.decode as jest.Mock).mockReturnValueOnce(mockCbbtcReserve());
         const owner = new PublicKey("So11111111111111111111111111111111111111112");
@@ -276,7 +344,8 @@ describe("getUserPosition", () =>
         const p = await getUserPosition(connection as any, owner);
         expect(p.hasPosition).toBe(true);
         expect(p.currentLtv).toBeCloseTo(0.4, 5);
-        expect(p.cbbtcLiquidationPriceUsd).toBeCloseTo(38_500, 1);
+        // 청산가 = 부채400 / (0.01 cbBTC × 임계0.8) = $50,000 (fresh 가격 무관).
+        expect(p.cbbtcLiquidationPriceUsd).toBeCloseTo(50_000, 1);
     });
 
     it("cbBTC reserve 계정이 없으면 에러", async () =>

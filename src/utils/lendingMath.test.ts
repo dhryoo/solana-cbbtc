@@ -1,6 +1,6 @@
 import {
     healthFactor,
-    liquidationPrice,
+    liquidationPriceFromCollateral,
     riskZone,
     borrowAprFromCurve,
     supplyAprFromCurve,
@@ -43,22 +43,29 @@ describe("healthFactor", () =>
     });
 });
 
-describe("liquidationPrice", () =>
+describe("liquidationPriceFromCollateral", () =>
 {
-    it("차입이 없으면 null", () =>
+    it("차입이 없으면(부채 0) null", () =>
     {
-        expect(liquidationPrice(100_000, 0, 0.8)).toBeNull();
+        expect(liquidationPriceFromCollateral(0, 1, 0.8)).toBeNull();
     });
 
-    it("현재가 × (currentLtv / liquidationLtv)", () =>
+    it("부채 / (담보수량 × 청산임계)", () =>
     {
-        // LTV 0.4, 청산임계 0.8, 현재가 $100k → 담보가 절반($50k)으로 떨어지면 청산
-        expect(liquidationPrice(100_000, 0.4, 0.8)).toBeCloseTo(50_000, 2);
+        // 담보 0.01 cbBTC, 부채 $400, 청산임계 0.8 → $400 / (0.01 × 0.8) = $50,000
+        expect(liquidationPriceFromCollateral(400, 0.01, 0.8)).toBeCloseTo(50_000, 2);
     });
 
-    it("liquidationLtv 가 0 이면 null (0 나눗셈 가드)", () =>
+    it("가격 드리프트와 무관 — 담보수량·부채만으로 결정", () =>
     {
-        expect(liquidationPrice(100_000, 0.4, 0)).toBeNull();
+        // 담보 0.012987 cbBTC(= $1000 @ $77k), 부채 $400, 임계 0.8 → ≈ $38,500
+        expect(liquidationPriceFromCollateral(400, 1000 / 77_000, 0.8)).toBeCloseTo(38_500, 0);
+    });
+
+    it("담보수량이 0 이거나 임계가 0 이면 null (0 나눗셈 가드)", () =>
+    {
+        expect(liquidationPriceFromCollateral(400, 0, 0.8)).toBeNull();
+        expect(liquidationPriceFromCollateral(400, 0.01, 0)).toBeNull();
     });
 });
 

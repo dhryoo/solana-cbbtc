@@ -36,22 +36,27 @@ export function healthFactor(currentLtv: number, liquidationLtv: number): number
 }
 
 /**
- * 담보 자산의 청산가. 차입액 고정 가정 하에 담보 가격이 얼마까지 떨어지면
- * 현재 LTV 가 청산임계 LTV 에 도달하는지 역산.
- *   청산가 = 현재가 × (현재LTV / 청산임계LTV)
- * 차입이 없거나 임계값이 0 이면 null.
+ * 담보 자산의 청산가 — 담보 **수량**과 부채로 직접 역산(가격 비의존).
+ *   청산가 = 부채USD / (담보수량 × 청산임계LTV)
+ * 담보 가격이 이 값까지 떨어지면 담보가치×임계 = 부채 가 되어 청산된다.
+ *
+ * WHY 수량 기반: LTV 비율 기반 공식(현재가 × 현재LTV/임계)은 현재LTV 와 현재가가 같은 스냅샷일
+ * 때만 맞다. obligation 집계(LTV)는 마지막 refresh 시점 값이라, 그 뒤 움직인 fresh reserve 가격을
+ * 곱하면 가격 변동분만큼 청산가가 어긋난다(BTC 하락 시 청산가를 낮게 표시 → 위험 과소평가). 수량·부채는
+ * 사용자 거래 전까지 불변이라 이 공식은 가격 드리프트와 무관하게 정확하다.
+ * 차입이 없거나 담보수량/임계가 0 이면 null.
  */
-export function liquidationPrice(
-    currentCollateralPrice: number,
-    currentLtv: number,
+export function liquidationPriceFromCollateral(
+    debtUsd: number,
+    collateralAmount: number,
     liquidationLtv: number,
 ): number | null
 {
-    if (currentLtv <= 0 || liquidationLtv <= 0)
+    if (debtUsd <= 0 || collateralAmount <= 0 || liquidationLtv <= 0)
     {
         return null;
     }
-    return currentCollateralPrice * (currentLtv / liquidationLtv);
+    return debtUsd / (collateralAmount * liquidationLtv);
 }
 
 /** Health factor → 위험 구간. null(차입 없음)은 none. */
