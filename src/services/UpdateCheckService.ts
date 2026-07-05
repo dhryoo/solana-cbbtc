@@ -1,5 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
+
 // GitHub Releases API 기반 버전 알림 서비스.
 // no-backend 정책 준수 — 우리가 운영하는 서버 없이 GitHub 의 퍼블릭 API 만 호출.
 // 인증 없음 → 60 req/hour/IP rate limit. 사용자가 앱 켤 때 1 회 + staleTime 1h 면 충분.
@@ -115,7 +117,7 @@ export async function fetchLatestRelease(
     const url = `https://api.github.com/repos/${owner}/${repo}/releases/latest`;
     try
     {
-        const res = await fetch(url, {
+        const res = await fetchWithTimeout(url, {
             headers: { Accept: "application/vnd.github+json" },
         });
         if (!res.ok)

@@ -1,5 +1,6 @@
 import { getRpcEndpoints } from "@/constants/cluster";
 import { SOL, USDC, type TokenInfo } from "@/constants/tokens";
+import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
 
 import { LN_SENTINEL } from "./sentinels";
 import { asLightningAmountError } from "./types";
@@ -105,7 +106,7 @@ async function fetchLpUrls(): Promise<string[]>
 {
     try
     {
-        const res = await fetch(REGISTRY_RAW_URL);
+        const res = await fetchWithTimeout(REGISTRY_RAW_URL);
         if (res.ok)
         {
             const urls = (await res.json()) as unknown;

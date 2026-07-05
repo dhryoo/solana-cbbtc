@@ -8,6 +8,7 @@ import {
     type QuoteResponse,
     type SwapResponse,
 } from "@/types/jupiter";
+import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
 
 const DEFAULT_BASE = "https://lite-api.jup.ag";
 
@@ -63,7 +64,7 @@ export async function getQuote(params: QuoteParams): Promise<QuoteResponse>
         url.searchParams.set("swapMode", params.swapMode);
     }
 
-    const response = await fetch(url.toString());
+    const response = await fetchWithTimeout(url.toString());
     if (!response.ok)
     {
         let body: unknown;
@@ -113,7 +114,7 @@ export async function getSwapTransaction(
         prioritizationFeeLamports: params.prioritizationFeeLamports ?? DEFAULT_PRIORITY_FEE,
     };
 
-    const response = await fetch(`${getApiBase()}/swap/v1/swap`, {
+    const response = await fetchWithTimeout(`${getApiBase()}/swap/v1/swap`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
