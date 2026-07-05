@@ -2,6 +2,7 @@
     "expo": {
         "plugins": [
             "./plugins/withReleaseSigning",
+            "./plugins/withSecureBackup",
             [
                 "expo-notifications",
                 {

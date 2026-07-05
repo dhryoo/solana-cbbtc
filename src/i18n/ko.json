@@ -548,7 +548,10 @@
         "authenticating": "인증 중…",
         "unlockAction": "잠금 해제",
         "tapToUnlock": "화면을 탭하여 잠금 해제",
-        "tapHint": "화면 어디든 탭하면 생체 인증이 시작됩니다"
+        "tapHint": "화면 어디든 탭하면 생체 인증이 시작됩니다",
+        "promptUnlock": "앱 잠금 해제",
+        "promptEnable": "앱 잠금 활성화",
+        "promptDisable": "앱 잠금 비활성화"
     },
     "about": {
         "title": "앱 소개",

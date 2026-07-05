@@ -85,6 +85,51 @@ export function collectObligationReserves(
     return out;
 }
 
+/**
+ * 인출 후 obligation 에 남는 reserve 목록. post refreshObligation 의 remaining accounts 는
+ * 인출 뒤 on-chain obligation 이 실제로 보유할 reserve 와 정확히 일치해야 한다(불일치 시 6006).
+ * cbBTC 외 다른 담보(사용자가 Kamino 웹에서 예치)가 있어도 유지해야 하므로 currentReserves 에서
+ * 파생한다. 담보가 남으면 전부 유지, 전액 인출이면 해당 reserve 만 제거(단 차입에도 쓰이면 유지 — 방어적).
+ */
+export function reservesAfterWithdraw(
+    currentReserves: PublicKey[],
+    withdrawReserve: PublicKey,
+    borrowReserves: PublicKey[],
+    collateralRemains: boolean,
+): PublicKey[]
+{
+    if (collateralRemains)
+    {
+        return currentReserves;
+    }
+    return currentReserves.filter(
+        (r) => !r.equals(withdrawReserve) || borrowReserves.some((b) => b.equals(r)),
+    );
+}
+
+/** obligation 의 특정 reserve 차입 스냅샷(borrowedAmountSf, scaled fraction). 없으면 0n. */
+export function findBorrowedAmountSf(
+    obligation: { borrows?: { borrowReserve: AddrLike; borrowedAmountSf?: AddrLike }[] } | null,
+    reserve: PublicKey,
+): bigint
+{
+    const target = reserve.toBase58();
+    const hit = (obligation?.borrows ?? []).find((b) => b.borrowReserve.toString() === target);
+    return hit && hit.borrowedAmountSf != null ? BigInt(hit.borrowedAmountSf.toString()) : 0n;
+}
+
+/**
+ * 상환이 부채를 전부 청산하는지. repayAll 이거나, 입력이 현재 부채 스냅샷(base) 이상이면 true.
+ * klend 는 repay 를 min(amount, debt) 로 클램프한 뒤 amount>=debt 면 borrow 를 제거하므로,
+ * 이 경우 post refreshObligation 에서 해당 reserve 를 빼고 U64_MAX 로 정산해야 6006 을 피한다.
+ * 스냅샷은 마지막 refresh 시점 값이라 실제 부채의 하한(이자만큼 더 클 수 있음)이지만, full 로 판정되면
+ * liquidityAmount 를 U64_MAX 로 함께 전환하므로 온체인이 정확한 실부채까지 정산 → 일관성 유지.
+ */
+export function isFullRepay(repayAll: boolean, usdcAmountBase: bigint, borrowedBaseSnapshot: bigint): boolean
+{
+    return repayAll || (borrowedBaseSnapshot > 0n && usdcAmountBase >= borrowedBaseSnapshot);
+}
+
 // --- supply 트랜잭션 빌드 ---
 
 // codegen builder 는 kit 의 branded Address / TransactionSigner 타입을 받지만, 런타임에는
@@ -467,9 +512,10 @@ export async function buildWithdrawTransaction(
         .map((b) => b.borrowReserve.toString())
         .filter((s: string) => s !== DEFAULT_PUBKEY)
         .map((s: string) => new PublicKey(s));
-    const remainingDeposits = afterCollateral > 0n ? [reserve] : [];
-    const postReserves = [...remainingDeposits, ...borrowReserves];
-    // 전액 인출 + 차입 없음 → obligation 이 닫힘(rent 반환, owner→System). 그러면 post refreshObligation 이
+    // 인출 후 남는 reserve 는 currentReserves 에서 파생한다(cbBTC 외 다른 담보 보존 — 이전엔
+    // [reserve] 로 재구성해 혼합 obligation 의 다른 예치를 누락, 6006 으로 인출 자체가 실패했음).
+    const postReserves = reservesAfterWithdraw(currentReserves, reserve, borrowReserves, afterCollateral > 0n);
+    // 남는 reserve 가 0 → obligation 이 닫힘(rent 반환, owner→System). 그러면 post refreshObligation 이
     // 3007(AccountOwnedByWrongProgram) 로 실패하므로 post-refresh 를 생략한다.
     const willClose = postReserves.length === 0;
 
@@ -764,12 +810,15 @@ export async function buildRepayTransaction(
     };
 
     const currentReserves = collectObligationReserves(obligationDec); // [cbBTC, USDC]
-    // 전체 상환이면 USDC 부채가 사라지므로 post refresh 에서 제외.
-    const afterReserves = opts.repayAll
+    // 입력 금액이 현재 USDC 부채(스냅샷) 이상이면 klend 가 전액 정산 후 borrow 를 제거하므로,
+    // repayAll 을 명시하지 않았어도 post refresh 에서 USDC 를 빼고 U64_MAX 로 정산해야 6006 을 피한다.
+    const usdcSnapshotBase = findBorrowedAmountSf(obligationDec, usdcReserve) >> 60n;
+    const fullRepay = isFullRepay(opts.repayAll, opts.usdcAmountBase, usdcSnapshotBase);
+    const afterReserves = fullRepay
         ? currentReserves.filter((r) => !r.equals(usdcReserve))
         : currentReserves;
 
-    const liquidityAmount = opts.repayAll ? new BN(U64_MAX) : new BN(opts.usdcAmountBase.toString());
+    const liquidityAmount = fullRepay ? new BN(U64_MAX) : new BN(opts.usdcAmountBase.toString());
 
     // 1. refresh (cbBTC 담보 + USDC 차입)
     ixs.push(refreshReserveIx(cbbtcReserve, cbbtcScope));

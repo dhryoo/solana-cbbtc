@@ -548,7 +548,10 @@
         "authenticating": "Authenticating…",
         "unlockAction": "Unlock",
         "tapToUnlock": "Tap anywhere to unlock",
-        "tapHint": "Tapping the screen starts biometric authentication"
+        "tapHint": "Tapping the screen starts biometric authentication",
+        "promptUnlock": "Unlock Solana cbBTC",
+        "promptEnable": "Enable app lock",
+        "promptDisable": "Disable app lock"
     },
     "about": {
         "title": "About",

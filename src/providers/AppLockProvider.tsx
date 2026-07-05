@@ -8,6 +8,7 @@ import React, {
     useState,
 } from "react";
 import { AppState, type AppStateStatus } from "react-native";
+import { useTranslation } from "react-i18next";
 
 import {
     authenticate,
@@ -56,6 +57,11 @@ export function AppLockProvider({ children }: AppLockProviderProps): React.JSX.E
     const [state, setState] = useState<LockState>("initializing");
     const [capability, setCapability] = useState<DeviceLockCapability | null>(null);
 
+    // native prompt 메시지 현지화. 콜백은 ref 로 최신 t 를 읽어 deps 를 바꾸지 않는다(파일 전반 ref 패턴).
+    const { t } = useTranslation();
+    const tRef = useRef(t);
+    tRef.current = t;
+
     // AppState 추적을 위한 ref들
     const lastBackgroundedAt = useRef<number | null>(null);
     const enabledRef = useRef(enabled);
@@ -89,7 +95,7 @@ export function AppLockProvider({ children }: AppLockProviderProps): React.JSX.E
             // biometric prompt 자체가 만드는 AppState background→active 전환을 "잠금 재발동" 으로
             // 잘못 해석하지 않도록 unlock 진입/종료 시 background timestamp 를 초기화.
             lastBackgroundedAt.current = null;
-            const outcome = await authenticate("앱 잠금 해제");
+            const outcome = await authenticate(tRef.current("lock.promptUnlock"));
             lastBackgroundedAt.current = null;
             if (outcome.kind === "success")
             {
@@ -189,7 +195,7 @@ export function AppLockProvider({ children }: AppLockProviderProps): React.JSX.E
                 return false;
             }
             // 활성화 직전에 한 번 인증을 요구해 의도 확인 (보안 best practice)
-            const outcome = await authenticate("앱 잠금 활성화");
+            const outcome = await authenticate(tRef.current("lock.promptEnable"));
             if (outcome.kind !== "success")
             {
                 return false;
@@ -202,7 +208,7 @@ export function AppLockProvider({ children }: AppLockProviderProps): React.JSX.E
         // 비활성화 시도 — 현재 잠긴 상태면 인증 후 진행 (보안: 누군가가 잠금만 끄지 못하도록)
         if (stateRef.current === "locked")
         {
-            const outcome = await authenticate("앱 잠금 비활성화");
+            const outcome = await authenticate(tRef.current("lock.promptDisable"));
             if (outcome.kind !== "success")
             {
                 return false;
