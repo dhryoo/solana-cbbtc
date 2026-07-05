@@ -3,6 +3,7 @@ import { useMutation, useQueryClient, type UseMutationResult } from "@tanstack/r
 import { USDC } from "@/constants/tokens";
 import { useWallet } from "@/hooks/useWallet";
 import { useConnection } from "@/providers/ConnectionProvider";
+import { waitForConfirmation } from "@/services/confirmTransaction";
 import { getSwapTransaction } from "@/services/JupiterService";
 import { getLightningService } from "@/services/lightning/LightningService";
 import { hasPreSwapShortfall, quoteCbbtcToUsdc, usdcTargetWithBuffer, type CbbtcSwapQuote } from "@/services/lightning/cbbtcPreSwap";
@@ -15,9 +16,6 @@ import { signAndSendTransactions } from "@/services/WalletService";
 
 // cbBTC swap 의 Jupiter slippage (입력 cbBTC 측 여유). ExactOut 이라 출력 USDC 는 고정.
 const JUPITER_SLIPPAGE_BPS = 50;
-
-// Jupiter swap 확정 대기 한도(ms). 초과 시 "USDC 로 바뀌었으니 USDC 로 재시도" 안내.
-const CONFIRM_TIMEOUT_MS = 90_000;
 
 // cbBTC 결제 진행 단계 (USDC/SOL 직결제의 LightningPayPhase 앞에 2단계 추가)
 export type CbbtcPayPhase = "swapping" | "confirming" | LightningPayPhase;
@@ -79,83 +77,6 @@ export interface CbbtcPayResult
 {
     swapSignature: string;
     outcome: LightningPayOutcome;
-}
-
-// 확정 폴링 간격(ms). deprecated 된 confirmTransaction(sig, commitment) 은 websocket
-// signatureSubscribe 에 의존하는데 모바일 RPC 에서 불안정 → getSignatureStatuses HTTP 폴링으로 대체.
-const CONFIRM_POLL_MS = 2_000;
-const CONFIRM_MAX_ATTEMPTS = Math.ceil(CONFIRM_TIMEOUT_MS / CONFIRM_POLL_MS);
-
-/** abortSignal 을 존중하는 sleep — 타이머/리스너를 항상 정리(누수 방지). */
-function abortableSleep(ms: number, abortSignal?: AbortSignal): Promise<void>
-{
-    return new Promise<void>((resolve, reject) =>
-    {
-        let onAbort: (() => void) | undefined;
-        const timer = setTimeout(() =>
-        {
-            if (onAbort && abortSignal)
-            {
-                abortSignal.removeEventListener("abort", onAbort);
-            }
-            resolve();
-        }, ms);
-        if (abortSignal)
-        {
-            onAbort = () =>
-            {
-                clearTimeout(timer);
-                reject(new Error("user_cancelled"));
-            };
-            if (abortSignal.aborted)
-            {
-                onAbort();
-            }
-            else
-            {
-                abortSignal.addEventListener("abort", onAbort, { once: true });
-            }
-        }
-    });
-}
-
-/**
- * Jupiter swap 이 확정될 때까지 getSignatureStatuses 폴링. 확정 시 resolve, on-chain 실패/타임아웃/
- * 취소 시 throw. websocket 미사용 — 모바일 RPC 안정 + deprecated confirmTransaction 의존 제거.
- * (export 는 테스트용 — 자금 안전 경로라 분기별 단위 테스트 대상)
- */
-export async function waitForConfirmation(
-    connection: ReturnType<typeof useConnection>,
-    signature: string,
-    abortSignal?: AbortSignal,
-): Promise<void>
-{
-    for (let attempt = 0; attempt < CONFIRM_MAX_ATTEMPTS; attempt += 1)
-    {
-        if (abortSignal?.aborted)
-        {
-            throw new Error("user_cancelled");
-        }
-        const { value } = await connection.getSignatureStatuses([signature]);
-        const status = value[0];
-        if (status)
-        {
-            if (status.err)
-            {
-                throw new Error(`swap failed on-chain: ${JSON.stringify(status.err)}`);
-            }
-            if (status.confirmationStatus === "confirmed" || status.confirmationStatus === "finalized")
-            {
-                return;
-            }
-        }
-        // 마지막 시도 뒤엔 자지 않고 바로 타임아웃
-        if (attempt < CONFIRM_MAX_ATTEMPTS - 1)
-        {
-            await abortableSleep(CONFIRM_POLL_MS, abortSignal);
-        }
-    }
-    throw new Error("swap_confirm_timeout");
 }
 
 export function useCbbtcLightningPay(): UseMutationResult<CbbtcPayResult, Error, CbbtcPayInput>

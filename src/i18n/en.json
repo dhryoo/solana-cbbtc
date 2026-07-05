@@ -34,6 +34,8 @@
         "authFailedHint": "Wallet authorization failed. Disconnect and reconnect your wallet, then try again. (Your session may have expired.)",
         "walletTimeoutHint": "Wallet didn't respond in time. The approval screen may have been left open too long, or the wallet app was paused in the background. Please try again.",
         "noBorrowsHint": "There's no debt to repay. It may have already been fully repaid, or the screen is showing stale info. Pull down to refresh.",
+        "confirmTimeoutHint": "Confirmation is taking longer than expected. The transaction may still complete — pull down to refresh and check before retrying.",
+        "txFailedHint": "The transaction failed on-chain and was not applied. No funds were moved. Please try again.",
         "market": {
             "heading": "Market",
             "supplyApy": "cbBTC supply APY",
@@ -117,6 +119,7 @@
         "simulating": "Pre-flight check (simulation)",
         "signing": "Waiting for wallet signature",
         "sending": "Sending to network",
+        "confirming": "Confirming on-chain",
         "done": "Done",
         "processing": "Processing…"
     },
@@ -485,6 +488,8 @@
         "oracleStale": "The oracle price is briefly stale. Trying again in a moment usually resolves it.",
         "noBorrows": "There's no debt to repay. Refresh and check again.",
         "network": "Network error. Check your connection and try again.",
+        "confirmTimeout": "Confirmation is taking longer than expected. Your transaction may still complete — check your history before retrying.",
+        "txFailedOnChain": "The transaction failed on-chain and was not applied. No funds were moved. Please try again.",
         "jupiter5xx": "Jupiter service is temporarily unavailable. Please try again later.",
         "jupiterClient": "Jupiter request rejected (HTTP {{status}}). Check your inputs.",
         "generic": "Transaction failed. Please try again shortly.",

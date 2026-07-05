@@ -2,9 +2,9 @@ import { TX_STEPS, stepVisual, stepProgressRatio } from "./txProgress";
 
 describe("TX_STEPS", () =>
 {
-    it("5단계 순서", () =>
+    it("6단계 순서 (sending 뒤 confirming = 온체인 확정 대기)", () =>
     {
-        expect(TX_STEPS).toEqual(["preparing", "simulating", "signing", "sending", "done"]);
+        expect(TX_STEPS).toEqual(["preparing", "simulating", "signing", "sending", "confirming", "done"]);
     });
 });
 
@@ -40,7 +40,8 @@ describe("stepProgressRatio", () =>
     it("현재 단계 인덱스 / 마지막 인덱스", () =>
     {
         expect(stepProgressRatio("preparing")).toBeCloseTo(0, 5);
-        expect(stepProgressRatio("signing")).toBeCloseTo(2 / 4, 5);
+        expect(stepProgressRatio("signing")).toBeCloseTo(2 / 5, 5);
+        expect(stepProgressRatio("confirming")).toBeCloseTo(4 / 5, 5);
         expect(stepProgressRatio("done")).toBeCloseTo(1, 5);
     });
 });

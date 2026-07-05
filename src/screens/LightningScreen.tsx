@@ -316,7 +316,7 @@ export function LightningScreen(): React.JSX.Element
                     setCbbtcStatus(null);
                     void refundable.refetch();
                     const cancelled = isUserRejection(err.message);
-                    const timedOut = /swap_confirm_timeout/.test(err.message);
+                    const timedOut = /confirm_timeout/.test(err.message);
                     // swap 후 실패 → 이미 USDC 보유 → USDC 로 재시도 안내 + 소스 자동 전환
                     const afterSwap = swapped || timedOut;
                     const noticeMsg = afterSwap ? t("lightning.cbbtcRetryWithUsdc")

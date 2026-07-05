@@ -4,11 +4,12 @@
 //   simulating : 서명 전 시뮬레이션 (안전 게이트)
 //   signing    : 지갑(Seed Vault/MWA) 승인 대기
 //   sending    : 네트워크 제출됨
+//   confirming : 온체인 확정 대기 (getSignatureStatuses 폴링 — 확정 전 성공 처리 방지)
 //   done       : 포지션 갱신 완료
 
-export type TxStep = "preparing" | "simulating" | "signing" | "sending" | "done";
+export type TxStep = "preparing" | "simulating" | "signing" | "sending" | "confirming" | "done";
 
-export const TX_STEPS: readonly TxStep[] = ["preparing", "simulating", "signing", "sending", "done"];
+export const TX_STEPS: readonly TxStep[] = ["preparing", "simulating", "signing", "sending", "confirming", "done"];
 
 export type ProgressState = "running" | "success" | "error";
 

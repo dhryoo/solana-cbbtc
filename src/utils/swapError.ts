@@ -47,6 +47,17 @@ const PATTERNS: Array<{ test: (msg: string) => boolean; key: string; isCancel?: 
         key: "errors.rateLimit",
     },
     {
+        // 확정 예산 초과 — network 의 bare /timeout/ 보다 먼저 (confirm_timeout 이 /timeout/ 에 잡히지 않도록).
+        // tx 는 나중에 랜딩될 수 있어 "실패"가 아니라 "내역 확인" 안내.
+        test: (m) => /confirm_timeout/i.test(m),
+        key: "errors.confirmTimeout",
+    },
+    {
+        // send 후 온체인에서 실패(자금 미이동). 확정 폴링이 status.err 를 감지해 던짐.
+        test: (m) => /failed on-chain/i.test(m),
+        key: "errors.txFailedOnChain",
+    },
+    {
         // 지갑 응답 타임아웃 — network 의 bare /timeout/ 보다 먼저 (MWA 서명 무응답 선점)
         test: (m) => /TimeoutException|Timed out waiting for response/i.test(m),
         key: "errors.walletTimeout",

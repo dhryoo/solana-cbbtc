@@ -1,6 +1,6 @@
 import type { Connection } from "@solana/web3.js";
 
-import { waitForConfirmation } from "./useCbbtcLightning";
+import { waitForConfirmation } from "./confirmTransaction";
 
 // getSignatureStatuses 만 쓰는 폴링이라, 그 메서드만 가진 최소 mock 으로 분기별 검증.
 function mockConnection(
@@ -60,17 +60,17 @@ describe("waitForConfirmation (getSignatureStatuses polling)", () =>
     it("throws when the signature status carries an on-chain error", async () =>
     {
         const { connection } = mockConnection(() => ({ value: [{ confirmationStatus: "confirmed", err: { InstructionError: [0, "Custom"] } }] }));
-        await expect(waitForConfirmation(connection, "sig")).rejects.toThrow(/swap failed on-chain/);
+        await expect(waitForConfirmation(connection, "sig")).rejects.toThrow(/failed on-chain/);
     });
 
-    it("throws swap_confirm_timeout when never confirmed within the budget", async () =>
+    it("throws confirm_timeout when never confirmed within the budget", async () =>
     {
         jest.useFakeTimers();
         const { connection } = mockConnection(() => ({ value: [null] }));
         const p = waitForConfirmation(connection, "sig");
         p.catch(() => undefined); // advance 동안 unhandled rejection 방지
         await jest.advanceTimersByTimeAsync(95_000);
-        await expect(p).rejects.toThrow("swap_confirm_timeout");
+        await expect(p).rejects.toThrow("confirm_timeout");
     });
 
     it("throws user_cancelled immediately when the signal is already aborted (no RPC call)", async () =>

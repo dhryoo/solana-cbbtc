@@ -3,6 +3,7 @@ import { useMutation, useQueryClient, type UseMutationResult } from "@tanstack/r
 import { useWallet } from "@/hooks/useWallet";
 import { summarizeSimulationError } from "@/hooks/useSupplyLending";
 import { useConnection } from "@/providers/ConnectionProvider";
+import { waitForConfirmation } from "@/services/confirmTransaction";
 import { buildWithdrawTransaction } from "@/services/KaminoTxBuilder";
 import { signAndSendTransactions } from "@/services/WalletService";
 import { isOracleStaleError } from "@/utils/lendingErrors";
@@ -72,6 +73,10 @@ export function useWithdrawLending(): UseMutationResult<WithdrawResult, Error, W
                 throw new Error("No transaction signature was returned.");
             }
             step("sending");
+            // 온체인 확정 대기 — 확정 전 성공 처리 시 시뮬 통과 후 실패(blockhash 만료 등)를
+            // 완료로 오표시. 확정돼야만 done. status.err→throw, 예산 초과→confirm_timeout.
+            step("confirming");
+            await waitForConfirmation(connection, first);
             return { signature: first };
         },
         onSuccess: () =>

@@ -36,6 +36,16 @@ export function pickEarnNoticeHintKey(input: EarnNoticeInput): string | null
 {
     const { message, authFailed, solGasLow, cancelled } = input;
 
+    // 확정 대기 예산 초과 — tx 는 나중에 랜딩될 수 있어 "실패"가 아니라 "내역 확인" 안내.
+    if (/confirm_timeout/i.test(message))
+    {
+        return "earn.confirmTimeoutHint";
+    }
+    // send 후 온체인 실패(자금 미이동). 확정 폴링이 status.err 를 감지해 던짐.
+    if (/failed on-chain/i.test(message))
+    {
+        return "earn.txFailedHint";
+    }
     if (isOracleStaleError(message))
     {
         return "earn.oracleStaleHint";

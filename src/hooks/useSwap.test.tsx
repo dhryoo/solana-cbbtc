@@ -6,6 +6,7 @@ import React from "react";
 import { CBBTC, SOL } from "@/constants/tokens";
 import { useWallet } from "@/hooks/useWallet";
 import { useNotifications } from "@/providers/NotificationProvider";
+import { waitForConfirmation } from "@/services/confirmTransaction";
 import * as JupiterService from "@/services/JupiterService";
 import * as WalletService from "@/services/WalletService";
 import type { QuoteResponse } from "@/types/jupiter";
@@ -14,6 +15,10 @@ import { useSwap } from "./useSwap";
 
 jest.mock("@/hooks/useWallet");
 jest.mock("@/providers/NotificationProvider");
+jest.mock("@/providers/ConnectionProvider", () => ({
+    useConnection: () => ({ getSignatureStatuses: jest.fn() }),
+}));
+jest.mock("@/services/confirmTransaction");
 jest.mock("@/services/JupiterService");
 jest.mock("@/services/WalletService");
 jest.mock("react-i18next", () =>
@@ -32,6 +37,7 @@ const mockedWallet = useWallet as jest.MockedFunction<typeof useWallet>;
 const mockedNotifications = useNotifications as jest.MockedFunction<typeof useNotifications>;
 const mockedJupiter = JupiterService as jest.Mocked<typeof JupiterService>;
 const mockedWalletService = WalletService as jest.Mocked<typeof WalletService>;
+const mockedConfirm = waitForConfirmation as jest.MockedFunction<typeof waitForConfirmation>;
 
 const FAKE_PUBKEY = new PublicKey(new Uint8Array(32).fill(3));
 
@@ -102,6 +108,8 @@ describe("useSwap", () =>
             lastValidBlockHeight: 1,
         });
         mockedWalletService.signAndSendTransactions.mockResolvedValue(["sig-1"]);
+        // 기본: 확정 성공. 개별 테스트에서 온체인 실패/타임아웃으로 override.
+        mockedConfirm.mockResolvedValue(undefined);
     });
 
     it("succeeds and returns the signature", async () =>
@@ -170,6 +178,44 @@ describe("useSwap", () =>
                 });
             }),
         ).rejects.toThrow(/no transaction signature/i);
+    });
+
+    it("waits for on-chain confirmation before reporting success", async () =>
+    {
+        const { result } = renderHook(() => useSwap(), { wrapper });
+
+        await act(async () =>
+        {
+            await result.current.mutateAsync({
+                quote: fakeQuote(),
+                inputToken: SOL,
+                outputToken: CBBTC,
+            });
+        });
+
+        // 확정 폴링이 send 이후 signature 로 호출돼야 함.
+        expect(mockedConfirm).toHaveBeenCalledTimes(1);
+        expect(mockedConfirm.mock.calls[0]?.[1]).toBe("sig-1");
+    });
+
+    it("rejects (and does NOT notify success) when the tx fails on-chain after broadcast", async () =>
+    {
+        mockedConfirm.mockRejectedValue(new Error("transaction failed on-chain: {\"InstructionError\":[0,\"Custom\"]}"));
+
+        const { result } = renderHook(() => useSwap(), { wrapper });
+
+        await expect(
+            act(async () =>
+            {
+                await result.current.mutateAsync({
+                    quote: fakeQuote(),
+                    inputToken: SOL,
+                    outputToken: CBBTC,
+                });
+            }),
+        ).rejects.toThrow(/failed on-chain/i);
+        // 핵심: 온체인 실패인데 성공 알림이 나가면 안 됨.
+        expect(notifySwapSuccess).not.toHaveBeenCalled();
     });
 
     it("propagates Jupiter API errors", async () =>

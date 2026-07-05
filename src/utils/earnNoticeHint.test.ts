@@ -46,6 +46,18 @@ describe("pickEarnNoticeHintKey", () =>
         expect(pickEarnNoticeHintKey({ ...base, message: NO_BORROWS })).toBe("earn.noBorrowsHint");
     });
 
+    it("maps confirm_timeout to the confirmation hint (even if SOL is low)", () =>
+    {
+        expect(pickEarnNoticeHintKey({ ...base, message: "confirm_timeout" })).toBe("earn.confirmTimeoutHint");
+        expect(pickEarnNoticeHintKey({ ...base, message: "confirm_timeout", solGasLow: true })).toBe("earn.confirmTimeoutHint");
+    });
+
+    it("maps on-chain failure to the tx-failed hint", () =>
+    {
+        const ONCHAIN = 'transaction failed on-chain: {"InstructionError":[0,"Custom"]}';
+        expect(pickEarnNoticeHintKey({ ...base, message: ONCHAIN })).toBe("earn.txFailedHint");
+    });
+
     it("maps insufficient-LAMPORTS (SOL) text to the SOL hint", () =>
     {
         expect(pickEarnNoticeHintKey({ ...base, message: LAMPORTS })).toBe("earn.insufficientHint");

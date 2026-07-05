@@ -35,6 +35,8 @@ function connectionReturning(simValue: { err: unknown; logs?: string[] | null })
 {
     return {
         simulateTransaction: jest.fn().mockResolvedValue({ value: { logs: null, ...simValue } }),
+        // 확정 폴링(waitForConfirmation) 은 첫 폴에서 confirmed 로 즉시 resolve.
+        getSignatureStatuses: jest.fn().mockResolvedValue({ value: [{ confirmationStatus: "confirmed", err: null }] }),
     } as unknown as Connection;
 }
 
@@ -94,6 +96,7 @@ describe("useSupplyLending — simulation gate (실자금 보호)", () =>
 
         expect(returned?.signature).toBe("supply-sig");
         expect(mockedWalletService.signAndSendTransactions).toHaveBeenCalledTimes(1);
-        expect(steps).toEqual(["preparing", "simulating", "signing", "sending"]);
+        // sending 뒤 confirming(온체인 확정 대기)까지 진행.
+        expect(steps).toEqual(["preparing", "simulating", "signing", "sending", "confirming"]);
     });
 });
