@@ -1,15 +1,16 @@
-# Release notes — v0.5.0 (versionCode 23)
+# Release notes — v0.5.1 (versionCode 24)
 
 dApp Store 제출 시 "release notes / What's new" 필드에 로케일별로 복사.
 
-스토어 배포본이 **v0.4.4(versionCode 22)** 이므로 이번 업데이트는 **0.4.4 → 0.5.0** 입니다.
+스토어 배포본이 **v0.4.4(versionCode 22)** 이므로 이번 업데이트는 **0.4.4 → 0.5.1** 입니다.
 minor 범프 사유: **베트남어(vi) 추가**(신기능) + **자금 경로(swap·lending·LN 확정) 정확성/안정성 대개편**(적대적 코드 리뷰 30건 대응, `design/review-2026-07.md`).
 새 권한·새 네이티브 모듈·새 네트워크 호스트 **없음**. Android 자동 백업은 **비활성화**(allowBackup=false, 프라이버시 강화).
+(v0.5.0/vc23 은 포털 publish 단계에서 **publisher 지갑 SOL 부족**(Release NFT 민팅 rent)으로 실패 → 동일 코드를 vc24/0.5.1 로 재시도. 코드·기능 차이 없음. **재제출 전 publisher 지갑 SOL 충전 필수**.)
 
 ## 한국어 (ko)
 
 ```
-v0.5.0 — 베트남어 추가 + 안정성·정확도 대개편
+v0.5.1 — 베트남어 추가 + 안정성·정확도 대개편
 
 • 🇻🇳 Tiếng Việt — 베트남어를 추가했어요 (설정 → 언어)
 • 정확한 성공/실패 — swap·렌딩이 온체인 확정을 기다린 뒤에 '완료'를 표시합니다. 전송 후 실패한 거래를 성공으로 잘못 알리지 않아요
@@ -24,7 +25,7 @@ v0.5.0 — 베트남어 추가 + 안정성·정확도 대개편
 ## English (en)
 
 ```
-v0.5.0 — Vietnamese language + a big stability & accuracy pass
+v0.5.1 — Vietnamese language + a big stability & accuracy pass
 
 • 🇻🇳 Tiếng Việt — the app is now available in Vietnamese (Settings → Language)
 • Accurate success/failure — swaps and lending now wait for on-chain confirmation before showing "done," so a transaction that fails after broadcast is no longer reported as success
@@ -39,7 +40,7 @@ Self-custody as always — keys stay in Seed Vault, no backend or trackers, no a
 ## Tiếng Việt (vi)
 
 ```
-v0.5.0 — Thêm tiếng Việt + nâng cấp lớn về độ ổn định & chính xác
+v0.5.1 — Thêm tiếng Việt + nâng cấp lớn về độ ổn định & chính xác
 
 • 🇻🇳 Tiếng Việt — ứng dụng nay đã có tiếng Việt (Cài đặt → Ngôn ngữ)
 • Thành công/thất bại chính xác — swap và cho vay nay chờ xác nhận on-chain trước khi hiển thị "Xong", nên giao dịch thất bại sau khi gửi sẽ không còn bị báo là thành công
@@ -54,7 +55,7 @@ Luôn tự quản lý (self-custody) — khóa nằm trong Seed Vault, không ba
 ## dApp Store 심사 노트 (제출 시 reviewer notes / "Notes for review" 에 영문 입력)
 
 ```
-REVIEWER NOTES — Solana cbBTC (com.seekerbtcfi.app), v0.5.0 (versionCode 23)
+REVIEWER NOTES — Solana cbBTC (com.seekerbtcfi.app), v0.5.1 (versionCode 24)
 
 WHAT CHANGED SINCE THE LIVE BUILD (v0.4.4, versionCode 22)
 - NO new permissions. No permission was added, removed, or modified. Android auto-backup is now DISABLED (android:allowBackup="false") so app data (MWA auth token, in-flight Lightning swap state) is never uploaded to the user's cloud backup — a privacy hardening, not a new capability.
