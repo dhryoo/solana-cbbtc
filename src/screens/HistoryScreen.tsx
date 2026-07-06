@@ -57,7 +57,8 @@ export function HistoryScreen({ visible, onClose }: HistoryScreenProps): React.J
     const { palette } = useTheme();
     const styles = useThemedStyles(makeStyles);
     const { account } = useWallet();
-    const history = useTransactionHistory({ limit: 50 });
+    // 모달이 열려 있을 때만 폴링 — 숨어 있을 때 Home 마운트마다 50건 조회가 도는 RPC 낭비 방지.
+    const history = useTransactionHistory({ limit: 50, enabled: visible });
     const [filter, setFilter] = useState<FilterKey>("all");
 
     const items = useMemo(() =>

@@ -57,6 +57,20 @@ describe("waitForConfirmation (getSignatureStatuses polling)", () =>
         expect(getSignatureStatuses).toHaveBeenCalledTimes(3);
     });
 
+    it("일시적 RPC 오류(폴 실패)를 삼키고 계속 폴링해 확정된다", async () =>
+    {
+        jest.useFakeTimers();
+        const getSignatureStatuses = jest.fn()
+            .mockRejectedValueOnce(new Error("rate limited"))
+            .mockResolvedValue({ value: [{ confirmationStatus: "confirmed", err: null }] });
+        const connection = { getSignatureStatuses } as unknown as Connection;
+
+        const p = waitForConfirmation(connection, "sig");
+        await jest.advanceTimersByTimeAsync(2_000 * 2);
+        await expect(p).resolves.toBeUndefined();
+        expect(getSignatureStatuses).toHaveBeenCalledTimes(2); // 실패 1 + 성공 1
+    });
+
     it("throws when the signature status carries an on-chain error", async () =>
     {
         const { connection } = mockConnection(() => ({ value: [{ confirmationStatus: "confirmed", err: { InstructionError: [0, "Custom"] } }] }));

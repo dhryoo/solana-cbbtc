@@ -69,8 +69,19 @@ export async function waitForConfirmation(
         {
             throw new Error("user_cancelled");
         }
-        const { value } = await connection.getSignatureStatuses([signature]);
-        const status = value[0];
+        // 일시적 RPC 오류(rate limit / 네트워크 blip)로 폴 한 번 실패했다고 전체 확정을 실패시키면
+        // 실제로는 랜딩된 tx 를 놓친다. 폴 실패는 "아직 미확정"으로 간주하고 예산 내에서 계속 폴링한다.
+        // (예산을 다 쓰면 confirm_timeout — tx 는 나중에 확정될 수 있어 호출부가 "내역 확인"으로 안내.)
+        let status: Awaited<ReturnType<Connection["getSignatureStatuses"]>>["value"][number] | undefined;
+        try
+        {
+            const { value } = await connection.getSignatureStatuses([signature]);
+            status = value[0];
+        }
+        catch
+        {
+            status = undefined;
+        }
         if (status)
         {
             if (status.err)

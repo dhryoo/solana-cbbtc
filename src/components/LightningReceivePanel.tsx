@@ -1,7 +1,7 @@
 /* eslint-disable react-native/no-unused-styles */
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Linking, Pressable, Share, Text, TextInput, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
@@ -52,6 +52,10 @@ export function LightningReceivePanel(): React.JSX.Element
     // 취소 시 결제 대기/정산 폴링을 실제로 중단
     const abortRef = useRef<AbortController | null>(null);
     const solBalance = useTokenBalance(SOL, account?.publicKey ?? null);
+
+    // 언마운트 시(탭 이동 등) 진행 중인 결제 대기/정산 폴링을 중단한다. 없으면 백그라운드에서
+    // 계속 폴링하다 결제가 도착하면 UI 맥락 없이 commitAndClaim MWA intent 를 띄운다(R17).
+    useEffect(() => () => { abortRef.current?.abort(); }, []);
 
     // SOL 잔액이 확인됐고 claim 여유분 미만이면 경고 + 생성 차단 (잔액 로딩 전엔 차단 안 함).
     // 받기는 "상대 결제 → 내 claim 서명" 순서라 SOL 이 없으면 "결제됐는데 못 받는" 상황이 되므로

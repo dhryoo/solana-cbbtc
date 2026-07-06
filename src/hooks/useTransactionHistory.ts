@@ -16,6 +16,8 @@ export function historyQueryKey(owner: string | null, limit: number): readonly u
 interface UseTransactionHistoryOptions
 {
     limit?: number;
+    /** false 면 쿼리 비활성(예: 내역 모달이 닫혀 있을 때 불필요한 RPC 폴링 방지). 기본 true. */
+    enabled?: boolean;
 }
 
 /**
@@ -35,11 +37,12 @@ export function useTransactionHistory(
     const { isOnline } = useNetworkStatus();
     const { account } = useWallet();
     const limit = options.limit ?? 25;
+    const enabled = options.enabled ?? true;
     const owner = account?.publicKey.toBase58() ?? null;
 
     return useQuery<TxHistoryItem[], Error>({
         queryKey: historyQueryKey(owner, limit),
-        enabled: isOnline && Boolean(account),
+        enabled: enabled && isOnline && Boolean(account),
         staleTime: 30_000,
         // Helius 무료 티어의 RPS 한도를 자극하지 않도록 재시도 최소화.
         // 1 회만 retry, 1.2 초 대기.
