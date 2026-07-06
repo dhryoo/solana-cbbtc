@@ -16,6 +16,17 @@ export interface ConnectedAccount
     walletUriBase: string;
 }
 
+// MWA 는 reauthorize 시 auth_token 을 회전(교체)하고 이전 토큰을 무효화할 수 있다. 서명 흐름에서
+// 회전이 일어나면 그 토큰을 provider 상태·저장소로 흘려보내야 다음 서명/앱 재시작 복원이 stale
+// 토큰으로 실패하지 않는다. WalletProvider 가 아래 sink 를 등록한다(전역 싱글톤 = 지갑도 싱글톤).
+let authTokenSink: ((token: AuthToken) => void) | null = null;
+
+/** WalletProvider 가 등록: reauthorize 로 확인/회전된 auth_token 을 상태·저장소로 전달. */
+export function setAuthTokenSink(sink: ((token: AuthToken) => void) | null): void
+{
+    authTokenSink = sink;
+}
+
 function toConnectedAccount(auth: AuthorizationResult): ConnectedAccount
 {
     const first = auth.accounts[0];
@@ -71,7 +82,8 @@ export async function signAndSendTransactions<T extends Transaction | VersionedT
 {
     return await transact(async (wallet) =>
     {
-        await wallet.reauthorize({ auth_token: authToken, identity: APP_IDENTITY });
+        const auth = await wallet.reauthorize({ auth_token: authToken, identity: APP_IDENTITY });
+        authTokenSink?.(auth.auth_token);
         return wallet.signAndSendTransactions({ transactions });
     });
 }
@@ -87,7 +99,8 @@ export async function signTransactions<T extends Transaction | VersionedTransact
 {
     return await transact(async (wallet) =>
     {
-        await wallet.reauthorize({ auth_token: authToken, identity: APP_IDENTITY });
+        const auth = await wallet.reauthorize({ auth_token: authToken, identity: APP_IDENTITY });
+        authTokenSink?.(auth.auth_token);
         return wallet.signTransactions({ transactions });
     });
 }

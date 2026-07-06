@@ -46,6 +46,9 @@ export function WalletProvider({ children }: WalletProviderProps): React.JSX.Ele
     const [error, setError] = useState<Error | null>(null);
     const isMounted = useRef(true);
     const restoreAttemptedRef = useRef(false);
+    // sink 콜백이 최신 account 를 읽도록 ref 로 미러링 (effect deps 를 늘리지 않기 위해).
+    const accountRef = useRef<ConnectedAccount | null>(account);
+    accountRef.current = account;
     const { state: appLockState, enabled: appLockEnabled } = useAppLock();
 
     useEffect(() =>
@@ -54,6 +57,33 @@ export function WalletProvider({ children }: WalletProviderProps): React.JSX.Ele
         return () =>
         {
             isMounted.current = false;
+        };
+    }, []);
+
+    // 서명 흐름의 reauthorize 가 auth_token 을 회전/확인하면 상태·저장소에 반영(R06). 회전된 토큰을
+    // 버리면 다음 서명·앱 재시작 복원이 stale 토큰으로 실패했다(12h stale 배너·markAuthFailure 밴드에이드의
+    // 근본 원인). 성공한 reauthorize 는 세션이 살아있다는 증거이므로 stale 시계도 리셋한다.
+    useEffect(() =>
+    {
+        WalletService.setAuthTokenSink((rotated) =>
+        {
+            const cur = accountRef.current;
+            if (!cur)
+            {
+                return;
+            }
+            void saveWalletConnectedAt(Date.now());
+            if (cur.authToken !== rotated)
+            {
+                const updated = { ...cur, authToken: rotated };
+                accountRef.current = updated;
+                setAccount(updated);
+                void saveAuthToken(rotated);
+            }
+        });
+        return () =>
+        {
+            WalletService.setAuthTokenSink(null);
         };
     }, []);
 

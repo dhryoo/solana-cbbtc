@@ -1,6 +1,6 @@
 import { USDC } from "@/constants/tokens";
 
-import { AtomiqProvider, waitForPaymentResilient } from "./AtomiqProvider";
+import { AtomiqProvider, waitForPaymentResilient, waitForReceivePaymentResilient } from "./AtomiqProvider";
 import { LN_SENTINEL } from "./sentinels";
 import type { LightningDestination, LightningQuote, LightningReceive, SolanaSigningDelegate } from "./types";
 
@@ -151,6 +151,50 @@ describe("waitForPaymentResilient", () =>
             isSuccessful: jest.fn(() => false),
         };
         await expect(waitForPaymentResilient(swap)).rejects.toThrow("orig");
+    });
+});
+
+describe("waitForReceivePaymentResilient", () =>
+{
+    it("정상 종료(true/false)면 그대로 반환", async () =>
+    {
+        expect(await waitForReceivePaymentResilient({ waitForPayment: jest.fn(async () => true) })).toBe(true);
+        expect(await waitForReceivePaymentResilient({ waitForPayment: jest.fn(async () => false) })).toBe(false);
+    });
+
+    it("일시적 오류로 throw 하면 backoff 후 재-진입해 결국 결제를 받는다", async () =>
+    {
+        jest.useFakeTimers();
+        const waitForPayment = jest.fn()
+            .mockRejectedValueOnce(new Error("network blip"))
+            .mockResolvedValue(true);
+        const p = waitForReceivePaymentResilient({ waitForPayment }, undefined, 5, 3_000);
+        await jest.advanceTimersByTimeAsync(3_000);
+        await expect(p).resolves.toBe(true);
+        expect(waitForPayment).toHaveBeenCalledTimes(2); // 실패 1 + 성공 1
+        jest.useRealTimers();
+    });
+
+    it("abort 되면 재시도 없이 즉시 전파", async () =>
+    {
+        const controller = new AbortController();
+        controller.abort();
+        const waitForPayment = jest.fn(async () => { throw new Error("aborted"); });
+        await expect(waitForReceivePaymentResilient({ waitForPayment }, controller.signal)).rejects.toThrow("aborted");
+        expect(waitForPayment).toHaveBeenCalledTimes(1); // 재시도 없음
+    });
+
+    it("연속 실패가 한도를 넘으면 마지막 에러 전파", async () =>
+    {
+        jest.useFakeTimers();
+        const waitForPayment = jest.fn(async () => { throw new Error("down"); });
+        const p = waitForReceivePaymentResilient({ waitForPayment }, undefined, 2, 1_000);
+        p.catch(() => undefined);
+        await jest.advanceTimersByTimeAsync(1_000 * 3);
+        await expect(p).rejects.toThrow("down");
+        // 최초 1 + 재시도 2 = 3 회
+        expect(waitForPayment).toHaveBeenCalledTimes(3);
+        jest.useRealTimers();
     });
 });
 

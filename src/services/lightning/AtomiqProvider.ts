@@ -260,6 +260,77 @@ export async function waitForPaymentResilient(
     }
 }
 
+/** abort 를 존중하는 backoff. abort 시 reject, 타이머는 항상 정리. */
+function receiveBackoff(ms: number, abortSignal?: AbortSignal): Promise<void>
+{
+    return new Promise<void>((resolve, reject) =>
+    {
+        let onAbort: (() => void) | undefined;
+        const timer = setTimeout(() =>
+        {
+            if (onAbort && abortSignal)
+            {
+                abortSignal.removeEventListener("abort", onAbort);
+            }
+            resolve();
+        }, ms);
+        if (abortSignal)
+        {
+            onAbort = () =>
+            {
+                clearTimeout(timer);
+                reject(new Error("user_cancelled"));
+            };
+            if (abortSignal.aborted)
+            {
+                onAbort();
+            }
+            else
+            {
+                abortSignal.addEventListener("abort", onAbort, { once: true });
+            }
+        }
+    });
+}
+
+// 받기(FromBTCLN) 대기 회복력.
+// waitForPayment 은 정상 종료 시 결제=true / 만료=false 로 resolve 한다. 따라서 throw 는 곧
+// 폴링 중 일시적 네트워크 오류(셀 전환/LP 재시작)이거나 abort 다. abort 가 아니면 인보이스는 아직
+// 유효하므로 짧은 backoff 후 재-진입해 QR 을 살려 둔다. 연속 실패가 한도를 넘으면 마지막 에러 전파.
+// (send 경로의 waitForPaymentResilient 과 짝 — 받기엔 _sync→isSuccessful 대응물이 없어 재시도로 처리.)
+export async function waitForReceivePaymentResilient(
+    swap: {
+        // FromBTCLN 의 waitForPayment 1번째 인자는 onPaymentReceived 콜백(undefined 로 넘김), 3번째가 abortSignal.
+        waitForPayment(onPaymentReceived?: (txId: string) => void, checkIntervalSeconds?: number, abortSignal?: AbortSignal): Promise<boolean>;
+    },
+    abortSignal?: AbortSignal,
+    maxTransientRetries: number = 5,
+    backoffMs: number = 3_000,
+): Promise<boolean>
+{
+    let failures = 0;
+    for (;;)
+    {
+        try
+        {
+            return await swap.waitForPayment(undefined, undefined, abortSignal);
+        }
+        catch (e)
+        {
+            if (abortSignal?.aborted)
+            {
+                throw e;
+            }
+            failures += 1;
+            if (failures > maxTransientRetries)
+            {
+                throw e;
+            }
+            await receiveBackoff(backoffMs, abortSignal);
+        }
+    }
+}
+
 function toQuote(
     swap: AtomiqSwap,
     srcToken: TokenInfo,
@@ -487,8 +558,9 @@ export class AtomiqProvider implements LightningSwapProvider
 
         // ① LN 인보이스 결제 대기 (서명 없음). abortSignal 은 3번째 인자 — 1번째(onPaymentReceived
         //    콜백)로 넘기면 SDK 가 콜백처럼 호출하려다 깨질 수 있다 (#242 회귀 수정).
+        //    일시적 네트워크 오류로 유효한 인보이스가 무너지지 않도록 resilient 래퍼로 감싼다(R11).
         onPhase("awaiting");
-        const paid = await swap.waitForPayment(undefined, undefined, abortSignal);
+        const paid = await waitForReceivePaymentResilient(swap, abortSignal);
         if (!paid)
         {
             throw new Error(LN_SENTINEL.RECEIVE_EXPIRED);

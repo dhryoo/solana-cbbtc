@@ -8,6 +8,7 @@ import {
     disconnect,
     reconnect,
     signAndSendTransactions,
+    setAuthTokenSink,
 } from "./WalletService";
 
 jest.mock("@solana-mobile/mobile-wallet-adapter-protocol-web3js", () =>
@@ -163,6 +164,24 @@ describe("WalletService", () =>
             const callArg = wallet.signAndSendTransactions.mock.calls[0]?.[0];
             expect(callArg).toMatchObject({ transactions: [fakeTx, fakeTx] });
             expect(sigs).toEqual(["sig-1", "sig-2"]);
+        });
+
+        it("등록된 sink 에 reauthorize 가 돌려준(회전된) auth_token 을 전달한다", async () =>
+        {
+            setupWalletMock({
+                reauthorize: jest.fn().mockResolvedValue(buildAuthResult({ auth_token: "rotated-token" })),
+            });
+            const sink = jest.fn();
+            setAuthTokenSink(sink);
+            try
+            {
+                await signAndSendTransactions([{} as never], "old-token");
+                expect(sink).toHaveBeenCalledWith("rotated-token");
+            }
+            finally
+            {
+                setAuthTokenSink(null);
+            }
         });
     });
 });
