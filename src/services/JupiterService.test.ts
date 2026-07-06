@@ -188,6 +188,26 @@ describe("JupiterService.getQuote", () =>
         })).rejects.toMatchObject({ status: 503 });
     });
 
+    it("비-JSON 에러 body(예: 429 평문)를 유실하지 않고 진단에 담는다", async () =>
+    {
+        // 실제 Response 처럼 body 스트림은 1회만 소비 가능 — json() 은 파싱 실패, text() 는 평문.
+        fetchSpy.mockResolvedValueOnce({
+            ok: false,
+            status: 429,
+            json: async () => { throw new Error("Unexpected token T in JSON"); },
+            text: async () => "Too Many Requests",
+        } as unknown as Response);
+
+        const err = await getQuote({
+            inputMint: SOL_MINT,
+            outputMint: CBBTC_MINT,
+            amount: 1_000n,
+            slippageBps: 50,
+        }).catch((e: unknown) => e);
+        expect(err).toBeInstanceOf(JupiterApiError);
+        expect((err as JupiterApiError).body).toBe("Too Many Requests");
+    });
+
     it("propagates network errors with the original message", async () =>
     {
         fetchSpy.mockRejectedValueOnce(new TypeError("Network request failed"));

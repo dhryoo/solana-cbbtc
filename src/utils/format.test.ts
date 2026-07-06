@@ -1,6 +1,18 @@
 import { PublicKey } from "@solana/web3.js";
 
-import { baseToDecimalString, formatRawAmount, formatTokenAmount, parseTokenAmount, shortenAddress } from "./format";
+import { baseToDecimalString, formatRawAmount, formatSats, formatTokenAmount, parseTokenAmount, shortenAddress } from "./format";
+
+describe("formatSats", () =>
+{
+    it("천단위 콤마 그룹 (bigint / number 모두)", () =>
+    {
+        expect(formatSats(100_000n)).toBe("100,000");
+        expect(formatSats(2500)).toBe("2,500");
+        expect(formatSats(999n)).toBe("999");
+        expect(formatSats(0n)).toBe("0");
+        expect(formatSats(1_234_567n)).toBe("1,234,567");
+    });
+});
 
 describe("baseToDecimalString", () =>
 {

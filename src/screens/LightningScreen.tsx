@@ -43,7 +43,7 @@ import { hapticSuccess } from "@/services/HapticsService";
 import { LightningQuoteError } from "@/services/lightning/LightningService";
 import { isLightningAmountError } from "@/services/lightning/types";
 import type { LightningPayOutcome, LightningPayPhase, LightningQuote } from "@/services/lightning/types";
-import { formatRawAmount } from "@/utils/format";
+import { formatRawAmount, formatSats } from "@/utils/format";
 import { isSolGasLow } from "@/utils/gasCheck";
 import { isAuthFailure, isUserRejection, isWalletTimeout } from "@/utils/lendingErrors";
 import { parseLightningInput } from "@/utils/lightningInvoice";
@@ -66,8 +66,8 @@ function phaseToStep(phase: LightningPayPhase): TxStep
     }
 }
 
-// 소액 상한 표시용 라벨 (Hermes Intl 한계 회피 — 수동 천단위 콤마)
-const MAX_SATS_LABEL = LN_EXPERIMENTAL_MAX_SATS.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+// 소액 상한 표시용 라벨
+const MAX_SATS_LABEL = formatSats(LN_EXPERIMENTAL_MAX_SATS);
 
 // 5번째 하단 탭으로 분리(실험적 Labs 토글에서 승격). 모달이 아니라 인라인 탭 화면으로 렌더.
 export function LightningScreen(): React.JSX.Element
@@ -660,6 +660,7 @@ export function LightningScreen(): React.JSX.Element
                         )}
                         <Pressable
                             accessibilityRole="button"
+                            accessibilityLabel={t("lightning.quoteButton")}
                             accessibilityState={{ disabled: !canQuote, busy: quoteMutation.isPending || cbbtcQuoteMutation.isPending }}
                             disabled={!canQuote}
                             onPress={onGetQuote}
@@ -680,10 +681,11 @@ export function LightningScreen(): React.JSX.Element
                             <Text style={styles.cardTitle}>{t("lightning.quoteHeading")}</Text>
                             <Row label={t("lightning.quoteSend")} value={`${formatRawAmount(quote.inputBase, quote.srcToken.decimals)} ${quote.srcToken.symbol}`} styles={styles} />
                             <Row label={t("lightning.quoteFee")} value={`${formatRawAmount(quote.feeBase, quote.srcToken.decimals)} ${quote.srcToken.symbol}`} styles={styles} />
-                            <Row label={t("lightning.quoteReceive")} value={`${quote.outputSats.toString()} sats`} styles={styles} />
+                            <Row label={t("lightning.quoteReceive")} value={`${formatSats(quote.outputSats)} sats`} styles={styles} />
                             <Row label={t("lightning.quoteDest")} value={quote.destinationLabel} styles={styles} />
                             <Pressable
                                 accessibilityRole="button"
+                                accessibilityLabel={t("lightning.payButton")}
                                 accessibilityState={{ disabled: payMutation.isPending, busy: payMutation.isPending }}
                                 disabled={payMutation.isPending}
                                 onPress={onPay}
@@ -703,10 +705,11 @@ export function LightningScreen(): React.JSX.Element
                             <Text style={styles.cbbtcChainHint}>{t("lightning.cbbtcChainHint")}</Text>
                             <Row label={t("lightning.cbbtcSwapFrom")} value={`~${formatRawAmount(cbbtcQuote.swap.cbbtcInBase, CBBTC.decimals)} ${CBBTC.symbol}`} styles={styles} />
                             <Row label={t("lightning.cbbtcSwapTo")} value={`${formatRawAmount(cbbtcQuote.usdcTargetBase, USDC.decimals)} ${USDC.symbol}`} styles={styles} />
-                            <Row label={t("lightning.quoteReceive")} value={`${cbbtcQuote.atomiqPreview.outputSats.toString()} sats`} styles={styles} />
+                            <Row label={t("lightning.quoteReceive")} value={`${formatSats(cbbtcQuote.atomiqPreview.outputSats)} sats`} styles={styles} />
                             <Row label={t("lightning.quoteDest")} value={cbbtcQuote.atomiqPreview.destinationLabel} styles={styles} />
                             <Pressable
                                 accessibilityRole="button"
+                                accessibilityLabel={t("lightning.cbbtcPayButton")}
                                 accessibilityState={{ disabled: cbbtcPayMutation.isPending, busy: cbbtcPayMutation.isPending }}
                                 disabled={cbbtcPayMutation.isPending}
                                 onPress={onPay}

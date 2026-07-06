@@ -19,7 +19,7 @@ import { useNetworkStatus } from "@/providers/NetworkProvider";
 import { useTheme } from "@/providers/ThemeProvider";
 import { useToast } from "@/providers/ToastProvider";
 import type { LightningReceive, LightningReceiveOutcome, LightningReceivePhase } from "@/services/lightning/types";
-import { formatRawAmount } from "@/utils/format";
+import { formatRawAmount, formatSats } from "@/utils/format";
 import { toFriendlyErrorKey } from "@/utils/friendlyError";
 
 const DEST_TOKENS: TokenInfo[] = [USDC, SOL];
@@ -217,7 +217,7 @@ export function LightningReceivePanel(): React.JSX.Element
             {/* 인보이스 QR + 대기/정산 */}
             {receive && (
                 <View style={styles.card}>
-                    <Text style={styles.invoiceTitle}>{t("receive.invoiceTitle", { sats: receive.amountSats.toString(), token: receive.dstToken.symbol })}</Text>
+                    <Text style={styles.invoiceTitle}>{t("receive.invoiceTitle", { sats: formatSats(receive.amountSats), token: receive.dstToken.symbol })}</Text>
                     <View style={styles.qrWrap}>
                         <QRCode value={receive.invoice} size={216} backgroundColor="#ffffff" />
                     </View>

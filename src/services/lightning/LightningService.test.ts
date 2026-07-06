@@ -283,6 +283,31 @@ describe("LightningService (Facade + mock provider)", () =>
         expect(provider.quote).not.toHaveBeenCalled();
     });
 
+    it("createReceive 는 상한 이내면 provider 로 위임", async () =>
+    {
+        const provider = makeMockProvider();
+        const svc = new LightningService(provider);
+        await svc.createReceive(USDC, LN_EXPERIMENTAL_MAX_SATS, OWNER.toBase58());
+        expect(provider.createReceive).toHaveBeenCalledTimes(1);
+    });
+
+    it("createReceive 는 상한 초과면 provider 를 건드리지 않고 amount_too_large (서비스층 백스톱, R33)", () =>
+    {
+        const provider = makeMockProvider();
+        const svc = new LightningService(provider);
+        try
+        {
+            void svc.createReceive(USDC, LN_EXPERIMENTAL_MAX_SATS + 1n, OWNER.toBase58());
+            throw new Error("should have thrown");
+        }
+        catch (e)
+        {
+            expect(e).toBeInstanceOf(LightningQuoteError);
+            expect((e as LightningQuoteError).code).toBe("amount_too_large");
+        }
+        expect(provider.createReceive).not.toHaveBeenCalled();
+    });
+
     it("pay delegates with a signing delegate built from the account and reports phases", async () =>
     {
         const provider = makeMockProvider();

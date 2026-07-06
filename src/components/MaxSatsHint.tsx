@@ -6,10 +6,10 @@ import { Text, View } from "react-native";
 import { LN_EXPERIMENTAL_MAX_SATS } from "@/constants/lightning";
 import { BRAND_PURPLE, type ThemePalette } from "@/constants/theme";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
+import { formatSats } from "@/utils/format";
 
 // 실험 기능 소액 상한 안내 — 송금/받기 금액 입력란 아래에 강조된 칩으로 표시.
-// (Hermes Intl 한계 회피 — 수동 천단위 콤마)
-const MAX_SATS_LABEL = LN_EXPERIMENTAL_MAX_SATS.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+const MAX_SATS_LABEL = formatSats(LN_EXPERIMENTAL_MAX_SATS);
 
 export function MaxSatsHint(): React.JSX.Element
 {

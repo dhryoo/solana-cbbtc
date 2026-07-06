@@ -12,6 +12,27 @@ import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
 
 const DEFAULT_BASE = "https://lite-api.jup.ag";
 
+/**
+ * 에러 응답 body 를 한 번만 읽어 진단용으로 반환. JSON 이면 파싱한 객체, 아니면 원문 텍스트,
+ * 읽기 실패면 undefined. (body 스트림은 한 번만 소비 가능 — json→text 순차 읽기는 항상 깨진다.)
+ */
+async function readErrorBody(response: Response): Promise<unknown>
+{
+    const text = await response.text().catch(() => undefined);
+    if (text === undefined || text === "")
+    {
+        return undefined;
+    }
+    try
+    {
+        return JSON.parse(text);
+    }
+    catch
+    {
+        return text;
+    }
+}
+
 // Swap 트랜잭션의 priority fee 기본값.
 // "auto"(Jupiter 자유 재량, 상한 없음) 대신 priority="high" + 1.0M lamports(0.001 SOL) cap.
 // - 혼잡 시 swap이 빠르게 land 하도록 high 우선순위 부여
@@ -67,15 +88,9 @@ export async function getQuote(params: QuoteParams): Promise<QuoteResponse>
     const response = await fetchWithTimeout(url.toString());
     if (!response.ok)
     {
-        let body: unknown;
-        try
-        {
-            body = await response.json();
-        }
-        catch
-        {
-            body = await response.text().catch(() => undefined);
-        }
+        // body 는 한 번만 읽는다 — 예전엔 json() 이 스트림을 소비한 뒤 text() 를 또 읽어 항상
+        // 'Already read' 로 실패, 비-JSON 에러(예: 429 평문/프록시 HTML) 진단이 통째로 유실됐다.
+        const body = await readErrorBody(response);
         throw new JupiterApiError(
             `Jupiter quote failed (HTTP ${response.status})`,
             response.status,
@@ -122,15 +137,7 @@ export async function getSwapTransaction(
 
     if (!response.ok)
     {
-        let errBody: unknown;
-        try
-        {
-            errBody = await response.json();
-        }
-        catch
-        {
-            errBody = await response.text().catch(() => undefined);
-        }
+        const errBody = await readErrorBody(response);
         throw new JupiterApiError(
             `Jupiter swap failed (HTTP ${response.status})`,
             response.status,

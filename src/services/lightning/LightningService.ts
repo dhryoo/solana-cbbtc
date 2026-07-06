@@ -158,6 +158,16 @@ export class LightningService
     /** 받기: LN 인보이스 생성 (자금 이동 없음) */
     createReceive(dstToken: TokenInfo, amountSats: bigint, dstAddress: string): Promise<LightningReceive>
     {
+        // 실험 기능 소액 상한은 UI(LightningReceivePanel) 뿐 아니라 서비스층에서도 강제(R33) — send
+        // 경로(resolveDestination)와 대칭. UI 가드를 우회해 들어와도 상한을 넘는 인보이스는 만들지 않는다.
+        if (amountSats <= 0n)
+        {
+            throw new LightningQuoteError("amount_required");
+        }
+        if (amountSats > LN_EXPERIMENTAL_MAX_SATS)
+        {
+            throw new LightningQuoteError("amount_too_large");
+        }
         return this.provider.createReceive(dstToken, amountSats, dstAddress);
     }
 

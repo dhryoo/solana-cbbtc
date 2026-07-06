@@ -1,5 +1,11 @@
 import type { PublicKey } from "@solana/web3.js";
 
+/** sats 정수를 천단위 콤마로. Lightning 금액 표시를 앱 전체에서 일관되게(콤마 그룹) 유지. */
+export function formatSats(sats: bigint | number): string
+{
+    return sats.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
 export function shortenAddress(pubkey: PublicKey, head = 4, tail = 4): string
 {
     const base58 = pubkey.toBase58();
