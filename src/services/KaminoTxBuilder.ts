@@ -44,6 +44,33 @@ const DEFAULT_PUBKEY = PublicKey.default.toBase58(); // "111...1"
 
 interface AddrLike { toString(): string; }
 
+// codegen 디코드 결과의 구조적 타입 — 이 빌더가 실제로 읽는 필드만. 런타임엔 .toString() 만
+// 사용하므로 값은 AddrLike 로 충분(kit Address/BN 모두 만족). `as any` 대신 `as unknown as X`.
+interface DecodedReserve
+{
+    liquidity: {
+        mintPubkey: AddrLike;
+        tokenProgram: AddrLike;
+        supplyVault: AddrLike;
+        feeVault: AddrLike;
+        availableAmount: AddrLike;
+        borrowedAmountSf: AddrLike;
+    };
+    collateral: {
+        mintPubkey: AddrLike;
+        supplyVault: AddrLike;
+        mintTotalSupply: AddrLike;
+    };
+    farmCollateral: AddrLike;
+    config: { tokenInfo: { scopeConfiguration: { priceFeed: AddrLike } } };
+}
+
+interface DecodedObligation
+{
+    deposits: { depositReserve: AddrLike; depositedAmount: AddrLike }[];
+    borrows: { borrowReserve: AddrLike; borrowedAmountSf: AddrLike }[];
+}
+
 // --- 순수 헬퍼 (테스트 대상) ---
 
 /** reserve config 의 scope 오라클 priceFeed. 미설정(default)이면 null. */
@@ -176,8 +203,7 @@ export async function buildSupplyTransaction(
     {
         throw new Error("Kamino cbBTC reserve account not found");
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const reserveDecoded = Reserve.decode(reserveAcc.data) as any;
+    const reserveDecoded = Reserve.decode(reserveAcc.data) as unknown as DecodedReserve;
     const cbbtcMint = new PublicKey(reserveDecoded.liquidity.mintPubkey.toString());
     const liqTokenProgram = new PublicKey(reserveDecoded.liquidity.tokenProgram.toString());
     const scopeOracle = scopeOracleFromReserve(reserveDecoded);
@@ -250,7 +276,7 @@ export async function buildSupplyTransaction(
     };
 
     // 현재 보유 reserve(예치 전) / 예치 후 보유 reserve.
-    const currentReserves = collectObligationReserves(obligationAcc ? (Obligation.decode(obligationAcc.data) as never) : null);
+    const currentReserves = collectObligationReserves(obligationAcc ? (Obligation.decode(obligationAcc.data) as unknown as DecodedObligation) : null);
     const afterReserves = currentReserves.some((r) => r.equals(reserve))
         ? currentReserves
         : [...currentReserves, reserve];
@@ -401,10 +427,8 @@ export async function buildWithdrawTransaction(
     {
         throw new Error("No Kamino position to withdraw");
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const reserveDecoded = Reserve.decode(reserveAcc.data) as any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const obligationDecoded = Obligation.decode(obligationAcc.data) as any;
+    const reserveDecoded = Reserve.decode(reserveAcc.data) as unknown as DecodedReserve;
+    const obligationDecoded = Obligation.decode(obligationAcc.data) as unknown as DecodedObligation;
 
     const cbbtcMint = new PublicKey(reserveDecoded.liquidity.mintPubkey.toString());
     const liqTokenProgram = new PublicKey(reserveDecoded.liquidity.tokenProgram.toString());
@@ -421,8 +445,7 @@ export async function buildWithdrawTransaction(
 
     // 보유 collateral (cbBTC deposit)
     const reserveStr = reserve.toBase58();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const deposit = (obligationDecoded.deposits ?? []).find((d: any) => d.depositReserve.toString() === reserveStr);
+    const deposit = (obligationDecoded.deposits ?? []).find((d) => d.depositReserve.toString() === reserveStr);
     const depositedCollateral = deposit ? BigInt(deposit.depositedAmount.toString()) : 0n;
     if (depositedCollateral <= 0n)
     {
@@ -507,8 +530,7 @@ export async function buildWithdrawTransaction(
 
     const currentReserves = collectObligationReserves(obligationDecoded);
     // 인출 후에도 남는 reserve = (담보가 남으면 cbBTC) + 차입 reserve(인출은 차입을 안 건드림).
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const borrowReserves: PublicKey[] = ((obligationDecoded.borrows ?? []) as any[])
+    const borrowReserves: PublicKey[] = (obligationDecoded.borrows ?? [])
         .map((b) => b.borrowReserve.toString())
         .filter((s: string) => s !== DEFAULT_PUBKEY)
         .map((s: string) => new PublicKey(s));
@@ -629,12 +651,9 @@ export async function buildBorrowTransaction(
     {
         throw new Error("Kamino reserve account not found");
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cbbtcDec = Reserve.decode(cbbtcAcc.data) as any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const usdcDec = Reserve.decode(usdcAcc.data) as any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const obligationDec = Obligation.decode(obligationAcc.data) as any;
+    const cbbtcDec = Reserve.decode(cbbtcAcc.data) as unknown as DecodedReserve;
+    const usdcDec = Reserve.decode(usdcAcc.data) as unknown as DecodedReserve;
+    const obligationDec = Obligation.decode(obligationAcc.data) as unknown as DecodedObligation;
 
     const cbbtcScope = scopeOracleFromReserve(cbbtcDec);
     const usdcScope = scopeOracleFromReserve(usdcDec);
@@ -767,12 +786,9 @@ export async function buildRepayTransaction(
     {
         throw new Error("Kamino reserve account not found");
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cbbtcDec = Reserve.decode(cbbtcAcc.data) as any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const usdcDec = Reserve.decode(usdcAcc.data) as any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const obligationDec = Obligation.decode(obligationAcc.data) as any;
+    const cbbtcDec = Reserve.decode(cbbtcAcc.data) as unknown as DecodedReserve;
+    const usdcDec = Reserve.decode(usdcAcc.data) as unknown as DecodedReserve;
+    const obligationDec = Obligation.decode(obligationAcc.data) as unknown as DecodedObligation;
 
     const cbbtcScope = scopeOracleFromReserve(cbbtcDec);
     const usdcScope = scopeOracleFromReserve(usdcDec);
