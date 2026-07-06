@@ -1,6 +1,6 @@
 import { USDC } from "@/constants/tokens";
 
-import { AtomiqProvider, waitForPaymentResilient, waitForReceivePaymentResilient } from "./AtomiqProvider";
+import { AtomiqProvider, waitForPaymentResilient, waitForReceivePaymentResilient, sanitizeLpUrls, fetchLpUrls, FALLBACK_LP_URLS } from "./AtomiqProvider";
 import { LN_SENTINEL } from "./sentinels";
 import type { LightningDestination, LightningQuote, LightningReceive, SolanaSigningDelegate } from "./types";
 
@@ -151,6 +151,66 @@ describe("waitForPaymentResilient", () =>
             isSuccessful: jest.fn(() => false),
         };
         await expect(waitForPaymentResilient(swap)).rejects.toThrow("orig");
+    });
+});
+
+describe("sanitizeLpUrls", () =>
+{
+    it("https URL 만 통과시킨다", () =>
+    {
+        const raw = [
+            "https://a.atomiq.exchange",
+            "http://insecure.example",       // http 거부
+            "wss://ws.example",              // 기타 스킴 거부
+            "javascript:alert(1)",           // 스킴 악용 거부
+            42,                              // 비-문자열 거부
+            "https://b.atomiq.exchange:4000",
+        ];
+        expect(sanitizeLpUrls(raw)).toEqual([
+            "https://a.atomiq.exchange",
+            "https://b.atomiq.exchange:4000",
+        ]);
+    });
+
+    it("배열이 아니면 빈 배열", () =>
+    {
+        expect(sanitizeLpUrls(null)).toEqual([]);
+        expect(sanitizeLpUrls({ urls: [] })).toEqual([]);
+    });
+});
+
+describe("fetchLpUrls", () =>
+{
+    afterEach(() => jest.restoreAllMocks());
+
+    it("레지스트리가 유효한 https 목록을 주면 그것을 사용", async () =>
+    {
+        jest.spyOn(global, "fetch").mockResolvedValue({
+            ok: true,
+            json: async () => ["https://lp1.atomiq.exchange", "http://bad"],
+        } as unknown as Response);
+        expect(await fetchLpUrls()).toEqual(["https://lp1.atomiq.exchange"]); // http 는 걸러짐
+    });
+
+    it("fetch 실패면 fallback 목록으로", async () =>
+    {
+        jest.spyOn(global, "fetch").mockRejectedValue(new TypeError("Network request failed"));
+        expect(await fetchLpUrls()).toBe(FALLBACK_LP_URLS);
+    });
+
+    it("정제 후 https 가 하나도 없으면 fallback 으로", async () =>
+    {
+        jest.spyOn(global, "fetch").mockResolvedValue({
+            ok: true,
+            json: async () => ["http://only-insecure"],
+        } as unknown as Response);
+        expect(await fetchLpUrls()).toBe(FALLBACK_LP_URLS);
+    });
+
+    it("응답이 !ok 면 fallback 으로", async () =>
+    {
+        jest.spyOn(global, "fetch").mockResolvedValue({ ok: false, json: async () => [] } as unknown as Response);
+        expect(await fetchLpUrls()).toBe(FALLBACK_LP_URLS);
     });
 });
 

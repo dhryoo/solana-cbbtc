@@ -96,23 +96,34 @@ const APP_SOURCE_TOKENS: { app: TokenInfo; atomiqSymbol: string }[] = [
 // 주의: mainnet 목록은 registry.json(레거시)이 아니라 **registry-mainnet.json** (M17.1 발견).
 const REGISTRY_RAW_URL = "https://raw.githubusercontent.com/adambor/SolLightning-registry/main/registry-mainnet.json";
 // fallback — registry-mainnet.json 2026-06-13 스냅샷
-const FALLBACK_LP_URLS = [
+export const FALLBACK_LP_URLS = [
     "https://161-97-73-23.nodes.atomiq.exchange:4000",
     "https://84-32-32-132.nodes.atomiq.exchange",
     "https://84-32-129-152.nodes.atomiq.exchange",
 ];
 
-async function fetchLpUrls(): Promise<string[]>
+// 레지스트리 응답을 https LP URL 목록으로 정제. 레지스트리(raw.githubusercontent, 우리가 운영 안 함)가
+// http/기타 스킴이나 비-문자열을 섞어도 다운그레이드/비정상 엔드포인트로 붙지 않도록 https 만 통과(R35).
+export function sanitizeLpUrls(raw: unknown): string[]
+{
+    if (!Array.isArray(raw))
+    {
+        return [];
+    }
+    return raw.filter((u): u is string => typeof u === "string" && u.startsWith("https://"));
+}
+
+export async function fetchLpUrls(): Promise<string[]>
 {
     try
     {
         const res = await fetchWithTimeout(REGISTRY_RAW_URL);
         if (res.ok)
         {
-            const urls = (await res.json()) as unknown;
-            if (Array.isArray(urls) && urls.length > 0 && urls.every((u) => typeof u === "string"))
+            const clean = sanitizeLpUrls(await res.json());
+            if (clean.length > 0)
             {
-                return urls as string[];
+                return clean;
             }
         }
     }
