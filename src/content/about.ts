@@ -56,7 +56,7 @@ cbBTC는 Coinbase가 발행한 비트코인 1:1 페그 토큰으로, Solana 메�
 
 ## ✨ 사용자 경험
 
-- 한국어 / English 다국어 지원, 즉시 전환
+- 한국어 / English / Tiếng Việt 다국어 지원, 즉시 전환
 - 라이트 / 다크 모드 자동 추적 또는 수동 선택
 - 부드러운 splash + fade 전환으로 빠른 첫인상
 - 최소한의 권한만 요청 (인터넷, 알림)
@@ -178,7 +178,7 @@ As an experiment, small amounts are recommended.
 
 ## ✨ User experience
 
-- Korean / English, instant switch
+- Korean / English / Vietnamese, instant switch
 - Light / Dark mode with system tracking or manual choice
 - Smooth splash + fade transition for fast launches
 - Minimal permissions — only internet and (optional) notifications
@@ -246,3 +246,130 @@ A known App Lock unlock bug in v0.1.0. **Fixed in v0.1.1+**. If you're currently
 Solana cbBTC is a self-custody wallet tool — you sign every transaction yourself. Standard Solana network fees apply, and Jupiter swaps incur route-dependent price impact. Confirm the expected receive amount and slippage in the confirmation modal before signing.
 
 This app executes real mainnet transactions. You bear sole responsibility for your funds. The developers are not liable for losses arising from incorrect inputs, market volatility, network outages, or any other cause.`;
+
+export const ABOUT_VI = `# Solana cbBTC
+
+Ứng dụng BTCfi di động dành cho người dùng Solana Seeker.
+
+cbBTC là token neo giá Bitcoin theo tỷ lệ 1:1 do Coinbase phát hành — hiện là wrapped Bitcoin lớn nhất trên Solana mainnet với vốn hóa hơn $340M. Ứng dụng này mang đến cho bạn con đường trực tiếp nhất, được bảo vệ ở cấp phần cứng, để nắm giữ và swap cbBTC ngay trên Seeker của bạn.
+
+## 🔑 Tính năng cốt lõi
+
+- **Mobile Wallet Adapter** — tích hợp trực tiếp với Seed Vault của Seeker để bảo mật khóa ở cấp phần cứng
+- **Số dư trực tiếp** — cbBTC, SOL và SKR trên một màn hình, kéo xuống để làm mới
+- **Tích hợp Jupiter Swap** — tuyến đường tối ưu từ aggregator lớn nhất Solana cho SOL ↔ cbBTC
+- **Kiểm soát slippage** — chọn 0.1% / 0.5% / 1% cho mỗi giao dịch
+- **Versioned transaction** — tương thích hoàn toàn với định dạng tx mới nhất của Jupiter v6
+- **Thông báo hoàn tất Swap** — nhận kết quả ngay cả khi ứng dụng chạy nền, kèm liên kết Solscan để xác minh
+
+## 💰 Cho vay cbBTC (Earn) — Phase 2
+
+- **Cung cấp / Rút** — cung cấp cbBTC vào các smart contract đã được audit của Kamino và lấy lại bất cứ lúc nào (toàn bộ hoặc một phần)
+- **Vay có tài sản thế chấp** — vay USDC bằng cbBTC làm tài sản thế chấp, trả nợ để giải phóng tài sản thế chấp của bạn (đồng ý rủi ro khi vay lần đầu)
+- **Hiển thị rủi ro** — Health và giá thanh lý luôn được hiển thị, phân màu an toàn / thận trọng / nguy hiểm
+- **Tự quản lý (self-custody)** — ứng dụng không bao giờ giữ tiền hay khóa của bạn; mọi giao dịch đều được ký bằng Seed Vault của bạn
+- **Trực quan hóa tiến trình** — các bước chuẩn bị → mô phỏng → ký → gửi → hoàn tất + xác minh trên Solana Explorer
+- **Màn hình hướng dẫn** — cách hoạt động, tính minh bạch và rủi ro được giải thích bằng infographic
+
+## ⚡ Bitcoin Lightning (thử nghiệm) — tab riêng
+
+Một tính năng thử nghiệm trong **tab Bitcoin Lightning** (khuyến nghị dùng số lượng nhỏ):
+
+- **Thanh toán invoice LN** — thanh toán invoice Lightning Network (kênh thanh toán của Bitcoin) trực tiếp bằng USDC · SOL
+- **Atomic swap (HTLC)** — thông qua các hợp đồng escrow đã được audit của Atomiq. Mọi chữ ký đều nằm ở phía Solana (Seed Vault)
+- **An toàn khi thất bại** — nếu thanh toán LN không hoàn tất, tiền của bạn sẽ được hoàn tiền. LP không thể nhận tiền nếu không có bằng chứng thanh toán
+- **Phí ứng dụng bằng 0** — chỉ có phí LP (~0.5%), được hiển thị trong báo giá
+- Hỗ trợ Lightning address (user@domain) — chỉ cần nhập số lượng theo sats
+
+Vì là tính năng thử nghiệm, khuyến nghị sử dụng số lượng nhỏ.
+
+## 🛡️ Bảo mật là ưu tiên hàng đầu
+
+- Khóa riêng tư **không bao giờ rời khỏi phần cứng Seed Vault của Seeker**
+- Mọi giao dịch đều do chính bạn phê duyệt trực tiếp
+- **Không có máy chủ backend** — chỉ gọi trực tiếp đến Solana RPC và Jupiter API
+- Không có công cụ phân tích, không có tracker
+- Tùy chọn **khóa ứng dụng** (sinh trắc học / PIN) để bảo vệ thêm
+
+## 🎯 Tối ưu cho Seeker
+
+- **Huy hiệu "Seeker Verified"** cho người nắm giữ Genesis Token, được xác thực bằng mật mã on-chain
+- Chỉ báo "🔒 Hardware secured" khi kết nối qua Seed Vault
+- Người dùng đã được xác minh tự động nhận mức slippage mặc định chặt hơn (0.3%)
+- Được xây dựng riêng cho hệ sinh thái Solana Mobile
+
+## ✨ Trải nghiệm người dùng
+
+- Tiếng Hàn / Tiếng Anh / Tiếng Việt, chuyển đổi tức thì
+- Chế độ Sáng / Tối theo hệ thống hoặc lựa chọn thủ công
+- Chuyển cảnh splash + fade mượt mà để khởi động nhanh
+- Quyền tối thiểu — chỉ internet và (tùy chọn) thông báo
+
+## 📱 Token được hỗ trợ
+
+- **cbBTC** (Coinbase Wrapped BTC)
+- **SOL** (token gốc của Solana)
+- **USDC** (tài sản vay trong cho vay)
+- **SKR** (token thưởng của Solana Mobile)
+
+Mở rộng trong tương lai: thêm các token neo giá BTC khác.
+
+## 🔮 Lộ trình
+
+- ✅ **Phase 1**: swap cbBTC ↔ SOL (Jupiter) — **hoàn thành**
+- ✅ **Phase 2**: cho vay dựa trên cbBTC (Kamino) — cung cấp · rút · vay · trả nợ **hoàn thành**
+- **Phase 2.5**: So sánh đa giao thức (thêm marginfi / Solend bên cạnh Kamino để so sánh lãi suất)
+- ⚡ **Phase 3**: Thanh toán Bitcoin Lightning — **đã ra mắt dưới dạng tab riêng** (thử nghiệm). Thanh toán và nhận invoice LN bằng USDC · SOL · cbBTC qua atomic swap của Atomiq (HTLC), chỉ ký ở phía Solana
+- **Phase 4**: So sánh và định tuyến wrapped BTC đa tài sản (cbBTC · tBTC · BTC.b ...)
+
+## 📊 Stack công nghệ
+
+React Native · Expo SDK 54 · TypeScript strict · Solana Mobile Wallet Adapter · Jupiter Swap v6 · Kamino Lend · TanStack Query
+
+## 🌐 Mã nguồn mở
+
+Được phát hành theo **giấy phép MIT**. Toàn bộ logic bảo mật và giao dịch đều mở để bạn kiểm tra.
+
+---
+
+## 🔧 Khắc phục sự cố
+
+### Ứng dụng bị kẹt ở "Authenticating…"
+
+Đây là lỗi mở khóa App Lock đã biết ở v0.1.0. **Đã sửa từ v0.1.1 trở lên**. Nếu bạn đang bị kẹt:
+
+1. Cài đặt Android → Ứng dụng → **Solana cbBTC** → Bộ nhớ → **Xóa dữ liệu**
+2. Mở lại ứng dụng và kết nối lại ví của bạn
+3. (Tùy chọn) Bật lại Khóa ứng dụng trong Cài đặt — phiên bản mới đã tránh được tình trạng race này
+
+### Ví của tôi không kết nối được
+
+- Đảm bảo đã cài đặt một ví tương thích MWA (Phantom, Solflare, Backpack, Seeker Seed Vault)
+- Kiểm tra kết nối internet — không có banner ngoại tuyến ở phía trên
+- Mở ví một lần để mở khóa, rồi thử lại
+
+### Số dư hoặc báo giá không tải được
+
+- Nếu banner "Không có kết nối internet" đang hiển thị, hãy kiểm tra mạng của bạn
+- Kéo xuống để làm mới ở màn hình Tài sản
+- Có thể là giới hạn tốc độ của Jupiter API (429) — thử lại sau một lát, ứng dụng sẽ tự động giãn thời gian
+
+### Swap của tôi thất bại
+
+- **"Không đủ SOL để trả phí"** → giữ ít nhất 0.002 SOL cho gas
+- **"Vượt quá slippage"** → tăng slippage từ 0.5% lên 1% rồi thử lại
+- **"Blockhash đã hết hạn"** → thử lại ngay (báo giá mới sẽ được lấy tự động)
+- **"Người dùng đã hủy"** → phê duyệt thêm một lần nữa trong ví
+
+### Vấn đề khác
+
+- Cài đặt → Thông tin → **Phản hồi** để gửi email cho chúng tôi, hoặc
+- Tạo một issue trên GitHub: https://github.com/dhryoo/solana-cbbtc/issues
+
+---
+
+## ⚠️ Miễn trừ trách nhiệm
+
+Solana cbBTC là một công cụ ví tự quản lý (self-custody) — bạn tự ký mọi giao dịch. Phí mạng Solana tiêu chuẩn được áp dụng, và các swap qua Jupiter chịu tác động giá tùy theo tuyến đường. Hãy xác nhận số lượng dự kiến nhận được và slippage trong modal xác nhận trước khi ký.
+
+Ứng dụng này thực hiện các giao dịch thật trên mainnet. Bạn hoàn toàn chịu trách nhiệm về tiền của mình. Nhà phát triển không chịu trách nhiệm cho các khoản lỗ phát sinh từ nhập liệu sai, biến động thị trường, sự cố mạng, hoặc bất kỳ nguyên nhân nào khác.`;

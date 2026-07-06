@@ -5,7 +5,7 @@ import { Modal, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, Vi
 /* eslint-disable react-native/no-unused-styles */
 import Markdown from "react-native-markdown-display";
 
-import { ABOUT_EN, ABOUT_KO } from "@/content/about";
+import { ABOUT_EN, ABOUT_KO, ABOUT_VI } from "@/content/about";
 import { BRAND_PURPLE, type ThemePalette } from "@/constants/theme";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
 import { useLanguage } from "@/providers/I18nProvider";
@@ -24,7 +24,8 @@ export function AboutScreen({ visible, onClose }: AboutScreenProps): React.JSX.E
     const { palette } = useTheme();
     const styles = useThemedStyles(makeStyles);
 
-    const content = language === "en" ? ABOUT_EN : ABOUT_KO;
+    // 명시적 매핑 — 미지원/기본은 영어(DEFAULT_LANGUAGE)로. 이전엔 en 이 아니면 전부 한국어라 vi 가 한국어로 떴다.
+    const content = language === "ko" ? ABOUT_KO : language === "vi" ? ABOUT_VI : ABOUT_EN;
     const markdownStyles = useMemo(() => buildMarkdownStyles(palette), [palette]);
 
     return (

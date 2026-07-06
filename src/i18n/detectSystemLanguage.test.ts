@@ -28,6 +28,14 @@ describe("detectSystemLanguage", () =>
         expect(detectSystemLanguage()).toBe("en");
     });
 
+    it("returns 'vi' when system primary locale is Vietnamese", () =>
+    {
+        mockedLocalization.getLocales.mockReturnValue([
+            { languageCode: "vi", languageTag: "vi-VN", regionCode: "VN" } as never,
+        ]);
+        expect(detectSystemLanguage()).toBe("vi");
+    });
+
     it("falls back to 'en' for unsupported locales (e.g., Japanese)", () =>
     {
         mockedLocalization.getLocales.mockReturnValue([

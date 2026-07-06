@@ -1,0 +1,589 @@
+{
+    "common": {
+        "ok": "OK",
+        "cancel": "Hủy",
+        "close": "Đóng",
+        "retry": "Thử lại",
+        "copyAddress": "Sao chép địa chỉ",
+        "copyAddressHint": "Nhấn giữ để sao chép vào clipboard",
+        "copied": "Đã sao chép!",
+        "cancel_pending": "Hủy",
+        "signCancelled": "Đã hủy. Nếu bạn chưa hoàn tất việc ký, giao dịch chưa được gửi đi.",
+        "max": "MAX"
+    },
+    "offline": {
+        "banner": "Không có kết nối internet",
+        "bannerHint": "Ví, số dư và Swap đều cần có kết nối",
+        "swapBlocked": "Ngoại tuyến",
+        "balance": "Bạn đang ngoại tuyến",
+        "quote": "Không thể lấy báo giá khi ngoại tuyến"
+    },
+    "tabs": {
+        "home": "Tài sản",
+        "swap": "Swap",
+        "earn": "Earn",
+        "lightning": "Lightning",
+        "settings": "Cài đặt"
+    },
+    "network": {
+        "mainnet-beta": "Mainnet",
+        "devnet": "Devnet",
+        "testnet": "Testnet"
+    },
+    "relative": {
+        "never": "—",
+        "justNow": "Vừa xong",
+        "secondsAgo": "{{count}}s trước",
+        "minutesAgo": "{{count}}m trước",
+        "hoursAgo": "{{count}}h trước",
+        "daysAgo": "{{count}}d trước",
+        "updated": "Cập nhật {{when}}",
+        "quoteFresh": "Báo giá mới",
+        "quoteStale": "Báo giá có thể đã cũ"
+    },
+    "earn": {
+        "title": "Earn",
+        "subtitle": "Cho vay cbBTC qua Kamino",
+        "loadError": "Không tải được dữ liệu",
+        "oracleStaleHint": "Oracle giá (Kamino) tạm thời chậm cập nhật. Vui lòng thử lại sau giây lát. Để đảm bảo an toàn, việc vay chỉ chạy khi giá còn mới.",
+        "insufficientHint": "Không đủ SOL. Giao dịch đầu tiên của bạn cần thêm một chút SOL — cho phí mạng và một khoản đặt cọc tài khoản một lần, có thể hoàn lại (khoản “rent” của Solana, không phải phí — sẽ được trả lại nếu tài khoản bị đóng). Hãy thêm một chút SOL rồi thử lại.",
+        "authFailedHint": "Ủy quyền ví thất bại. Hãy ngắt kết nối rồi kết nối lại ví, sau đó thử lại. (Phiên của bạn có thể đã hết hạn.)",
+        "walletTimeoutHint": "Ví không phản hồi kịp. Màn hình phê duyệt có thể đã mở quá lâu, hoặc ứng dụng ví bị tạm dừng ở chế độ nền. Vui lòng thử lại.",
+        "noBorrowsHint": "Không có khoản nợ nào để trả. Có thể khoản nợ đã được trả hết, hoặc màn hình đang hiển thị thông tin cũ. Kéo xuống để làm mới.",
+        "confirmTimeoutHint": "Việc xác nhận đang mất nhiều thời gian hơn dự kiến. Giao dịch vẫn có thể hoàn tất — hãy kéo xuống để làm mới và kiểm tra trước khi thử lại.",
+        "txFailedHint": "Giao dịch đã thất bại on-chain và không được áp dụng. Không có khoản tiền nào bị di chuyển. Vui lòng thử lại.",
+        "market": {
+            "heading": "Thị trường",
+            "supplyApy": "APY cung cấp cbBTC",
+            "borrowApr": "APR vay USDC",
+            "utilization": "Tỷ lệ sử dụng",
+            "utilizationHint": "Tỷ lệ cbBTC đã cung cấp hiện đang được người khác vay — càng cao nghĩa là pool càng được sử dụng nhiều.",
+            "price": "Giá cbBTC"
+        },
+        "position": {
+            "heading": "Vị thế của tôi",
+            "connectWallet": "Kết nối ví để xem vị thế của bạn",
+            "none": "Chưa có vị thế cho vay nào",
+            "supplied": "Đã cung cấp",
+            "borrowed": "Đã vay",
+            "net": "Giá trị ròng",
+            "health": "Health",
+            "healthHint": "Càng gần 1.0 = rủi ro thanh lý càng cao (càng cao càng an toàn).",
+            "liqPrice": "Giá thanh lý (cbBTC)"
+        },
+        "supply": {
+            "heading": "Cung cấp cbBTC",
+            "helper": "“Cung cấp” nghĩa là gửi tài sản vào — bạn có thể tự rút bất cứ lúc nào.",
+            "placeholder": "Số lượng cbBTC cần cung cấp",
+            "button": "Cung cấp",
+            "available": "Số dư {{amount}} cbBTC",
+            "minimum": "tối thiểu {{amount}}",
+            "exceeds": "Vượt quá số dư của bạn",
+            "belowMin": "Nhập ít nhất {{amount}} cbBTC",
+            "success": "Đã gửi giao dịch cung cấp",
+            "completed": "Cung cấp hoàn tất",
+            "newSupplied": "Lượng cung cấp của bạn",
+            "viewExplorer": "Xem trên Solana Explorer",
+            "confirm": "Xong",
+            "errorPrefix": "Cung cấp thất bại",
+            "copyHint": "nhấn giữ để sao chép"
+        },
+        "actions": {
+            "supply": "Cung cấp",
+            "withdraw": "Rút",
+            "borrow": "Vay",
+            "repay": "Trả nợ"
+        },
+        "repay": {
+            "heading": "Trả nợ USDC",
+            "placeholder": "Số lượng USDC cần trả",
+            "button": "Trả nợ",
+            "debt": "Đã vay {{amount}} USDC",
+            "walletBalance": "Ví {{amount}} USDC",
+            "noDebt": "Bạn không có khoản vay nào để trả",
+            "completed": "Trả nợ hoàn tất",
+            "errorPrefix": "Trả nợ thất bại",
+            "dustHint": "Để trả hết cả lãi, bạn cần nhiều USDC hơn một chút so với khoản đã vay. Hãy dùng Swap để có thêm chút USDC, rồi trả nợ bằng MAX.",
+            "insufficientUsdc": "USDC trong ví của bạn ít hơn mức cần cho khoản trả nợ này. Khoản nợ tính lãi nên có thể vượt số bạn đã vay — hãy swap thêm một chút USDC, hoặc trả một số tiền nhỏ hơn. (SOL của bạn vẫn đủ.)"
+        },
+        "borrow": {
+            "heading": "Vay USDC",
+            "placeholder": "Số lượng USDC cần vay",
+            "button": "Vay",
+            "maxBorrowable": "Vay tối đa {{amount}} USDC",
+            "safeMax": "Nhập mức 80%",
+            "exceedsMax": "Vượt quá giới hạn vay của bạn",
+            "hint": "Vay USDC bằng tài sản thế chấp cbBTC của bạn. Có rủi ro thanh lý — hãy vay một cách thận trọng.",
+            "noCollateral": "Hãy cung cấp cbBTC làm tài sản thế chấp trước để có thể vay",
+            "completed": "Vay hoàn tất",
+            "checkHealth": "Hãy nhớ kiểm tra Health và giá thanh lý trong mục Vị thế của tôi",
+            "errorPrefix": "Vay thất bại"
+        },
+        "withdraw": {
+            "heading": "Rút cbBTC",
+            "placeholder": "Số lượng cbBTC cần rút",
+            "button": "Rút",
+            "supplied": "Đã cung cấp {{amount}} cbBTC",
+            "completed": "Rút hoàn tất",
+            "errorPrefix": "Rút thất bại",
+            "noPosition": "Bạn chưa cung cấp cbBTC nào"
+        },
+        "disclaimer": "Các giá trị phản ánh lần làm mới on-chain gần nhất và có thể khác thời gian thực. Cho vay có rủi ro thanh lý."
+    },
+    "txProgress": {
+        "preparing": "Đang chuẩn bị giao dịch",
+        "simulating": "Kiểm tra trước (mô phỏng)",
+        "signing": "Đang chờ ký từ ví",
+        "sending": "Đang gửi lên mạng",
+        "confirming": "Đang xác nhận on-chain",
+        "done": "Xong",
+        "processing": "Đang xử lý…"
+    },
+    "borrowConsent": {
+        "title": "Thông báo rủi ro khi vay",
+        "intro": "Trước khi bắt đầu vay, vui lòng xem kỹ các nội dung sau.",
+        "b1": "Nếu giá tài sản thế chấp (cbBTC) giảm, vị thế của bạn có thể bị thanh lý, gây thua lỗ.",
+        "b2": "Sau khi vay, hãy thường xuyên kiểm tra Health và giá thanh lý hiển thị trên màn hình.",
+        "b3": "Vay càng thận trọng (càng ít) thì rủi ro thanh lý càng thấp.",
+        "b4": "Ứng dụng này không gửi thông báo. Việc quản lý vị thế hoàn toàn là trách nhiệm của bạn.",
+        "confirm": "Tôi đã hiểu, tiếp tục",
+        "confirmCountdown": "Vui lòng chờ… ({{n}}s)"
+    },
+    "swapGuide": {
+        "title": "Giới thiệu về Swap",
+        "intro": {
+            "title": "Đây là gì?",
+            "body": "Swap cbBTC ↔ SOL tức thì theo tuyến tốt nhất trên thị trường thông qua bộ tổng hợp Jupiter."
+        },
+        "how": {
+            "title": "Hoạt động như thế nào?",
+            "body": "Nhập token đầu vào và Jupiter so sánh các tuyến trên nhiều DEX để tìm tuyến có lợi nhất.",
+            "b1": "Bộ tổng hợp lớn nhất Solana tự động tìm tuyến tốt nhất",
+            "b2": "Xem trước số lượng bạn sẽ nhận và mức ảnh hưởng giá (price impact) ngay trong báo giá",
+            "b3": "Chỉ chạy sau khi bạn Ký bằng Seed Vault của mình"
+        },
+        "slippage": {
+            "title": "Slippage là gì?",
+            "body": "Là mức dung sai cho phép giá khớp lệnh chênh lệch so với báo giá. Chọn 0.1% / 0.5% / 1%.",
+            "b1": "Đặt cao hơn khi thị trường biến động, thấp hơn khi ổn định",
+            "b2": "Đặt quá thấp thì giao dịch có thể thất bại nếu giá thay đổi"
+        },
+        "safe": {
+            "title": "Bạn luôn nắm quyền kiểm soát",
+            "b1": "Ứng dụng này không bao giờ giữ tiền hay khóa của bạn.",
+            "b2": "Mọi giao dịch đều được ghi công khai trên Solana — kiểm chứng trên Explorer.",
+            "b3": "Không có máy chủ backend hay trình theo dõi.",
+            "b4": "Luôn giữ lại một ít SOL cho phí (gas)."
+        },
+        "infographic": "Cách Swap hoạt động: ví của bạn → Jupiter so sánh các tuyến → tuyến tốt nhất đến token bạn nhận",
+        "links": {
+            "github": "Xem mã nguồn trên GitHub",
+            "jupiter": "Khám phá Jupiter"
+        }
+    },
+    "lendingGuide": {
+        "title": "Giới thiệu về cho vay cbBTC",
+        "intro": {
+            "title": "Đây là gì?",
+            "body": "Khi bạn Cung cấp cbBTC cho Kamino, nó được đưa vào hoạt động trong hệ sinh thái BTCfi của Solana. Giống như gửi tiền ngân hàng, bạn để đó và có thể tự Rút bất cứ lúc nào."
+        },
+        "safe": {
+            "title": "Bạn luôn nắm quyền kiểm soát — tự quản lý (self-custody)",
+            "b1": "Ứng dụng này không bao giờ giữ cbBTC hay khóa riêng tư của bạn.",
+            "b2": "Tiền được quản lý trực tiếp bởi các hợp đồng thông minh đã được kiểm toán của Kamino.",
+            "b3": "Mọi giao dịch chỉ chạy sau khi bạn Ký bằng Seed Vault của mình."
+        },
+        "example": {
+            "title": "Một ví dụ đơn giản",
+            "body": "Ví dụ: Cung cấp 0.001 cbBTC và nó sẽ hiển thị trong 'Vị thế của tôi'. cbBTC đó vẫn là của bạn."
+        },
+        "withdrawSection": {
+            "title": "Rút (lấy lại bất cứ lúc nào)",
+            "body": "cbBTC bạn đã Cung cấp là của bạn. Nhấn 'Rút' để lấy lại toàn bộ hoặc một phần về Ví bất cứ lúc nào.",
+            "b1": "Rút toàn bộ bằng MAX, hoặc chỉ một phần tùy bạn chọn.",
+            "b2": "Nếu bạn đang Vay, số lượng có thể Rút có thể bị giới hạn để giữ đủ tài sản thế chấp.",
+            "b3": "Khi Rút, cbBTC được gửi thẳng về Ví của bạn."
+        },
+        "transparency": {
+            "title": "Hoạt động minh bạch",
+            "b1": "Mọi giao dịch đều được ghi công khai trên blockchain Solana — tự bạn kiểm chứng trên Explorer.",
+            "b2": "Không có máy chủ backend. Ứng dụng không thu thập dữ liệu của bạn.",
+            "b3": "Mã nguồn được công khai trên GitHub.",
+            "b4": "Mỗi giao dịch đều được Mô phỏng và kiểm tra trước khi bạn Ký."
+        },
+        "borrow": {
+            "title": "Vay dựa trên tài sản thế chấp",
+            "body": "Bạn có thể Vay các tài sản như USDC bằng cách dùng cbBTC đã Cung cấp làm tài sản thế chấp. Bạn trả lãi cho khoản đã Vay, và khi Trả nợ xong thì tài sản thế chấp được giải phóng trở lại.",
+            "b1": "Hạn mức Vay của bạn chỉ bằng một phần giá trị tài sản thế chấp — hãy Vay thận trọng (ít thôi).",
+            "b2": "Health càng gần 1.0 thì càng rủi ro. Nó được hiển thị bằng màu sắc trên màn hình.",
+            "b3": "Nếu giá tài sản thế chấp (cbBTC) rơi xuống dưới 'Giá thanh lý', vị thế của bạn có thể bị Thanh lý.",
+            "b4": "Trả nợ khoản đã Vay để có thể Rút lại tài sản thế chấp cbBTC."
+        },
+        "risk": {
+            "title": "Lưu ý về rủi ro",
+            "body": "Nếu chỉ Cung cấp thì không có rủi ro Thanh lý. Nếu về sau bạn dùng chức năng Vay (vay có thế chấp), biến động thị trường có thể kích hoạt Thanh lý — khi đó, hãy luôn kiểm tra Health và Giá thanh lý hiển thị trên màn hình."
+        },
+        "infographic1": "Luồng tự quản lý (self-custody): ví của bạn → chữ ký của bạn (Seed Vault) → hợp đồng Kamino",
+        "infographic2": "Minh bạch: ghi chép công khai on-chain · không backend · mã nguồn mở",
+        "infographic3": "Vay có thế chấp & thanh lý: thế chấp cbBTC → Vay USDC → thước đo Health (an toàn·thận trọng·nguy hiểm). Bị Thanh lý nếu giá rơi xuống dưới Giá thanh lý",
+        "infographic4": "Rút: phần bạn Cung cấp trong Kamino → cbBTC trở về Ví của bạn (toàn bộ hoặc một phần, bất cứ lúc nào)",
+        "links": {
+            "github": "Xem mã nguồn trên GitHub",
+            "kamino": "Khám phá Kamino Finance"
+        }
+    },
+    "lightning": {
+        "title": "Bitcoin Lightning",
+        "subtitle": "Thanh toán invoice Bitcoin Lightning bằng tài sản Solana của bạn",
+        "whatIsLink": "Bitcoin Lightning là gì?",
+        "connectPrompt": "Kết nối ví để dùng Lightning.",
+        "modeSend": "Gửi",
+        "modeReceive": "Nhận",
+        "experimentNotice": "Tính năng thử nghiệm — chỉ dùng với số tiền nhỏ. Thanh toán chạy qua smart contract đã được kiểm toán của Atomiq (HTLC); bạn chỉ ký ở phía Solana. Nếu thanh toán thất bại, tiền của bạn sẽ được hoàn lại. Ứng dụng này không thu phí (chỉ áp dụng phí LP).",
+        "refundableNotice": "Bạn có {{count}} thanh toán trước đó đang chờ hoàn tiền. Dùng nút bên dưới để thu hồi tiền của bạn (cần chữ ký ví).",
+        "refundButton": "Hoàn tiền ngay",
+        "refundCheckFailed": "Không thể kiểm tra các thanh toán có thể hoàn tiền. Chạm để thử lại.",
+        "refundDone": "Đã hoàn tiền {{count}} thanh toán",
+        "refundError": "Hoàn tiền thất bại. Vui lòng thử lại sau giây lát.",
+        "destLabel": "Điểm đến (invoice / lightning address)",
+        "destPlaceholder": "lnbc… invoice hoặc user@domain.com",
+        "amountLabel": "Số tiền cần gửi (sats)",
+        "amountPlaceholder": "ví dụ: 10000",
+        "embeddedAmount": "Số tiền ghi trong invoice: {{sats}} sats",
+        "srcTokenLabel": "Thanh toán bằng",
+        "quoteButton": "Lấy báo giá",
+        "quoteExpired": "Báo giá này đã hết hạn — tỷ giá Lightning cập nhật thường xuyên. Chạm “Lấy báo giá” lần nữa để có báo giá mới.",
+        "initHint": "Báo giá đầu tiên có thể mất vài giây khi đang kết nối với LP",
+        "quoteHeading": "Báo giá",
+        "quoteSend": "Bạn gửi",
+        "quoteFee": "Phí (LP)",
+        "quoteReceive": "LN nhận",
+        "quoteDest": "Điểm đến",
+        "cbbtcQuoteHeading": "Báo giá (cbBTC)",
+        "cbbtcChainHint": "cbBTC được swap sang USDC trước, rồi mới thanh toán. Bạn sẽ ký hai lần.",
+        "cbbtcSwapFrom": "Swap cbBTC",
+        "cbbtcSwapTo": "Nhận USDC",
+        "cbbtcPayButton": "Swap và thanh toán",
+        "cbbtcSwapping": "Đang swap cbBTC sang USDC…",
+        "cbbtcConfirming": "Đang chờ xác nhận swap…",
+        "cbbtcPaySigning": "Đang chờ ký thanh toán…",
+        "cbbtcPaying": "Đang thanh toán…",
+        "cbbtcRetryWithUsdc": "cbBTC của bạn đã được swap sang USDC. Vui lòng thử lại thanh toán bằng USDC ngay bây giờ.",
+        "cbbtcSwapFailed": "Swap cbBTC→USDC thất bại on-chain, nên cbBTC của bạn vẫn nguyên vẹn. Vui lòng lấy báo giá mới và thử lại.",
+        "cbbtcConfirmSlow": "Swap cbBTC→USDC đang mất nhiều thời gian xác nhận hơn dự kiến. Hãy kiểm tra Lịch sử trước khi thử lại — đừng gửi lại vội.",
+        "payUnknownCheckRefund": "Thanh toán chưa hoàn tất. Nếu tiền đã bị khóa trong escrow, chúng sẽ xuất hiện ở mục hoàn tiền bên dưới — hãy làm mới và kiểm tra ở đó trước khi thử lại.",
+        "payButton": "Thanh toán",
+        "payFailed": "Thanh toán thất bại",
+        "refundingNotice": "Thanh toán LN chưa hoàn tất, nên tiền của bạn đang được hoàn lại. Vui lòng phê duyệt chữ ký hoàn tiền trong ví.",
+        "cancelPending": "Hủy",
+        "cancelledPendingNotice": "Đã hủy. Nếu bạn chưa hoàn tất việc ký, không có khoản tiền nào bị chuyển. Nếu thanh toán đã diễn ra, bạn sẽ thấy thông báo hoàn tiền vào lần tới khi mở màn hình này.",
+        "paidTitle": "Thanh toán hoàn tất",
+        "paidBody": "Invoice Lightning đã được thanh toán. Có thể mất một chút thời gian (thường trong vòng một phút) để hiển thị trong ví của người nhận.",
+        "proofTitle": "Bằng chứng thanh toán (preimage)",
+        "proofHint": "Bằng chứng mật mã cho thấy thanh toán đã hoàn tất: hash SHA-256 của preimage này khớp với payment_hash của invoice. LP chỉ có thể có được nó bằng cách thực sự thanh toán invoice — và đó là cách nó nhận escrow của bạn.",
+        "proofCopyA11y": "Sao chép bằng chứng thanh toán",
+        "proofCopyButton": "Sao chép",
+        "refundedTitle": "Đã hoàn tiền",
+        "refundedBody": "Thanh toán LN chưa hoàn tất và tiền của bạn đã được hoàn về ví. Vui lòng thử lại sau giây lát.",
+        "refundFailedTitle": "Hoàn tiền đang chờ",
+        "refundFailedBody": "Việc ký hoàn tiền chưa được hoàn tất. Tiền của bạn vẫn được khóa an toàn — mở lại màn hình này để xem thông báo hoàn tiền.",
+        "errInvalidInput": "Không phải invoice hoặc lightning address hợp lệ.",
+        "errExpiredInvoice": "Invoice này đã hết hạn. Vui lòng yêu cầu một invoice mới.",
+        "errAmountRequired": "Vui lòng nhập số tiền cần gửi (sats).",
+        "errAmountNotAllowed": "Invoice này đã ghi sẵn số tiền — bạn không thể nhập riêng.",
+        "errAmountTooLow": "Số tiền quá nhỏ. Vui lòng thử ít nhất {{min}} sats.",
+        "errAmountTooHigh": "Số tiền quá lớn. Vui lòng thử tối đa {{max}} sats.",
+        "errAmountTooLargeExperimental": "Tính năng thử nghiệm: tối đa {{max}} sats mỗi lần thanh toán. Vui lòng nhập số tiền nhỏ hơn.",
+        "maxSatsHint": "Thử nghiệm — tối đa {{max}} sats mỗi lần thanh toán"
+    },
+    "lightningGuide": {
+        "title": "Về thanh toán Lightning",
+        "intro": {
+            "title": "Đây là gì?",
+            "body": "Một tính năng thử nghiệm cho mạng thanh toán của Bitcoin — Lightning Network: thanh toán invoice bằng tài sản Solana của bạn (USDC · SOL · cbBTC) và nhận về USDC · SOL. Rất hợp cho các khoản nhỏ, cỡ một ly cà phê."
+        },
+        "how": {
+            "title": "Cách hoạt động?",
+            "body": "Nó chạy trên atomic swap của Atomiq (HTLC). Mọi chữ ký đều chỉ diễn ra ở phía Solana.",
+            "b1": "Lấy báo giá không làm dịch chuyển tiền — hãy kiểm tra Phí trước.",
+            "b2": "Khi bạn thanh toán, tiền được khóa trong một hợp đồng escrow đã được kiểm toán trên Solana (một chữ ký Seed Vault).",
+            "b3": "Một LP (nhà cung cấp thanh khoản) sẽ thanh toán invoice Lightning thay bạn.",
+            "b4": "LP chỉ có thể nhận số tiền đã khóa khi xuất trình bằng chứng mật mã rằng invoice đã được thanh toán."
+        },
+        "receive": {
+            "title": "Nhận (LN → USDC·SOL)",
+            "body": "Bạn cũng có thể nhận qua Lightning. Chọn token (USDC·SOL) và số tiền, ứng dụng sẽ tạo một invoice; khi người gửi thanh toán invoice đó, tiền sẽ được quyết toán về Solana.",
+            "b1": "Chia sẻ invoice đã tạo qua QR, sao chép, hoặc chia sẻ.",
+            "b2": "Sau khi người gửi thanh toán, bạn ký một lần để quyết toán.",
+            "b3": "Việc quyết toán cần một chút SOL cho Phí và một khoản đặt cọc tài khoản nhỏ có thể hoàn lại (khoản “rent” của Solana) — hãy để dành một ít SOL."
+        },
+        "cbbtc": {
+            "title": "Thanh toán bằng cbBTC",
+            "body": "Bạn cũng có thể thanh toán qua LN bằng cbBTC. Nó sẽ được tự động swap sang USDC trước rồi mới thanh toán, nên bạn sẽ ký hai lần.",
+            "b1": "Cả swap (Jupiter) và thanh toán (Atomiq) đều chỉ được ký ở phía Solana.",
+            "b2": "Nếu swap thành công nhưng thanh toán thất bại, bạn sẽ đang giữ USDC và có thể thử lại ngay bằng USDC."
+        },
+        "qr": {
+            "title": "Quét QR",
+            "body": "Thay vì dán invoice, chạm 'Quét' để đọc mã QR và tự động điền vào."
+        },
+        "refund": {
+            "title": "Nếu thất bại thì sao?",
+            "body": "Nếu thanh toán LN không hoàn tất, tiền của bạn sẽ quay về — đó chính là điểm mấu chốt của atomic swap.",
+            "b1": "Khi thất bại, ứng dụng sẽ ngay lập tức hướng dẫn bạn ký để Hoàn tiền.",
+            "b2": "Ngay cả khi ứng dụng bị đóng giữa chừng, một thông báo hoàn tiền sẽ xuất hiện vào lần tiếp theo bạn mở màn hình này."
+        },
+        "fees": {
+            "title": "Phí",
+            "b1": "Ứng dụng này không thu Phí.",
+            "b2": "Có Phí LP (~0.5%) cộng thêm một khoản chi phí định tuyến LN rất nhỏ — tất cả đều hiển thị trong báo giá.",
+            "b3": "Phí mạng Solana thông thường vẫn áp dụng, giống như mọi Giao dịch khác."
+        },
+        "experimental": {
+            "title": "Thử nghiệm — hãy dùng cẩn thận",
+            "body": "Đây là một tính năng thử nghiệm. Vui lòng sử dụng thận trọng cho đến khi nó ổn định.",
+            "b1": "Chỉ dùng các khoản nhỏ — tối đa 100,000 sats mỗi lần thanh toán.",
+            "b2": "Hỗ trợ invoice có sẵn số tiền và lightning address (bạn tự nhập số tiền).",
+            "b3": "Nếu có gì bất thường, hãy liên hệ với chúng tôi qua Cài đặt → Phản hồi."
+        },
+        "infographic": "Luồng thanh toán Lightning: ví của bạn (chữ ký Solana) → khóa escrow → LP thanh toán invoice LN → quyết toán bằng bằng chứng thanh toán. Hoàn tiền nếu không được thanh toán",
+        "links": {
+            "github": "Xem mã nguồn trên GitHub",
+            "atomiq": "Khám phá Atomiq"
+        }
+    },
+    "labs": {
+        "badge": "BETA"
+    },
+    "qrScan": {
+        "title": "Quét QR",
+        "scanButton": "Quét",
+        "hint": "Hướng camera vào mã QR của invoice hoặc địa chỉ Lightning",
+        "permTitle": "Cần quyền truy cập camera",
+        "permBody": "Chỉ dùng để quét QR — không lưu hay gửi ảnh hoặc video.",
+        "grant": "Cho phép camera",
+        "openSettings": "Mở cài đặt"
+    },
+    "receive": {
+        "dstTokenLabel": "Nhận bằng",
+        "amountLabel": "Số tiền cần nhận (sats)",
+        "amountPlaceholder": "ví dụ: 5000",
+        "createButton": "Tạo invoice nhận tiền",
+        "lowSolWarn": "Chức năng nhận bị vô hiệu hóa vì SOL của bạn quá thấp. Việc nhận chỉ hoàn tất sau khi bạn ký quyết toán khi người gửi thanh toán — và điều đó cần SOL cho Phí và một khoản đặt cọc tài khoản nhỏ có thể hoàn lại (khoản “rent” của Solana). Hãy thêm khoảng 0.01 SOL trở lên, rồi thử lại.",
+        "invoiceTitle": "Nhận {{sats}} sats → {{token}}",
+        "copy": "Sao chép",
+        "share": "Chia sẻ",
+        "awaiting": "Đang chờ thanh toán… (sẽ tiếp tục khi người gửi thanh toán invoice này)",
+        "claiming": "Đang quyết toán về Solana… vui lòng ký trong ví của bạn",
+        "expectHint": "Khi được thanh toán, bạn sẽ nhận khoảng {{amount}} {{token}} (sau khi trừ Phí LP).",
+        "receivedTitle": "Đã nhận",
+        "receivedBody": "Bạn đã nhận {{amount}} {{token}}.",
+        "again": "Nhận lại",
+        "expired": "Invoice đã hết hạn. Vui lòng tạo invoice mới.",
+        "claimCancelled": "Đã hủy ký quyết toán. Nếu khoản thanh toán đã đến, vui lòng thử lại.",
+        "cancelled": "Đã hủy nhận. Nếu người gửi đã thanh toán, khoản tiền sẽ được hoàn tự động sau một khoảng thời gian chờ.",
+        "cancelWaiting": "Hủy nhận"
+    },
+    "swap": {
+        "title": "Swap",
+        "subtitle": "Swap tức thì theo tuyến tối ưu của Jupiter",
+        "outputHint": "↓ Báo giá sẽ hiện bên dưới",
+        "available": "Số dư {{amount}} {{symbol}}",
+        "minimum": "tối thiểu {{amount}}",
+        "exceeds": "Vượt quá số dư của bạn",
+        "amountAccessibility": "Số lượng nhập",
+        "flipAccessibility": "Đảo chiều token",
+        "selectToken": "Chọn token",
+        "swapButton": "Thực hiện swap",
+        "btnConnectFirst": "Kết nối ví để sử dụng",
+        "btnAmountFirst": "Nhập số lượng",
+        "btnQuoteLoading": "Đang lấy báo giá…",
+        "btnInsufficientGas": "Không đủ SOL để trả phí",
+        "expected": "Dự kiến nhận",
+        "priceImpact": "Ảnh hưởng giá",
+        "route": "Tuyến",
+        "hopSingular": "{{count}} hop",
+        "hopPlural": "{{count}} hop",
+        "minReceive": "Nhận tối thiểu",
+        "slippage": "Dung sai slippage",
+        "quoteFailed": "Lấy báo giá thất bại",
+        "amountPlaceholder": "Nhập số lượng",
+        "confirmTitle": "Xác nhận swap",
+        "confirmInput": "Đầu vào",
+        "mainnetWarn": "Ví sẽ yêu cầu phê duyệt thêm một lần nữa. Đây là giao dịch thật trên mainnet và không thể hoàn tác — hãy kiểm tra số lượng ở trên trước khi bạn Ký.",
+        "successTitle": "Swap thành công",
+        "successLine": "Giao dịch đã được phát lên mạng.",
+        "signatureLabel": "Signature",
+        "openSolscan": "Mở trên Solscan",
+        "share": "Chia sẻ",
+        "shareText": "Đã swap {{inputAmount}} {{inputSymbol}} → {{outputAmount}} {{outputSymbol}}",
+        "shareVia": "Chia sẻ từ Solana cbBTC",
+        "failureTitle": "Swap thất bại",
+        "pendingText": "Đang phát giao dịch sau khi ví phê duyệt…",
+        "pendingHint": "Có thể mất vài giây tùy vào mạng."
+    },
+    "errors": {
+        "userCancelled": "Đã hủy phê duyệt giao dịch.",
+        "sessionTerminated": "Phiên ví đã kết thúc. Vui lòng thử lại.",
+        "authExpired": "Ủy quyền ví đã hết hạn. Hãy kết nối lại ví rồi thử lại.",
+        "insufficientBalance": "Số dư không đủ. Vui lòng kiểm tra số dư SOL và token đầu vào.",
+        "lowSolGas": "Bạn có thể đang thiếu SOL để trả gas (hiện có {{amount}} SOL). Các thao tác on-chain cần SOL để trả phí mạng, và giao dịch đầu tiên còn cần SOL cho khoản rent tài khoản. Nếu thất bại, hãy nạp thêm một chút SOL rồi thử lại.",
+        "slippageExceeded": "Giá đã biến động vượt quá mức slippage cho phép. Hãy tăng slippage rồi thử lại.",
+        "blockhashExpired": "Giao dịch bị từ chối do blockhash đã cũ. Vui lòng thử lại.",
+        "computeBudget": "Giao dịch quá phức tạp (vượt compute budget). Vui lòng thử lại sau giây lát.",
+        "rateLimit": "Jupiter API đang bị giới hạn tần suất. Vui lòng thử lại sau giây lát.",
+        "walletTimeout": "Ví không phản hồi kịp. Hãy giữ ứng dụng ví mở rồi thử lại.",
+        "oracleStale": "Giá oracle tạm thời bị cũ. Thử lại sau giây lát thường sẽ khắc phục được.",
+        "noBorrows": "Không có khoản nợ nào để trả. Hãy làm mới và kiểm tra lại.",
+        "network": "Lỗi mạng. Vui lòng kiểm tra kết nối rồi thử lại.",
+        "confirmTimeout": "Việc xác nhận đang mất nhiều thời gian hơn dự kiến. Giao dịch của bạn vẫn có thể hoàn tất — hãy kiểm tra lịch sử trước khi thử lại.",
+        "txFailedOnChain": "Giao dịch đã thất bại on-chain và không được áp dụng. Không có khoản tiền nào bị chuyển đi. Vui lòng thử lại.",
+        "jupiter5xx": "Dịch vụ Jupiter tạm thời không khả dụng. Vui lòng thử lại sau.",
+        "jupiterClient": "Yêu cầu Jupiter bị từ chối (HTTP {{status}}). Vui lòng kiểm tra dữ liệu nhập.",
+        "generic": "Giao dịch thất bại. Vui lòng thử lại sau giây lát.",
+        "missingSignature": "Không nhận được chữ ký giao dịch.",
+        "walletNotConnected": "Ví chưa được kết nối.",
+        "balanceRateLimit": "Đã chạm giới hạn tần suất RPC. Vui lòng thử lại sau giây lát.",
+        "balanceNetwork": "Lỗi mạng. Không thể tải số dư.",
+        "balanceRpc4xx": "Yêu cầu RPC không hợp lệ. Không thể tải số dư.",
+        "balanceRpc5xx": "Máy chủ RPC tạm thời không khả dụng.",
+        "balanceAuth": "Xác thực RPC thất bại. Không thể tải số dư.",
+        "balanceUnknown": "Không thể tải số dư."
+    },
+    "settings": {
+        "title": "Cài đặt",
+        "subtitle": "Ngôn ngữ · Giao diện · Bảo mật · Giới thiệu",
+        "language": "Ngôn ngữ",
+        "ko": "한국어",
+        "en": "English",
+        "vi": "Tiếng Việt",
+        "theme": "Giao diện",
+        "themeSystem": "Theo hệ thống",
+        "themeLight": "Sáng",
+        "themeDark": "Tối",
+        "notifications": "Thông báo",
+        "notificationsToggle": "Thông báo hoàn tất Swap",
+        "notificationsDescription": "Chúng tôi sẽ gửi thông báo hệ thống khi một giao dịch Swap thành công.",
+        "notificationsDenied": "Quyền của hệ điều hành đã bị từ chối. Vui lòng cho phép thông báo trong cài đặt hệ thống.",
+        "about": "Giới thiệu",
+        "version": "Phiên bản",
+        "network": "Mạng",
+        "seekerVerified": "Xác minh Seeker",
+        "seekerYes": "Đã xác minh",
+        "seekerNo": "Không sở hữu",
+        "deviceModel": "Thiết bị",
+        "seekerDevice": "Seeker (không có Genesis Token)",
+        "walletType": "Loại ví",
+        "walletTypeSeedVault": "Seed Vault (Seeker)",
+        "walletTypeUnknown": "Ví bên ngoài",
+        "appLock": "Khóa ứng dụng",
+        "appLockToggle": "Khóa bằng vân tay / PIN",
+        "appLockDescription": "Yêu cầu mở khóa khi mở ứng dụng và khi quay lại từ nền.",
+        "appLockUnavailable": "Thiết bị này chưa đăng ký sinh trắc học hoặc mã PIN.",
+        "feedback": "Phản hồi",
+        "feedbackHint": "Báo lỗi hoặc gửi góp ý qua email",
+        "openFailed": "Không thể mở ứng dụng bên ngoài",
+        "history": "Lịch sử giao dịch"
+    },
+    "home": {
+        "subtitle": "Bitcoin on Solana",
+        "aboutCbbtc": "cbBTC là token Bitcoin được Coinbase neo giá 1:1 — wrapped Bitcoin lớn nhất trên Solana.",
+        "moat": "Khóa của bạn được lưu trong phần cứng Seed Vault của Seeker. Ứng dụng này không bao giờ giữ tiền hay khóa của bạn.",
+        "connectPrompt": "Kết nối ví để xem số dư và Swap.",
+        "connectedLabel": "Ví đã kết nối",
+        "pullToRefresh": "Kéo xuống để làm mới",
+        "recentActivity": "Hoạt động gần đây",
+        "viewAll": "Xem tất cả"
+    },
+    "history": {
+        "title": "Lịch sử giao dịch",
+        "subtitle": "Hoạt động Swap và Earn của bạn ở cùng một nơi",
+        "rowLabel": "Lịch sử giao dịch",
+        "filterAll": "Tất cả",
+        "filterSwap": "Swap",
+        "filterEarn": "Earn",
+        "filterLightning": "⚡ LN",
+        "empty": "Chưa có hoạt động nào",
+        "emptyHint": "Các giao dịch Swap và Earn của bạn sẽ hiển thị ở đây.",
+        "connectFirst": "Kết nối ví để xem lịch sử của bạn",
+        "loadError": "Không tải được lịch sử",
+        "loadErrorHint": "Kiểm tra kết nối và thử lại sau giây lát.",
+        "viewExplorer": "Mở trên Solscan",
+        "failed": "Thất bại",
+        "loadingMore": "Đang tải…",
+        "kinds": {
+            "swap": "Swap",
+            "supply": "Cung cấp",
+            "withdraw": "Rút",
+            "borrow": "Vay",
+            "repay": "Trả nợ",
+            "lightningPay": "⚡ Thanh toán LN",
+            "lightningReceive": "⚡ Nhận LN",
+            "lightningRefund": "⚡ Hoàn tiền LN"
+        },
+        "directions": {
+            "swapOutCbbtc": "cbBTC → SOL",
+            "swapInCbbtc": "SOL → cbBTC",
+            "swapGeneric": "Swap"
+        }
+    },
+    "wallet": {
+        "connect": "Kết nối ví",
+        "disconnect": "Ngắt kết nối",
+        "restoring": "Đang kiểm tra ví…",
+        "connecting": "Đang kết nối…",
+        "disconnecting": "Đang ngắt kết nối…"
+    },
+    "balance": {
+        "connectFirst": "Kết nối ví để xem số dư",
+        "loadError": "Không tải được số dư",
+        "a11yCardEmpty": "Số dư {{symbol}}, ví chưa kết nối",
+        "a11yCardLoading": "Đang tải số dư {{symbol}}",
+        "a11yCardError": "Không tải được số dư {{symbol}}",
+        "a11yCardData": "Số dư {{symbol}} {{amount}}"
+    },
+    "wallet_card": {
+        "connectedTitle": "Ví đã kết nối",
+        "viewOnSolscan": "Xem trên Solscan",
+        "hardwareSecured": "Bảo mật bằng phần cứng",
+        "a11yCard": "Ví đã kết nối {{address}}",
+        "a11ySeedVault": "Được bảo mật bằng Seed Vault phần cứng"
+    },
+    "seeker": {
+        "verified": "Seeker Verified",
+        "device": "Thiết bị Seeker"
+    },
+    "walletStale": {
+        "bannerTitle": "Phiên ví của bạn có thể đã hết hạn",
+        "bannerSubtitle": "Kết nối lại ngay để tránh lỗi giữa chừng giao dịch",
+        "bannerAction": "Kết nối lại"
+    },
+    "update": {
+        "bannerTitle": "Đã có phiên bản mới {{version}}",
+        "modalTitle": "Phiên bản mới {{version}}",
+        "currentVersion": "Phiên bản hiện tại: {{version}}",
+        "openUpdate": "Cập nhật ngay",
+        "openGitHub": "Xem trên GitHub",
+        "later": "Để sau",
+        "ignoreThisVersion": "Bỏ qua phiên bản này"
+    },
+    "lock": {
+        "title": "Solana cbBTC đã khóa",
+        "subtitle": "Mở khóa bằng vân tay hoặc mã PIN thiết bị.",
+        "authenticating": "Đang xác thực…",
+        "unlockAction": "Mở khóa",
+        "tapToUnlock": "Chạm vào bất kỳ đâu để mở khóa",
+        "tapHint": "Chạm vào màn hình để bắt đầu xác thực sinh trắc học",
+        "promptUnlock": "Mở khóa Solana cbBTC",
+        "promptEnable": "Bật Khóa ứng dụng",
+        "promptDisable": "Tắt Khóa ứng dụng"
+    },
+    "about": {
+        "title": "Giới thiệu",
+        "rowLabel": "Giới thiệu về ứng dụng"
+    },
+    "notifications": {
+        "swapSuccessTitle": "Swap hoàn tất",
+        "swapSuccessBody": "{{inputAmount}} {{inputSymbol}} → {{outputAmount}} {{outputSymbol}}"
+    }
+}
