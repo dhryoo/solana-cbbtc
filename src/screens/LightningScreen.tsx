@@ -568,6 +568,20 @@ export function LightningScreen(): React.JSX.Element
                             </Pressable>
                         </View>
                     )}
+                    {/* 환불 상태 조회 실패는 조용히 넘어가지 않는다 — 잠긴 자금을 놓치지 않도록 탭하여 재시도(R34) */}
+                    {refundable.isError && (refundable.data ?? 0) === 0 && (
+                        <Pressable
+                            accessibilityRole="button"
+                            accessibilityLabel={t("lightning.refundCheckFailed")}
+                            onPress={() => { void refundable.refetch(); }}
+                            style={styles.warnBox}
+                        >
+                            <View style={styles.warnRow}>
+                                <Ionicons name="refresh-outline" size={16} color={palette.warn} />
+                                <Text style={styles.warnText}>{t("lightning.refundCheckFailed")}</Text>
+                            </View>
+                        </Pressable>
+                    )}
 
                     {/* 입력 */}
                     <View style={styles.card}>

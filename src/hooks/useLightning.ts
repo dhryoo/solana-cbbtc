@@ -171,7 +171,9 @@ export function useRefundableSwaps(enabled: boolean): UseQueryResult<number, Err
         queryKey: ["lightning", "refundable", owner],
         enabled: enabled && isOnline && Boolean(owner),
         staleTime: 30_000,
-        retry: 0,
+        // 최초 조회는 Atomiq SDK 초기화를 함께 지고 있어 일시 실패가 잦다 → 1회 재시도. 그래도 실패하면
+        // UI(LightningScreen)가 '탭하여 재시도' 배너로 노출한다 — 잠긴 자금을 조용히 놓치지 않도록(R34).
+        retry: 1,
         queryFn: async () =>
         {
             if (!owner)

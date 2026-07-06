@@ -224,12 +224,12 @@
         "subtitle": "Solana 자산으로 비트코인 라이트닝 인보이스를 결제하세요",
         "whatIsLink": "비트코인 라이트닝이란?",
         "connectPrompt": "라이트닝을 사용하려면 지갑을 연결하세요.",
-        "chipLabel": "Lightning (실험)",
         "modeSend": "보내기",
         "modeReceive": "받기",
         "experimentNotice": "실험 기능입니다. 소액으로만 사용하세요. 결제는 Atomiq 의 감사받은 스마트컨트랙트(HTLC)를 통해 이뤄지며, 서명은 모두 Solana 쪽에서만 합니다. 실패 시 자금은 환불됩니다. 본 앱은 수수료를 받지 않습니다 (LP 수수료만 발생).",
         "refundableNotice": "환불 대기 중인 이전 결제가 {{count}}건 있습니다. 아래 버튼으로 자금을 회수하세요 (지갑 서명 필요).",
         "refundButton": "지금 환불받기",
+        "refundCheckFailed": "환불 대기 결제를 확인하지 못했습니다. 탭하여 다시 시도해 주세요.",
         "refundDone": "{{count}}건 환불 완료",
         "refundError": "환불에 실패했습니다. 잠시 후 다시 시도해 주세요.",
         "destLabel": "받는 곳 (인보이스 / lightning address)",
@@ -337,7 +337,7 @@
         },
         "experimental": {
             "title": "실험 기능 주의",
-            "body": "Labs 에서 켜는 실험 기능입니다. 안정화까지는 보수적으로 사용해 주세요.",
+            "body": "실험 기능입니다. 안정화까지는 보수적으로 사용해 주세요.",
             "b1": "소액만 사용하세요 — 결제당 최대 100,000 sats.",
             "b2": "금액이 명시된 인보이스 또는 lightning address(금액 입력)를 지원합니다.",
             "b3": "문제가 생기면 설정 → 문의/제보로 알려주세요."
@@ -537,10 +537,7 @@
         "feedback": "문의 / 제보",
         "feedbackHint": "이메일로 버그 또는 제안을 알려주세요",
         "openFailed": "외부 앱을 열 수 없습니다",
-        "history": "거래 내역",
-        "labs": "실험실",
-        "labsLightningToggle": "Lightning 결제 (실험)",
-        "labsLightningDescription": "Swap 탭에 ⚡ Lightning 인보이스 결제 기능을 추가합니다. 실험 기능 — 소액 사용 권장."
+        "history": "거래 내역"
     },
     "notifications": {
         "swapSuccessTitle": "Swap 완료",

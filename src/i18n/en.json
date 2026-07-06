@@ -224,12 +224,12 @@
         "subtitle": "Pay Bitcoin Lightning invoices with your Solana assets",
         "whatIsLink": "What is Bitcoin Lightning?",
         "connectPrompt": "Connect your wallet to use Lightning.",
-        "chipLabel": "Lightning (Labs)",
         "modeSend": "Send",
         "modeReceive": "Receive",
         "experimentNotice": "Experimental feature — use small amounts only. Payments run through Atomiq's audited smart contracts (HTLC); you sign only on the Solana side. If a payment fails, your funds are refunded. This app charges no fee (only the LP fee applies).",
         "refundableNotice": "You have {{count}} earlier payment(s) awaiting refund. Use the button below to recover your funds (wallet signature required).",
         "refundButton": "Refund now",
+        "refundCheckFailed": "Couldn't check for refundable payments. Tap to retry.",
         "refundDone": "Refunded {{count}} payment(s)",
         "refundError": "Refund failed. Please try again shortly.",
         "destLabel": "Destination (invoice / lightning address)",
@@ -337,7 +337,7 @@
         },
         "experimental": {
             "title": "Experimental — use with care",
-            "body": "This is a Labs feature. Please use it conservatively until it stabilizes.",
+            "body": "This is an experimental feature. Please use it conservatively until it stabilizes.",
             "b1": "Use small amounts only — up to 100,000 sats per payment.",
             "b2": "Supports amount-bearing invoices and lightning addresses (you enter the amount).",
             "b3": "If anything looks wrong, reach us via Settings → Feedback."
@@ -537,10 +537,7 @@
         "feedback": "Feedback",
         "feedbackHint": "Report bugs or share suggestions via email",
         "openFailed": "Could not open external app",
-        "history": "Transaction history",
-        "labs": "Labs",
-        "labsLightningToggle": "Lightning payment (experimental)",
-        "labsLightningDescription": "Adds ⚡ Lightning invoice payment to the Swap tab. Experimental — small amounts recommended."
+        "history": "Transaction history"
     },
     "notifications": {
         "swapSuccessTitle": "Swap completed",

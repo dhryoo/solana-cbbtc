@@ -27,9 +27,9 @@ cbBTC는 Coinbase가 발행한 비트코인 1:1 페그 토큰으로, Solana 메�
 - **진행 상황 시각화** — 준비 → 검증 → 서명 → 전송 → 완료 단계 표시 + Solana Explorer 확인
 - **안내 화면** — 작동 방식·투명성·위험을 인포그래픽으로 쉽게 설명
 
-## 🧪 실험실 (Labs) — ⚡ Lightning 결제 (Phase 3 베타)
+## ⚡ Bitcoin Lightning (실험적) — 전용 탭
 
-설정 → 실험실에서 켜는 **opt-in 실험 기능**입니다 (기본 꺼짐):
+하단 **Bitcoin Lightning 탭**의 실험 기능입니다 (소액 권장):
 
 - **LN 인보이스 결제** — Bitcoin 의 결제망(Lightning Network) 인보이스를 USDC·SOL 로 바로 지불
 - **Atomic swap (HTLC)** — Atomiq 의 감사받은 escrow 컨트랙트 사용. 서명은 전부 Solana 쪽에서만 (Seed Vault)
@@ -75,7 +75,7 @@ cbBTC는 Coinbase가 발행한 비트코인 1:1 페그 토큰으로, Solana 메�
 - ✅ **Phase 1**: cbBTC ↔ SOL swap (Jupiter) — **완료**
 - ✅ **Phase 2**: cbBTC 기반 lending (Kamino) — 공급·인출·차입·상환 **완료**
 - **Phase 2.5**: 멀티 프로토콜 비교 (marginfi/Solend 추가) — Kamino 와 금리 비교
-- 🧪 **Phase 3**: Lightning Network 결제 — **베타 출시** (실험실 토글). USDC·SOL 로 LN 인보이스 결제, Atomiq atomic swap(HTLC), 서명은 Solana 쪽만. cbBTC 발신은 후속 추가 예정
+- ⚡ **Phase 3**: Bitcoin Lightning 결제 — **전용 탭으로 출시** (실험적). USDC·SOL·cbBTC 로 LN 인보이스 결제·수신, Atomiq atomic swap(HTLC), 서명은 Solana 쪽만
 - **Phase 4**: 다양한 wrapped BTC 비교/통합 swap (cbBTC · tBTC · BTC.b 등)
 
 ## 📊 기술 스택
@@ -149,9 +149,9 @@ cbBTC is Coinbase's 1:1 Bitcoin-pegged token — currently the largest wrapped B
 - **Progress visualization** — prepare → simulate → sign → send → done steps + Solana Explorer verification
 - **Guide screen** — how it works, transparency, and risk explained with infographics
 
-## 🧪 Labs — ⚡ Lightning payments (Phase 3 beta)
+## ⚡ Bitcoin Lightning (experimental) — its own tab
 
-An **opt-in experimental feature** under Settings → Labs (off by default):
+An experimental feature in the **Bitcoin Lightning tab** (small amounts recommended):
 
 - **Pay LN invoices** — settle Lightning Network invoices (Bitcoin's payment rail) directly with USDC · SOL
 - **Atomic swaps (HTLC)** — via Atomiq's audited escrow contracts. Every signature stays on the Solana side (Seed Vault)
@@ -197,7 +197,7 @@ Future expansion: additional BTC-pegged tokens.
 - ✅ **Phase 1**: cbBTC ↔ SOL swap (Jupiter) — **done**
 - ✅ **Phase 2**: cbBTC-backed lending (Kamino) — supply · withdraw · borrow · repay **done**
 - **Phase 2.5**: Multi-protocol comparison (add marginfi / Solend alongside Kamino for rate comparison)
-- 🧪 **Phase 3**: Lightning Network payments — **in beta** (Labs toggle). Pay LN invoices with USDC · SOL via Atomiq atomic swaps (HTLC), signing only on Solana. cbBTC as source asset coming next
+- ⚡ **Phase 3**: Bitcoin Lightning payments — **shipped as a dedicated tab** (experimental). Pay and receive LN invoices with USDC · SOL · cbBTC via Atomiq atomic swaps (HTLC), signing only on Solana
 - **Phase 4**: Cross-asset wrapped BTC comparison and routing (cbBTC · tBTC · BTC.b ...)
 
 ## 📊 Tech stack
