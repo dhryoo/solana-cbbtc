@@ -165,6 +165,7 @@ export function mapObligationToPosition(
     return {
         hasPosition: suppliedUsd > 0 || borrowedUsd > 0,
         suppliedUsd,
+        suppliedCbbtc: cbbtcCollateralAmount,
         borrowedUsd,
         netValueUsd: suppliedUsd - borrowedUsd,
         currentLtv,
@@ -181,6 +182,7 @@ function emptyPosition(): KaminoPosition
     return {
         hasPosition: false,
         suppliedUsd: 0,
+        suppliedCbbtc: 0,
         borrowedUsd: 0,
         netValueUsd: 0,
         currentLtv: 0,

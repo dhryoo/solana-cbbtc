@@ -184,6 +184,7 @@ describe("mapObligationToPosition", () =>
         const p = mapObligationToPosition(ob, 0.01);
         expect(p.hasPosition).toBe(true);
         expect(p.suppliedUsd).toBeCloseTo(1000, 2);
+        expect(p.suppliedCbbtc).toBeCloseTo(0.01, 10); // 전달된 담보 수량 그대로
         expect(p.borrowedUsd).toBeCloseTo(400, 2);
         expect(p.netValueUsd).toBeCloseTo(600, 2);
         expect(p.currentLtv).toBeCloseTo(0.4, 5);

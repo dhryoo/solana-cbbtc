@@ -207,7 +207,7 @@ export function EarnScreen(): React.JSX.Element
                                     ? (
                                         <WithdrawForm
                                             owner={owner}
-                                            suppliedUsd={position.data?.suppliedUsd ?? 0}
+                                            suppliedCbbtc={position.data?.suppliedCbbtc ?? 0}
                                             cbbtcPriceUsd={market.data?.cbbtcPriceUsd}
                                             styles={styles}
                                             palette={palette}
@@ -561,7 +561,7 @@ function LendingResultCard(
 interface WithdrawFormProps
 {
     owner: PublicKey;
-    suppliedUsd: number;
+    suppliedCbbtc: number;
     cbbtcPriceUsd: number | undefined;
     styles: ReturnType<typeof makeStyles>;
     palette: ThemePalette;
@@ -569,7 +569,7 @@ interface WithdrawFormProps
     onFocusInput: () => void;
 }
 
-function WithdrawForm({ owner, suppliedUsd, cbbtcPriceUsd, styles, palette, t, onFocusInput }: WithdrawFormProps): React.JSX.Element
+function WithdrawForm({ owner, suppliedCbbtc, cbbtcPriceUsd, styles, palette, t, onFocusInput }: WithdrawFormProps): React.JSX.Element
 {
     const { isOnline } = useNetworkStatus();
     const { showToast } = useToast();
@@ -584,7 +584,8 @@ function WithdrawForm({ owner, suppliedUsd, cbbtcPriceUsd, styles, palette, t, o
     const [lastError, setLastError] = useState<string | null>(null);
     const [notice, setNotice] = useState<string | null>(null);
 
-    const suppliedCbbtc = cbbtcPriceUsd && cbbtcPriceUsd > 0 ? suppliedUsd / cbbtcPriceUsd : 0;
+    // 예치 cbBTC 수량은 position 에서 직접(cToken×환율) 받는다 — USD÷가격 파생은 마켓 쿼리 실패 시
+    // 0 이 돼 인출을 막고, 과대평가되면 초과 입력이 조용히 전액 인출로 클램프됐다(R11).
     const suppliedBase = BigInt(Math.round(suppliedCbbtc * 10 ** CBBTC.decimals));
     const amountBase = parseTokenAmount(amount, CBBTC.decimals);
     const exceeds = !withdrawAll && amountBase !== null && amountBase > suppliedBase;

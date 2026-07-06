@@ -26,6 +26,7 @@ export interface KaminoPosition
 {
     hasPosition: boolean;
     suppliedUsd: number;
+    suppliedCbbtc: number;                // 예치된 cbBTC 수량(human) — cToken×환율, 가격 무관
     borrowedUsd: number;
     netValueUsd: number;
     currentLtv: number;                   // 0~1
