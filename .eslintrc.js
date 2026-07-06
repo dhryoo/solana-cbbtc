@@ -81,8 +81,31 @@ module.exports = {
         "react-native/no-inline-styles": "off",
         "react-native/no-color-literals": "off",
     },
+    overrides: [
+        {
+            // 레이어 경계(CLAUDE.md): 화면/컴포넌트는 @solana/web3.js 를 런타임 import 하지 않는다.
+            // 로직은 services/ 또는 hooks/ 로. 타입만 필요하면 `import type` 허용.
+            files: ["src/screens/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}"],
+            excludedFiles: ["**/*.test.{ts,tsx}"],
+            rules: {
+                "@typescript-eslint/no-restricted-imports": [
+                    "error",
+                    {
+                        paths: [
+                            {
+                                name: "@solana/web3.js",
+                                message: "화면/컴포넌트는 web3.js 를 직접 import 하지 않습니다. 로직은 services/ 또는 hooks/ 로 옮기고, 타입만 필요하면 `import type` 을 쓰세요.",
+                                allowTypeImports: true,
+                            },
+                        ],
+                    },
+                ],
+            },
+        },
+    ],
     ignorePatterns: [
         "node_modules/",
+        "scratch/", // M8 프로토타입 등 폐기용 코드 — 앱 소스 아님
         ".expo/",
         "dist/",
         "web-build/",
