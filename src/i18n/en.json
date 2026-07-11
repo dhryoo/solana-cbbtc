@@ -280,6 +280,7 @@
         "errAmountNotAllowed": "This invoice already specifies an amount — you can't enter one separately.",
         "errAmountTooLow": "Amount is too small. Please try at least {{min}} sats.",
         "errAmountTooHigh": "Amount is too large. Please try at most {{max}} sats.",
+        "errNoRoute": "No liquidity provider could route this payment right now. Lightning swaps have practical minimums — try a larger amount (a few thousand sats or more), or try again shortly.",
         "errAmountTooLargeExperimental": "Experimental feature: up to {{max}} sats per payment. Please enter a smaller amount.",
         "maxSatsHint": "Experimental — up to {{max}} sats per payment"
     },

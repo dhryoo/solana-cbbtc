@@ -293,6 +293,7 @@
         "errAmountNotAllowed": "Invoice này đã ghi sẵn số tiền — bạn không thể nhập riêng.",
         "errAmountTooLow": "Số tiền quá nhỏ. Vui lòng thử ít nhất {{min}} sats.",
         "errAmountTooHigh": "Số tiền quá lớn. Vui lòng thử tối đa {{max}} sats.",
+        "errNoRoute": "Hiện không có nhà cung cấp thanh khoản nào có thể định tuyến khoản thanh toán này. Các giao dịch swap Lightning có mức tối thiểu thực tế — hãy thử số tiền lớn hơn (vài nghìn sats trở lên), hoặc thử lại sau giây lát.",
         "errAmountTooLargeExperimental": "Tính năng thử nghiệm: tối đa {{max}} sats mỗi lần thanh toán. Vui lòng nhập số tiền nhỏ hơn.",
         "maxSatsHint": "Thử nghiệm — tối đa {{max}} sats mỗi lần thanh toán"
     },

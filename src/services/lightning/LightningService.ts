@@ -27,7 +27,19 @@ export type QuoteRequestError =
     | "amount_required"        // amountless 인보이스 또는 address 인데 금액 없음
     | "amount_not_allowed"     // 금액 있는 BOLT11 에 별도 금액 지정
     | "amount_too_large"       // 실험 기능 소액 상한(LN_EXPERIMENTAL_MAX_SATS) 초과
+    | "no_route"               // LP(중개자)가 해당 pair·금액을 라우팅 못 함 (대개 금액이 너무 작음)
     | "quote_expired";         // quote 유효시간 경과 → 재견적 필요 (commit 전 차단)
+
+/**
+ * Atomiq LP 가 "No intermediary found for the requested pair and amount!" 처럼 라우팅 실패를 던지는지 판별.
+ * 각 스왑엔 온체인 정산·LP 수수료 등 고정비가 있어, 아주 작은 금액(예: 150 sats)은 어떤 LP 도 경제적으로
+ * 중개하지 않는다 → 이 에러가 난다. 구조화된 min/max 범위 에러(asLightningAmountError)와는 별개.
+ */
+export function isNoRouteError(err: unknown): boolean
+{
+    const msg = err instanceof Error ? err.message : String(err);
+    return /no intermediary|no route|couldn'?t find (a |an )?(route|intermediary|swap|lp)/i.test(msg);
+}
 
 export class LightningQuoteError extends Error
 {
@@ -124,7 +136,20 @@ export class LightningService
     }): Promise<LightningQuote>
     {
         const dest = resolveDestination(params.rawInput, params.amountSats);
-        return this.provider.quote(params.srcToken, dest, params.srcAddress);
+        try
+        {
+            return await this.provider.quote(params.srcToken, dest, params.srcAddress);
+        }
+        catch (e)
+        {
+            // 라우팅 실패(중개자 없음)만 친절 코드로 정규화. 금액 범위 에러(LightningAmountError)나
+            // 그 외는 그대로 전파해 각자의 안내 문구로 처리.
+            if (isNoRouteError(e))
+            {
+                throw new LightningQuoteError("no_route");
+            }
+            throw e;
+        }
     }
 
     /** 결제 실행 — MWA 서명 1회(escrow) + 실패 시 환불 서명 1회 */

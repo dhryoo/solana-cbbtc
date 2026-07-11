@@ -4,7 +4,7 @@ import { LN_EXPERIMENTAL_MAX_SATS } from "@/constants/lightning";
 import { USDC } from "@/constants/tokens";
 import type { ConnectedAccount } from "@/services/WalletService";
 
-import { LightningQuoteError, LightningService, resolveDestination } from "./LightningService";
+import { LightningQuoteError, LightningService, resolveDestination, isNoRouteError } from "./LightningService";
 import { asLightningAmountError, isLightningAmountError, isLightningQuoteExpired } from "./types";
 import type {
     LightningDestination,
@@ -21,6 +21,23 @@ const COFFEE_INVOICE =
 const AMOUNTLESS_INVOICE =
     "lnbc1pvjluezsp5zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zygspp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxxatsyp3k7enxv4jsxqzpu9qrsgquk0rl77nj30yxdy8j9vdx85fkpmdla2087ne0xh8nhedh8w27kyke0lp53ut353s06fv3qfegext0eh0ymjpf39tuven09sam30g4vgprj6706";
 const COFFEE_TS = 1496314658;
+
+describe("isNoRouteError", () =>
+{
+    it("Atomiq 라우팅 실패 메시지를 감지", () =>
+    {
+        expect(isNoRouteError(new Error("No intermediary found for the requested pair and amount! You can try swapping different pair or higher/lower amount."))).toBe(true);
+        expect(isNoRouteError(new Error("no route found"))).toBe(true);
+        expect(isNoRouteError("Couldn't find a route for this swap")).toBe(true);
+    });
+
+    it("무관한 에러는 false", () =>
+    {
+        expect(isNoRouteError(new Error("Network request failed"))).toBe(false);
+        expect(isNoRouteError(new Error("amount too low"))).toBe(false);
+        expect(isNoRouteError(null)).toBe(false);
+    });
+});
 
 describe("resolveDestination", () =>
 {
@@ -281,6 +298,36 @@ describe("LightningService (Facade + mock provider)", () =>
             srcAddress: OWNER.toBase58(),
         })).rejects.toThrow(LightningQuoteError);
         expect(provider.quote).not.toHaveBeenCalled();
+    });
+
+    it("getQuote 는 LP 라우팅 실패(No intermediary)를 no_route 코드로 정규화한다", async () =>
+    {
+        const provider = makeMockProvider({
+            quote: jest.fn().mockRejectedValue(new Error("No intermediary found for the requested pair and amount! You can try swapping different pair or higher/lower amount.")),
+        });
+        const svc = new LightningService(provider);
+        const err = await svc.getQuote({
+            rawInput: "jack@strike.me",
+            amountSats: 150n,
+            srcToken: USDC,
+            srcAddress: OWNER.toBase58(),
+        }).catch((e: unknown) => e);
+        expect(err).toBeInstanceOf(LightningQuoteError);
+        expect((err as LightningQuoteError).code).toBe("no_route");
+    });
+
+    it("getQuote 는 라우팅 외 provider 에러는 그대로 전파한다", async () =>
+    {
+        const provider = makeMockProvider({
+            quote: jest.fn().mockRejectedValue(new Error("some other provider failure")),
+        });
+        const svc = new LightningService(provider);
+        await expect(svc.getQuote({
+            rawInput: "jack@strike.me",
+            amountSats: 150n,
+            srcToken: USDC,
+            srcAddress: OWNER.toBase58(),
+        })).rejects.toThrow(/some other provider failure/);
     });
 
     it("createReceive 는 상한 이내면 provider 로 위임", async () =>

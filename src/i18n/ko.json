@@ -280,6 +280,7 @@
         "errAmountNotAllowed": "금액이 명시된 인보이스에는 금액을 따로 입력할 수 없습니다.",
         "errAmountTooLow": "금액이 너무 적습니다. 최소 {{min}} sats 이상으로 시도해 주세요.",
         "errAmountTooHigh": "금액이 너무 큽니다. 최대 {{max}} sats 이하로 시도해 주세요.",
+        "errNoRoute": "지금 이 결제를 라우팅할 수 있는 LP(중개자)를 찾지 못했습니다. Lightning 스왑은 실무상 최소 금액이 있어요 — 금액을 더 크게(수천 sats 이상) 해서 다시 시도하거나, 잠시 후 재시도해 주세요.",
         "errAmountTooLargeExperimental": "실험 기능은 결제당 최대 {{max}} sats 입니다. 더 작은 금액을 입력해 주세요.",
         "maxSatsHint": "실험 기능 — 결제당 최대 {{max}} sats"
     },

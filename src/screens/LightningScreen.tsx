@@ -203,6 +203,7 @@ export function LightningScreen(): React.JSX.Element
                 case "amount_required": return t("lightning.errAmountRequired");
                 case "amount_not_allowed": return t("lightning.errAmountNotAllowed");
                 case "amount_too_large": return t("lightning.errAmountTooLargeExperimental", { max: MAX_SATS_LABEL });
+                case "no_route": return t("lightning.errNoRoute");
                 case "quote_expired": return t("lightning.quoteExpired");
             }
         }
