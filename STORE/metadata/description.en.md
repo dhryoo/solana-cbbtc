@@ -81,7 +81,7 @@ cbBTC is Coinbase's 1:1 Bitcoin-pegged token — currently the largest wrapped B
 
 ✨ User experience
 
-• Korean / English, instant switch
+• Korean / English / Vietnamese / Simplified Chinese, instant switch
 • Light / Dark mode with system tracking or manual choice
 • Large-text friendly — layout stays intact when system font is scaled up
 • Screen reader support (accessibility label / role / state on every interactive element)

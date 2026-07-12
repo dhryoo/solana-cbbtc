@@ -56,7 +56,7 @@ cbBTC는 Coinbase가 발행한 비트코인 1:1 페그 토큰으로, Solana 메�
 
 ## ✨ 사용자 경험
 
-- 한국어 / English / Tiếng Việt 다국어 지원, 즉시 전환
+- 한국어 / English / Tiếng Việt / 简体中文 다국어 지원, 즉시 전환
 - 라이트 / 다크 모드 자동 추적 또는 수동 선택
 - 부드러운 splash + fade 전환으로 빠른 첫인상
 - 최소한의 권한만 요청 (인터넷, 알림)
@@ -178,7 +178,7 @@ As an experiment, small amounts are recommended.
 
 ## ✨ User experience
 
-- Korean / English / Vietnamese, instant switch
+- Korean / English / Vietnamese / Simplified Chinese, instant switch
 - Light / Dark mode with system tracking or manual choice
 - Smooth splash + fade transition for fast launches
 - Minimal permissions — only internet and (optional) notifications
@@ -300,7 +300,7 @@ Vì là tính năng thử nghiệm, khuyến nghị sử dụng số lượng nh
 
 ## ✨ Trải nghiệm người dùng
 
-- Tiếng Hàn / Tiếng Anh / Tiếng Việt, chuyển đổi tức thì
+- Tiếng Hàn / Tiếng Anh / Tiếng Việt / Tiếng Trung giản thể, chuyển đổi tức thì
 - Chế độ Sáng / Tối theo hệ thống hoặc lựa chọn thủ công
 - Chuyển cảnh splash + fade mượt mà để khởi động nhanh
 - Quyền tối thiểu — chỉ internet và (tùy chọn) thông báo
@@ -373,3 +373,125 @@ React Native · Expo SDK 54 · TypeScript strict · Solana Mobile Wallet Adapter
 Solana cbBTC là một công cụ ví tự quản lý (self-custody) — bạn tự ký mọi giao dịch. Phí mạng Solana tiêu chuẩn được áp dụng, và các swap qua Jupiter chịu tác động giá tùy theo tuyến đường. Hãy xác nhận số lượng dự kiến nhận được và slippage trong modal xác nhận trước khi ký.
 
 Ứng dụng này thực hiện các giao dịch thật trên mainnet. Bạn hoàn toàn chịu trách nhiệm về tiền của mình. Nhà phát triển không chịu trách nhiệm cho các khoản lỗ phát sinh từ nhập liệu sai, biến động thị trường, sự cố mạng, hoặc bất kỳ nguyên nhân nào khác.`;
+
+export const ABOUT_ZH = `# Solana cbBTC
+
+面向 Solana Seeker 用户的 BTCfi 移动应用。
+
+cbBTC 是 Coinbase 发行的比特币 1:1 锚定代币 —— 目前是 Solana 主网上规模最大的 wrapped Bitcoin，市值超过 $340M。本应用为你提供在 Seeker 上持有和兑换 cbBTC 的最短路径，并由硬件级安全保护。
+
+## 🔑 核心功能
+
+- **Mobile Wallet Adapter** — 与 Seeker 的 Seed Vault 直接集成，硬件级密钥安全
+- **实时余额** — cbBTC、SOL、SKR 在同一屏显示，下拉刷新
+- **Jupiter Swap 集成** — 由 Solana 最大的聚合器为 SOL ↔ cbBTC 提供最优路由
+- **滑点控制** — 每笔交易可选 0.1% / 0.5% / 1%
+- **Versioned transaction** — 完全兼容 Jupiter v6 的最新交易格式
+- **兑换完成通知** — 应用退到后台也能收到结果，并附 Solscan 链接供你核验
+
+## 💰 cbBTC 借贷（赚币）— Phase 2
+
+- **存入 / 提取** — 将 cbBTC 存入 Kamino 经过审计的智能合约，随时全额或部分取回
+- **抵押借款** — 以 cbBTC 为抵押品借出 USDC，还款后即可取回抵押品（首次借款需确认风险）
+- **风险显示** — 始终展示健康度与清算价格，并以安全 / 注意 / 危险三色标示
+- **自托管** — 应用绝不保管你的资金或密钥；每一笔交易都由你的 Seed Vault 签名
+- **进度可视化** — 准备 → 模拟 → 签名 → 发送 → 完成，各步骤可见，并可在 Solana Explorer 核验
+- **说明页面** — 用信息图讲清运作方式、透明度与风险
+
+## ⚡ Bitcoin Lightning（实验性）— 独立标签页
+
+这是 **Bitcoin Lightning 标签页**中的实验性功能（建议只用小额）：
+
+- **支付 LN 闪电发票** — 直接用 USDC · SOL 结算闪电网络（比特币的支付网络）发票
+- **原子交换（HTLC）** — 通过 Atomiq 经过审计的 escrow 合约完成。所有签名都只发生在 Solana 一侧（Seed Vault）
+- **失败也安全** — 若 LN 支付未完成，你的资金会被退款。LP（中介方）没有支付证明就无法取走资金
+- **应用手续费为 0** — 只有 LP 手续费（约 0.5%），并在报价中列明
+- 支持 Lightning Address 闪电地址（user@domain）—— 只需输入金额（聪）
+
+由于仍是实验性功能，建议只用小额。
+
+## 🛡️ 安全优先
+
+- 私钥**绝不离开 Seeker Seed Vault 硬件**
+- 每一笔交易都由你亲自批准
+- **没有后端服务器** — 只直接调用 Solana RPC 与 Jupiter API
+- 没有分析工具，没有追踪器
+- 可选的**应用锁**（指纹 / PIN）提供额外保护
+
+## 🎯 为 Seeker 而生
+
+- 为 Genesis Token 持有者显示 **"Seeker Verified" 徽章**，通过链上密码学校验
+- 通过 Seed Vault 连接时显示 "🔒 Hardware secured" 标识
+- 已验证用户自动获得更严格的默认滑点（0.3%）
+- 专为 Solana Mobile 生态系统打造
+
+## ✨ 使用体验
+
+- 韩语 / 英语 / 越南语 / 简体中文，即时切换
+- 浅色 / 深色模式，可跟随系统或手动选择
+- 流畅的 splash + 淡入过渡，启动更快
+- 权限最少 — 只需网络与（可选的）通知
+
+## 📱 支持的代币
+
+- **cbBTC**（Coinbase Wrapped BTC）
+- **SOL**（Solana 原生代币）
+- **USDC**（借贷中的借款资产）
+- **SKR**（Solana Mobile 奖励代币）
+
+未来将扩展支持更多锚定 BTC 的代币。
+
+## 🔮 路线图
+
+- ✅ **Phase 1**：cbBTC ↔ SOL 兑换（Jupiter）— **已完成**
+- ✅ **Phase 2**：基于 cbBTC 的借贷（Kamino）— 存入 · 提取 · 借款 · 还款 **已完成**
+- **Phase 2.5**：多协议对比（在 Kamino 之外加入 marginfi / Solend，用于利率比较）
+- ⚡ **Phase 3**：Bitcoin Lightning 支付 — **已作为独立标签页发布**（实验性）。通过 Atomiq 的原子交换（HTLC），用 USDC · SOL · cbBTC 支付和接收 LN 闪电发票，签名只发生在 Solana 一侧
+- **Phase 4**：跨资产 wrapped BTC 对比与路由（cbBTC · tBTC · BTC.b ……）
+
+## 📊 技术栈
+
+React Native · Expo SDK 54 · TypeScript strict · Solana Mobile Wallet Adapter · Jupiter Swap v6 · Kamino Lend · TanStack Query
+
+## 🌐 开源
+
+以 **MIT 许可证**发布。所有安全与交易逻辑都可供你自行审阅。
+
+---
+
+## 🔧 问题排查
+
+### 应用卡在"验证中…"
+这是 v0.1.0 中已知的应用锁解锁 bug。**已在 v0.1.1 及以上版本修复**。如果你现在卡住了：
+
+1. Android 设置 → 应用 → **Solana cbBTC** → 存储 → **清除数据**
+2. 重新打开应用并重新连接钱包
+3. （可选）在设置中重新开启应用锁 — 新版本已绕开该 race
+
+### 我的钱包连不上
+- 确认已安装兼容 MWA 的钱包（Phantom、Solflare、Backpack、Seeker Seed Vault）
+- 检查网络连接 — 顶部没有离线横幅
+- 先打开钱包应用解锁一次，然后重试
+
+### 余额或报价加载不出来
+- 如果顶部显示"无网络连接"横幅，请检查你的网络
+- 在资产页面下拉刷新
+- 可能是 Jupiter API 触发了限流（429）— 稍后重试，应用会自动退避
+
+### 我的兑换失败了
+- **"用于手续费的 SOL 不足"** → 至少保留 0.002 SOL 作为 gas
+- **"滑点超出"** → 把滑点从 0.5% 调到 1% 后重试
+- **"区块哈希已过期"** → 立即重试（应用会自动获取新报价）
+- **"用户已取消"** → 在钱包里再批准一次
+
+### 其他问题
+- 设置 → 关于 → **反馈**，给我们发邮件；或者
+- 在 GitHub 提交 issue：https://github.com/dhryoo/solana-cbbtc/issues
+
+---
+
+## ⚠️ 免责声明
+
+Solana cbBTC 是一个自托管钱包工具 —— 每一笔交易都由你自己签名。交易会按 Solana 网络标准手续费计费，Jupiter 兑换则会产生随路由而变的价格影响。签名前请在确认弹窗中核对预计到账数量与滑点。
+
+本应用执行的是主网上的真实交易。你对自己的资金负全部责任。开发者不对因输入错误、市场波动、网络故障或任何其他原因造成的损失承担责任。`;

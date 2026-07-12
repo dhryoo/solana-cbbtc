@@ -5,11 +5,21 @@ import { Modal, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, Vi
 /* eslint-disable react-native/no-unused-styles */
 import Markdown from "react-native-markdown-display";
 
-import { ABOUT_EN, ABOUT_KO, ABOUT_VI } from "@/content/about";
+import { ABOUT_EN, ABOUT_KO, ABOUT_VI, ABOUT_ZH } from "@/content/about";
 import { BRAND_PURPLE, type ThemePalette } from "@/constants/theme";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
+import type { SupportedLanguage } from "@/i18n";
 import { useLanguage } from "@/providers/I18nProvider";
 import { useTheme } from "@/providers/ThemeProvider";
+
+// 로케일 → About 본문. Record<SupportedLanguage, ...> 라서 언어를 추가하면 여기서 타입 에러로 잡힌다.
+// (이전엔 삼항 체인이라 en 이 아닌 새 언어가 조용히 한국어 본문을 받는 버그가 있었다.)
+const ABOUT_BY_LANGUAGE: Record<SupportedLanguage, string> = {
+    ko: ABOUT_KO,
+    en: ABOUT_EN,
+    vi: ABOUT_VI,
+    zh: ABOUT_ZH,
+};
 
 interface AboutScreenProps
 {
@@ -24,8 +34,7 @@ export function AboutScreen({ visible, onClose }: AboutScreenProps): React.JSX.E
     const { palette } = useTheme();
     const styles = useThemedStyles(makeStyles);
 
-    // 명시적 매핑 — 미지원/기본은 영어(DEFAULT_LANGUAGE)로. 이전엔 en 이 아니면 전부 한국어라 vi 가 한국어로 떴다.
-    const content = language === "ko" ? ABOUT_KO : language === "vi" ? ABOUT_VI : ABOUT_EN;
+    const content = ABOUT_BY_LANGUAGE[language] ?? ABOUT_EN;
     const markdownStyles = useMemo(() => buildMarkdownStyles(palette), [palette]);
 
     return (

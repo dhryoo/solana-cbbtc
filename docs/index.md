@@ -23,7 +23,7 @@ Hold and swap **cbBTC** (Coinbase Wrapped BTC on Solana) directly from your phon
 - Seeker hardware + Solana Mobile Genesis Token detection
 - Biometric / PIN app lock (opt-in)
 - Offline-aware: explicit banner and action blocking, no stuck spinners
-- Korean / English, light / dark / system theme
+- Korean / English / Vietnamese / Simplified Chinese, light / dark / system theme
 
 ## About the project
 

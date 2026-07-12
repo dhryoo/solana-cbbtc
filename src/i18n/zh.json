@@ -1,0 +1,591 @@
+{
+    "common": {
+        "ok": "确定",
+        "cancel": "取消",
+        "close": "关闭",
+        "retry": "重试",
+        "copyAddress": "复制地址",
+        "copyAddressHint": "长按复制到剪贴板",
+        "copied": "已复制！",
+        "cancel_pending": "取消",
+        "signCancelled": "已取消。如果你没有完成签名，交易未被提交。",
+        "max": "MAX"
+    },
+    "offline": {
+        "banner": "无网络连接",
+        "bannerHint": "钱包、余额和兑换都需要联网",
+        "swapBlocked": "离线",
+        "balance": "你当前处于离线状态",
+        "quote": "离线状态下无法获取报价"
+    },
+    "tabs": {
+        "home": "资产",
+        "swap": "兑换",
+        "earn": "赚币",
+        "lightning": "闪电",
+        "settings": "设置"
+    },
+    "earn": {
+        "title": "赚币",
+        "subtitle": "通过 Kamino 进行 cbBTC 借贷",
+        "loadError": "数据加载失败",
+        "oracleStaleHint": "价格预言机（Kamino）的更新暂时滞后。请稍后再试。为安全起见，只有在价格是最新的时候才会执行借款。",
+        "insufficientHint": "SOL 不足。你的第一笔交易需要多一点 SOL —— 用于网络手续费，以及一笔一次性、可退回的账户押金（Solana 的“rent”，不是手续费 —— 账户关闭后会退还）。补充一点 SOL 后再试。",
+        "authFailedHint": "钱包授权失败。请断开钱包再重新连接，然后重试。（你的会话可能已过期。）",
+        "walletTimeoutHint": "钱包没有及时响应。可能是授权界面开着太久，或者钱包应用在后台被挂起了。请重试。",
+        "noBorrowsHint": "没有需要还款的债务。可能已经全部还清，或者页面显示的是旧信息。下拉刷新。",
+        "confirmTimeoutHint": "确认耗时比预期长。这笔交易仍有可能完成 —— 重试前请先下拉刷新确认。",
+        "txFailedHint": "交易在链上失败，未生效。没有资金发生转移。请重试。",
+        "market": {
+            "heading": "市场",
+            "supplyApy": "cbBTC 存款 APY",
+            "borrowApr": "USDC 借款 APR",
+            "utilization": "使用率",
+            "utilizationHint": "已存入的 cbBTC 中当前被他人借走的比例 —— 越高说明资金池被使用得越多。",
+            "price": "cbBTC 价格"
+        },
+        "position": {
+            "heading": "我的仓位",
+            "connectWallet": "连接钱包以查看你的仓位",
+            "none": "还没有借贷仓位",
+            "supplied": "已存入",
+            "borrowed": "已借款",
+            "net": "净值",
+            "health": "健康度",
+            "healthHint": "越接近 1.0 = 清算风险越高（越高越安全）。",
+            "liqPrice": "清算价格 (cbBTC)"
+        },
+        "supply": {
+            "heading": "存入 cbBTC",
+            "helper": "“存入”就是把 cbBTC 存进去 —— 你随时可以自己提取。",
+            "placeholder": "要存入的 cbBTC 数量",
+            "button": "存入",
+            "available": "余额 {{amount}} cbBTC",
+            "minimum": "最低 {{amount}}",
+            "exceeds": "超出你的余额",
+            "belowMin": "至少输入 {{amount}} cbBTC",
+            "success": "存入交易已发送",
+            "completed": "存入完成",
+            "newSupplied": "我的存入",
+            "viewExplorer": "在 Solana Explorer 上查看",
+            "confirm": "完成",
+            "errorPrefix": "存入失败",
+            "copyHint": "长按复制"
+        },
+        "actions": {
+            "supply": "存入",
+            "withdraw": "提取",
+            "borrow": "借款",
+            "repay": "还款"
+        },
+        "repay": {
+            "heading": "还款 USDC",
+            "placeholder": "要还款的 USDC 数量",
+            "button": "还款",
+            "debt": "已借 {{amount}} USDC",
+            "walletBalance": "钱包 {{amount}} USDC",
+            "noDebt": "你没有需要还款的借款",
+            "completed": "还款完成",
+            "errorPrefix": "还款失败",
+            "dustHint": "要连本带息全额还清，你需要的 USDC 会比借入时多一点。先通过兑换换一些 USDC，再用 MAX 还款。",
+            "insufficientUsdc": "钱包里的 USDC 少于这次还款所需。债务会产生利息，所以可能超过你借入的金额 —— 兑换多一点 USDC，或者少还一些。（你的 SOL 是够的。）"
+        },
+        "borrow": {
+            "heading": "借款 USDC",
+            "placeholder": "要借款的 USDC 数量",
+            "button": "借款",
+            "maxBorrowable": "最多可借 {{amount}} USDC",
+            "safeMax": "80%",
+            "exceedsMax": "超出你的借款上限",
+            "hint": "用你的 cbBTC 抵押品借出 USDC。存在清算风险 —— 请保守借款。",
+            "noCollateral": "先存入 cbBTC 作为抵押品才能借款",
+            "completed": "借款完成",
+            "checkHealth": "务必在“我的仓位”里查看健康度和清算价格",
+            "errorPrefix": "借款失败"
+        },
+        "withdraw": {
+            "heading": "提取 cbBTC",
+            "placeholder": "要提取的 cbBTC 数量",
+            "button": "提取",
+            "supplied": "已存入 {{amount}} cbBTC",
+            "completed": "提取完成",
+            "errorPrefix": "提取失败",
+            "noPosition": "你还没有存入任何 cbBTC"
+        },
+        "disclaimer": "显示的数值基于最近一次链上刷新，可能与实时数据不同。借贷存在清算风险。"
+    },
+    "txProgress": {
+        "preparing": "正在准备交易",
+        "simulating": "预先检查（模拟）",
+        "signing": "等待钱包签名",
+        "sending": "正在发送到网络",
+        "confirming": "正在链上确认",
+        "done": "完成",
+        "processing": "处理中…"
+    },
+    "borrowConsent": {
+        "title": "借款风险提示",
+        "intro": "开始借款前，请先阅读以下内容。",
+        "b1": "如果你的抵押品（cbBTC）价格下跌，你的仓位可能被清算，从而造成亏损。",
+        "b2": "借款后，请定期查看屏幕上显示的健康度和清算价格。",
+        "b3": "借得越保守（越少），清算风险越低。",
+        "b4": "本应用不发送任何提醒。仓位管理完全由你自己负责。",
+        "confirm": "我已了解，继续",
+        "confirmCountdown": "请稍候…（{{n}} 秒）"
+    },
+    "swapGuide": {
+        "title": "关于兑换",
+        "intro": {
+            "title": "这是什么？",
+            "body": "通过 Jupiter 聚合器，按市场最优路由即时兑换 cbBTC ↔ SOL。"
+        },
+        "how": {
+            "title": "它是怎么运作的？",
+            "body": "输入要兑换的代币，Jupiter 会比较多个 DEX 的路由，找出最划算的一条。",
+            "b1": "Solana 最大的聚合器自动找出最优路由",
+            "b2": "在报价里先看清你将收到的数量和价格影响",
+            "b3": "只有你用 Seed Vault 签名后才会执行"
+        },
+        "slippage": {
+            "title": "什么是滑点？",
+            "body": "成交价格与报价之间允许的偏差范围。可选 0.1% / 0.5% / 1%。",
+            "b1": "行情波动大时调高一点，平稳时调低",
+            "b2": "设得太低，价格一动交易就可能失败"
+        },
+        "safe": {
+            "title": "掌控权始终在你手里",
+            "b1": "本应用从不保管你的资金或密钥。",
+            "b2": "每笔交易都公开记录在 Solana 上 — 可在 Explorer 上自行核实。",
+            "b3": "没有后端服务器，也没有追踪器。",
+            "b4": "始终留一点 SOL 用来支付手续费（gas）。"
+        },
+        "infographic": "兑换的运作方式：你的钱包 → Jupiter 比较各条路由 → 以最优路由换到你要收的代币",
+        "links": {
+            "github": "在 GitHub 上查看源代码",
+            "jupiter": "了解 Jupiter"
+        }
+    },
+    "lendingGuide": {
+        "title": "关于 cbBTC 借贷",
+        "intro": {
+            "title": "这是什么？",
+            "body": "把 cbBTC 存入 Kamino 后，它就会进入 Solana 的 BTCfi 生态中为你产生收益。就像银行存款一样，放着不用管，随时可以自己提取。"
+        },
+        "safe": {
+            "title": "你始终掌握控制权 — 自托管",
+            "b1": "本应用绝不保管你的 cbBTC，也不保管你的私钥。",
+            "b2": "资金由 Kamino 经过审计的智能合约直接管理。",
+            "b3": "每一笔交易都必须由你用 Seed Vault 签名后才会执行。"
+        },
+        "example": {
+            "title": "一个简单的例子",
+            "body": "例如：存入 0.001 cbBTC，它就会显示在“我的仓位”里。这些 cbBTC 依然是你的。"
+        },
+        "withdrawSection": {
+            "title": "提取（随时取回）",
+            "body": "你存入的 cbBTC 是你的。随时点击“提取”，把全部或部分取回到你的钱包。",
+            "b1": "用 MAX 提取全部，或只提取你想要的一部分。",
+            "b2": "如果你有借款，为了保留足够的抵押品，可提取的数量会受到限制。",
+            "b3": "提取会把 cbBTC 直接送回你的钱包。"
+        },
+        "transparency": {
+            "title": "运作过程是透明的",
+            "b1": "每一笔交易都公开记录在 Solana 区块链上 — 你可以自己在 Explorer 上核实。",
+            "b2": "没有后端服务器。本应用不收集你的数据。",
+            "b3": "源代码在 GitHub 上公开。",
+            "b4": "每一笔交易在你签名前都会先经过模拟和检查。"
+        },
+        "borrow": {
+            "title": "以抵押品借款",
+            "body": "你可以把存入的 cbBTC 作为抵押品，借出 USDC 等资产。借款要付利息，还款后抵押品会重新解锁。",
+            "b1": "你的借款上限只是抵押品价值的一部分 — 请保守地（少借一些）借款。",
+            "b2": "健康度越接近 1.0 越危险。屏幕上会用颜色标示。",
+            "b3": "如果抵押品（cbBTC）价格跌破“清算价格”，你的仓位可能被清算。",
+            "b4": "还清借款后，才能重新提取作为抵押品的 cbBTC。"
+        },
+        "risk": {
+            "title": "风险提示",
+            "body": "只做存入不存在清算风险。一旦你之后使用借款（抵押贷款），市场波动就可能触发清算 — 到那时，请务必随时查看屏幕上显示的健康度和清算价格。"
+        },
+        "infographic1": "自托管流程：你的钱包 → 你的签名（Seed Vault） → Kamino 合约",
+        "infographic2": "透明：链上公开记录 · 无后端 · 开源",
+        "infographic3": "抵押贷款与清算：cbBTC 抵押品 → 借出 USDC → 健康度仪表（安全·注意·危险）。价格跌破清算价格即被清算",
+        "infographic4": "提取：你在 Kamino 的存入部分 → cbBTC 回到你的钱包（全部或部分，随时）",
+        "links": {
+            "github": "在 GitHub 上查看源代码",
+            "kamino": "了解 Kamino Finance"
+        }
+    },
+    "labs": {
+        "badge": "实验"
+    },
+    "lightning": {
+        "title": "比特币闪电网络",
+        "subtitle": "用你的 Solana 资产支付比特币闪电发票",
+        "whatIsLink": "什么是比特币闪电网络？",
+        "connectPrompt": "连接钱包以使用闪电网络。",
+        "modeSend": "支付",
+        "modeReceive": "收款",
+        "experimentNotice": "实验性功能 — 只用小额。支付通过 Atomiq 经过审计的智能合约（HTLC）执行；你只在 Solana 一侧签名。支付失败时资金会退款。本应用不收取手续费，只有 LP（中介方）会收取手续费。",
+        "refundableNotice": "你有 {{count}} 笔此前的支付正在等待退款。用下方按钮取回资金（需要钱包签名）。",
+        "refundButton": "立即退款",
+        "refundCheckFailed": "无法查询待退款的支付。点击重试。",
+        "refundDone": "已退款 {{count}} 笔支付",
+        "refundError": "退款失败。请稍后重试。",
+        "destLabel": "收款方（闪电发票 / 闪电地址）",
+        "destPlaceholder": "lnbc… 闪电发票或 user@domain.com",
+        "amountLabel": "支付金额（聪）",
+        "amountPlaceholder": "例如 10000",
+        "embeddedAmount": "闪电发票中已指定的金额：{{sats}} 聪",
+        "srcTokenLabel": "支付币种",
+        "quoteButton": "获取报价",
+        "quoteExpired": "此报价已过期 — 闪电网络汇率刷新频繁。再点一次“获取报价”拿新报价。",
+        "initHint": "首次报价要连接 LP，可能需要几秒",
+        "quoteHeading": "报价",
+        "quoteSend": "你支付",
+        "quoteFee": "手续费 (LP)",
+        "quoteReceive": "LN 到账",
+        "quoteDest": "收款方",
+        "cbbtcQuoteHeading": "报价 (cbBTC)",
+        "cbbtcChainHint": "cbBTC 会先兑换成 USDC 再支付。你要签名两次。",
+        "cbbtcSwapFrom": "兑换 cbBTC",
+        "cbbtcSwapTo": "收到 USDC",
+        "cbbtcPayButton": "兑换并支付",
+        "cbbtcSwapping": "正在把 cbBTC 兑换成 USDC…",
+        "cbbtcConfirming": "等待兑换确认…",
+        "cbbtcPaySigning": "等待支付签名…",
+        "cbbtcPaying": "支付中…",
+        "cbbtcRetryWithUsdc": "你的 cbBTC 已兑换成 USDC。请立即改用 USDC 重试这笔支付。",
+        "cbbtcSwapFailed": "cbBTC→USDC 兑换在链上失败，你的 cbBTC 分毫未动。请重新获取报价后再试。",
+        "cbbtcConfirmSlow": "cbBTC→USDC 兑换的确认比预期慢。重试前先查看记录 — 现在不要重复发送。",
+        "payUnknownCheckRefund": "这笔支付没有完成。如果资金已锁定在托管合约（escrow）里，会出现在下方的退款区域 — 请先刷新并确认，再重试。",
+        "payButton": "支付",
+        "payFailed": "支付失败",
+        "refundingNotice": "LN 支付没有完成，正在为你退款。请在钱包中批准退款签名。",
+        "cancelPending": "取消",
+        "cancelledPendingNotice": "已取消。如果你没有完成签名，资金没有任何变动。如果支付确实已经发出，下次打开此页面时会看到退款提示。",
+        "paidTitle": "支付完成",
+        "paidBody": "闪电发票已支付。收款方钱包里可能要稍等片刻（通常 1 分钟内）才会显示。",
+        "proofTitle": "支付证明 (preimage)",
+        "proofHint": "支付已完成的密码学证明：这个 preimage 的 SHA-256 哈希与闪电发票的 payment_hash 一致。LP 只有真的支付了这张闪电发票才可能拿到它 — 它也正是凭此领走了你锁定的托管资金。",
+        "proofCopyA11y": "复制支付证明",
+        "proofCopyButton": "复制",
+        "refundedTitle": "已退款",
+        "refundedBody": "LN 支付没有完成，资金已退回你的钱包。请稍后重试。",
+        "refundFailedTitle": "退款待处理",
+        "refundFailedBody": "退款签名没有完成。你的资金仍被安全锁定 — 重新打开此页面就能看到退款提示。",
+        "errInvalidInput": "不是有效的闪电发票或闪电地址。",
+        "errExpiredInvoice": "此闪电发票已过期。请重新索取一张新的。",
+        "errAmountRequired": "请输入要支付的金额（聪）。",
+        "errAmountNotAllowed": "此闪电发票已指定金额 — 不能另外输入。",
+        "errAmountTooLow": "金额太小。请至少用 {{min}} 聪再试。",
+        "errAmountTooHigh": "金额太大。请最多用 {{max}} 聪再试。",
+        "errNoRoute": "目前没有 LP（中介方）能为这笔支付找到路由。闪电网络兑换在实际操作上有最低金额 — 换个更大的金额（几千聪以上），或稍后重试。",
+        "errAmountTooLargeExperimental": "实验性功能：每笔支付最多 {{max}} 聪。请输入更小的金额。",
+        "maxSatsHint": "实验性功能 — 每笔支付最多 {{max}} 聪"
+    },
+    "qrScan": {
+        "title": "扫描二维码",
+        "scanButton": "扫描",
+        "hint": "将相机对准闪电发票或闪电地址的二维码",
+        "permTitle": "需要相机权限",
+        "permBody": "仅用于扫描二维码 — 不会保存或发送任何照片和视频。",
+        "grant": "允许使用相机",
+        "openSettings": "打开设置"
+    },
+    "lightningGuide": {
+        "title": "关于闪电网络支付",
+        "intro": {
+            "title": "这是什么？",
+            "body": "这是一个实验性功能，基于比特币的支付网络——闪电网络：你可以用 Solana 资产（USDC · SOL · cbBTC）支付闪电发票，也可以通过闪电网络收款，结算成 USDC 或 SOL。适合一杯咖啡这样的小额支付。"
+        },
+        "how": {
+            "title": "它是怎么运作的？",
+            "body": "它基于 Atomiq 的原子交换（HTLC）运行。所有签名都只发生在 Solana 一侧。",
+            "b1": "获取报价不会动用任何资金 — 先看清手续费。",
+            "b2": "你按下支付后，资金会被锁进 Solana 上经过审计的托管（escrow）合约（一次 Seed Vault 签名）。",
+            "b3": "由 LP（中介方），也就是流动性提供者，代你支付这张闪电发票。",
+            "b4": "LP 必须出示“闪电发票已被支付”的密码学证明，才能取走被锁定的资金。"
+        },
+        "receive": {
+            "title": "收款（LN → USDC·SOL）",
+            "body": "你也可以通过闪电网络收款。选好代币（USDC·SOL）和金额，应用会生成一张闪电发票；对方支付后，资金会结算到 Solana。",
+            "b1": "把生成的闪电发票通过二维码、复制或分享发给对方。",
+            "b2": "对方支付后，你签名一次完成结算。",
+            "b3": "结算需要一点 SOL，用于手续费和一笔可退回的小额账户押金（Solana 的“rent”）— 请留一些 SOL 备用。"
+        },
+        "cbbtc": {
+            "title": "用 cbBTC 支付",
+            "body": "也可以用 cbBTC 走 LN 支付。它会先自动兑换成 USDC 再支付，所以你要签名两次。",
+            "b1": "兑换（Jupiter）和支付（Atomiq）都只在 Solana 一侧签名。",
+            "b2": "如果兑换成功但支付失败，你手上会是 USDC，可以立刻用 USDC 重试。"
+        },
+        "qr": {
+            "title": "扫描二维码",
+            "body": "不用粘贴闪电发票，点“扫描”读取二维码，内容会自动填入。"
+        },
+        "refund": {
+            "title": "失败了怎么办？",
+            "body": "如果 LN 支付没有完成，你的资金会回到你手里 — 这正是原子交换的意义所在。",
+            "b1": "支付失败时，应用会立即引导你完成退款签名。",
+            "b2": "即使应用中途关掉，下次打开这个界面时也会显示退款提示。"
+        },
+        "fees": {
+            "title": "手续费",
+            "b1": "本应用不收取任何手续费。",
+            "b2": "会产生 LP 手续费（约 0.5%）和极小的 LN 路由成本 — 报价中都会显示。",
+            "b3": "Solana 网络手续费照常收取，和其他交易一样。"
+        },
+        "experimental": {
+            "title": "实验功能 — 请谨慎使用",
+            "body": "这是实验性功能。在它稳定之前，请保守使用。",
+            "b1": "只用小额 — 每笔支付最多 100,000 聪。",
+            "b2": "支持已含金额的闪电发票和闪电地址（金额由你输入）。",
+            "b3": "如果发现任何异常，请通过 设置 → 反馈 联系我们。"
+        },
+        "infographic": "闪电网络支付流程：你的钱包（Solana 签名）→ 托管锁定 → LP 支付 LN 闪电发票 → 凭支付证明结算。未支付则退款",
+        "links": {
+            "github": "在 GitHub 上查看源代码",
+            "atomiq": "了解 Atomiq"
+        }
+    },
+    "receive": {
+        "dstTokenLabel": "收款币种",
+        "amountLabel": "收款金额（聪）",
+        "amountPlaceholder": "例如 5000",
+        "createButton": "创建收款闪电发票",
+        "lowSolWarn": "SOL 余额过低，收款已停用。收款要等对方付款后、由你签名结算才算完成，而这一步需要 SOL 支付手续费和一笔可退回的小额账户押金（Solana 的“rent”）。请补充约 0.01 SOL 以上后重试。",
+        "invoiceTitle": "收款 {{sats}} 聪 → {{token}}",
+        "copy": "复制",
+        "share": "分享",
+        "awaiting": "等待付款…（对方付清这张闪电发票后会自动继续）",
+        "claiming": "正在结算到 Solana…请在钱包中签名",
+        "expectHint": "付款到账后，你将收到约 {{amount}} {{token}}（已扣除 LP 手续费）。",
+        "receivedTitle": "收款完成",
+        "receivedBody": "你已收到 {{amount}} {{token}}。",
+        "again": "再次收款",
+        "expired": "闪电发票已过期。请重新创建一张。",
+        "claimCancelled": "已取消结算签名。如果款项已经到账，请重试。",
+        "cancelled": "已取消收款。如果对方已经付款，超时后会自动退款。",
+        "cancelWaiting": "取消收款"
+    },
+    "walletStale": {
+        "bannerTitle": "钱包会话可能已过期",
+        "bannerSubtitle": "现在重新连接，避免交易中途出错",
+        "bannerAction": "重新连接"
+    },
+    "update": {
+        "bannerTitle": "新版本 {{version}} 已发布",
+        "modalTitle": "新版本 {{version}}",
+        "currentVersion": "当前版本：{{version}}",
+        "openUpdate": "前往更新",
+        "openGitHub": "在 GitHub 上查看",
+        "later": "稍后",
+        "ignoreThisVersion": "忽略此版本"
+    },
+    "home": {
+        "subtitle": "Bitcoin on Solana",
+        "aboutCbbtc": "cbBTC 是 Coinbase 发行的 1:1 锚定比特币的代币 —— Solana 上最大的 wrapped Bitcoin。",
+        "moat": "你的密钥保存在 Seeker 的 Seed Vault 硬件中。本应用绝不持有你的资金和密钥。",
+        "connectPrompt": "连接钱包即可查看余额并进行兑换。",
+        "connectedLabel": "已连接的钱包",
+        "pullToRefresh": "下拉刷新",
+        "recentActivity": "最近活动",
+        "viewAll": "查看全部"
+    },
+    "history": {
+        "title": "交易记录",
+        "subtitle": "兑换和赚币的活动，集中在一处",
+        "rowLabel": "交易记录",
+        "filterAll": "全部",
+        "filterSwap": "兑换",
+        "filterEarn": "赚币",
+        "filterLightning": "⚡ LN",
+        "empty": "暂无记录",
+        "emptyHint": "你的兑换和赚币交易会显示在这里。",
+        "connectFirst": "连接钱包后查看记录",
+        "loadError": "记录加载失败",
+        "loadErrorHint": "请检查网络连接，稍后重试。",
+        "viewExplorer": "在 Solscan 打开",
+        "failed": "失败",
+        "loadingMore": "加载中…",
+        "kinds": {
+            "swap": "兑换",
+            "supply": "存入",
+            "withdraw": "提取",
+            "borrow": "借款",
+            "repay": "还款",
+            "lightningPay": "⚡ LN 支付",
+            "lightningReceive": "⚡ LN 收款",
+            "lightningRefund": "⚡ LN 退款"
+        },
+        "directions": {
+            "swapOutCbbtc": "cbBTC → SOL",
+            "swapInCbbtc": "SOL → cbBTC",
+            "swapGeneric": "兑换"
+        }
+    },
+    "wallet": {
+        "connect": "连接钱包",
+        "disconnect": "断开连接",
+        "restoring": "正在检查钱包…",
+        "connecting": "连接中…",
+        "disconnecting": "断开中…"
+    },
+    "balance": {
+        "connectFirst": "连接钱包后查看余额",
+        "loadError": "余额加载失败",
+        "a11yCardEmpty": "{{symbol}} 余额，钱包未连接",
+        "a11yCardLoading": "正在加载 {{symbol}} 余额",
+        "a11yCardError": "{{symbol}} 余额加载失败",
+        "a11yCardData": "{{symbol}} 余额 {{amount}}"
+    },
+    "swap": {
+        "title": "兑换",
+        "subtitle": "通过 Jupiter 最优路由即时兑换",
+        "outputHint": "↓ 报价将显示在下方",
+        "available": "余额 {{amount}} {{symbol}}",
+        "minimum": "最低 {{amount}}",
+        "exceeds": "超出你的余额",
+        "amountAccessibility": "输入金额",
+        "flipAccessibility": "切换代币方向",
+        "selectToken": "选择代币",
+        "swapButton": "执行兑换",
+        "btnConnectFirst": "连接钱包后使用",
+        "btnAmountFirst": "请输入金额",
+        "btnQuoteLoading": "正在获取报价…",
+        "btnInsufficientGas": "SOL 不足，无法支付手续费",
+        "expected": "预计到账",
+        "priceImpact": "价格影响",
+        "route": "路由",
+        "hopSingular": "{{count}} 跳",
+        "hopPlural": "{{count}} 跳",
+        "minReceive": "最少到账",
+        "slippage": "滑点容忍度",
+        "quoteFailed": "报价失败",
+        "amountPlaceholder": "请输入金额",
+        "confirmTitle": "确认兑换",
+        "confirmInput": "输入",
+        "mainnetWarn": "钱包会再让你确认一次。这是主网上的真实交易，一经签名无法撤销 —— 签名前请核对上方金额。",
+        "successTitle": "兑换成功",
+        "successLine": "交易已广播到网络。",
+        "signatureLabel": "交易签名",
+        "openSolscan": "在 Solscan 打开",
+        "share": "分享",
+        "shareText": "已兑换 {{inputAmount}} {{inputSymbol}} → {{outputAmount}} {{outputSymbol}}",
+        "shareVia": "分享自 Solana cbBTC",
+        "failureTitle": "兑换失败",
+        "pendingText": "钱包批准后正在广播交易…",
+        "pendingHint": "视网络情况，可能需要几秒。"
+    },
+    "errors": {
+        "userCancelled": "已取消交易授权。",
+        "sessionTerminated": "钱包会话已结束。请重试。",
+        "authExpired": "钱包授权已过期。请重新连接钱包后重试。",
+        "insufficientBalance": "余额不足。请检查 SOL 和输入代币的余额。",
+        "lowSolGas": "你的 SOL 可能不足以支付 gas（当前 {{amount}} SOL）。链上操作需要 SOL 支付网络手续费，首次交易还需要 SOL 支付账户 rent（账户押金）。如果失败，补充少量 SOL 后重试。",
+        "slippageExceeded": "价格波动超出了你设置的滑点容忍度。请调高滑点后重试。",
+        "blockhashExpired": "交易因 blockhash 过期被拒绝。请重试。",
+        "computeBudget": "交易过于复杂（超出计算预算）。请稍后重试。",
+        "rateLimit": "Jupiter API 请求过于频繁。请稍后重试。",
+        "walletTimeout": "钱包未能及时响应。请保持钱包应用处于打开状态，然后重试。",
+        "oracleStale": "预言机价格暂时滞后。稍后重试通常即可恢复。",
+        "noBorrows": "没有需要还款的债务。请刷新后再确认。",
+        "network": "网络错误。请检查网络连接后重试。",
+        "confirmTimeout": "确认耗时比预期长。你的交易仍可能完成 — 重试前请先查看记录。",
+        "txFailedOnChain": "交易在链上失败，未被执行。没有任何资金发生转移。请重试。",
+        "jupiter5xx": "Jupiter 服务暂时不可用。请稍后重试。",
+        "jupiterClient": "Jupiter 请求被拒绝（HTTP {{status}}）。请检查输入内容。",
+        "generic": "交易失败。请稍后重试。",
+        "missingSignature": "未返回交易签名。",
+        "walletNotConnected": "钱包未连接。",
+        "balanceRateLimit": "已触发 RPC 频率限制。请稍后重试。",
+        "balanceNetwork": "网络错误。无法加载余额。",
+        "balanceRpc4xx": "RPC 请求无效。无法加载余额。",
+        "balanceRpc5xx": "RPC 服务器暂时不可用。",
+        "balanceAuth": "RPC 认证失败。无法加载余额。",
+        "balanceUnknown": "无法加载余额。"
+    },
+    "settings": {
+        "title": "设置",
+        "subtitle": "语言 · 主题 · 安全 · 关于",
+        "language": "语言",
+        "ko": "한국어",
+        "en": "English",
+        "vi": "Tiếng Việt",
+        "zh": "简体中文",
+        "theme": "主题",
+        "themeSystem": "跟随系统",
+        "themeLight": "浅色",
+        "themeDark": "深色",
+        "notifications": "通知",
+        "notificationsToggle": "兑换完成通知",
+        "notificationsDescription": "兑换成功后，会发送一条系统通知。",
+        "notificationsDenied": "系统权限被拒绝。请在系统设置中允许通知。",
+        "about": "关于",
+        "version": "版本",
+        "network": "网络",
+        "seekerVerified": "Seeker 认证",
+        "seekerYes": "已认证",
+        "seekerNo": "未持有",
+        "deviceModel": "设备",
+        "seekerDevice": "Seeker（无 Genesis Token）",
+        "walletType": "钱包类型",
+        "walletTypeSeedVault": "Seed Vault (Seeker)",
+        "walletTypeUnknown": "外部钱包",
+        "appLock": "应用锁",
+        "appLockToggle": "用指纹 / PIN 码锁定",
+        "appLockDescription": "打开应用或从后台返回时要求解锁。",
+        "appLockUnavailable": "此设备未录入生物识别或设备 PIN 码。",
+        "feedback": "反馈",
+        "feedbackHint": "通过邮件反馈问题或提出建议",
+        "openFailed": "无法打开外部应用",
+        "history": "交易记录"
+    },
+    "notifications": {
+        "swapSuccessTitle": "兑换完成",
+        "swapSuccessBody": "{{inputAmount}} {{inputSymbol}} → {{outputAmount}} {{outputSymbol}}"
+    },
+    "seeker": {
+        "verified": "Seeker Verified",
+        "device": "Seeker 设备"
+    },
+    "lock": {
+        "title": "Solana cbBTC 已锁定",
+        "subtitle": "用指纹或设备 PIN 码解锁。",
+        "authenticating": "认证中…",
+        "unlockAction": "解锁",
+        "tapToUnlock": "点击任意位置解锁",
+        "tapHint": "点击屏幕即可开始生物识别认证",
+        "promptUnlock": "解锁 Solana cbBTC",
+        "promptEnable": "开启应用锁",
+        "promptDisable": "关闭应用锁"
+    },
+    "about": {
+        "title": "关于",
+        "rowLabel": "关于本应用"
+    },
+    "network": {
+        "mainnet-beta": "主网",
+        "devnet": "开发网",
+        "testnet": "测试网"
+    },
+    "relative": {
+        "never": "—",
+        "justNow": "刚刚",
+        "secondsAgo": "{{count}}秒前",
+        "minutesAgo": "{{count}}分钟前",
+        "hoursAgo": "{{count}}小时前",
+        "daysAgo": "{{count}}天前",
+        "updated": "{{when}}更新",
+        "quoteFresh": "最新报价",
+        "quoteStale": "报价可能已过时"
+    },
+    "wallet_card": {
+        "connectedTitle": "已连接的钱包",
+        "viewOnSolscan": "在 Solscan 查看",
+        "hardwareSecured": "硬件保护",
+        "a11yCard": "已连接的钱包 {{address}}",
+        "a11ySeedVault": "由硬件 Seed Vault 保护"
+    }
+}

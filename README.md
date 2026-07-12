@@ -13,7 +13,7 @@ Mobile Wallet Adapter and Seed Vault hardware-backed signing.
 - **Seeker awareness** — detects Seeker hardware + Solana Mobile Genesis Token, shows "Hardware secured" indicator
 - **App Lock** — biometric / device PIN gate on app open and from background (opt-in)
 - **Offline handling** — global banner, action blocking, explicit empty states (no stuck spinners)
-- **Localized** — Korean (primary) + English
+- **Localized** — Korean (primary) + English + Vietnamese + Simplified Chinese
 - **Theme** — light / dark / system
 - **Push notifications** for swap completion (opt-in)
 - **Share swap result** to any system Share target
@@ -129,7 +129,7 @@ Solana Seeker 폰을 타겟으로 한 BTCfi 모바일 dApp입니다. cbBTC ↔ S
 - Seeker Genesis Token 확인 시 "Verified" 표시
 - 생체 인증 앱 잠금 (opt-in)
 - 오프라인 상태 자동 감지 + 액션 차단
-- 한국어 / English, 라이트 / 다크 / 시스템 테마
+- 한국어 / English / Tiếng Việt / 简体中文, 라이트 / 다크 / 시스템 테마
 
 ### 빠른 실행 (Android 디바이스 필요)
 

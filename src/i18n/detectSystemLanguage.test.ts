@@ -36,6 +36,22 @@ describe("detectSystemLanguage", () =>
         expect(detectSystemLanguage()).toBe("vi");
     });
 
+    it("returns 'zh' when system primary locale is Simplified Chinese", () =>
+    {
+        mockedLocalization.getLocales.mockReturnValue([
+            { languageCode: "zh", languageTag: "zh-Hans-CN", regionCode: "CN" } as never,
+        ]);
+        expect(detectSystemLanguage()).toBe("zh");
+    });
+
+    it("returns 'zh' for Traditional Chinese devices too (간체가 영어보다 가깝다 — 의도된 fallback)", () =>
+    {
+        mockedLocalization.getLocales.mockReturnValue([
+            { languageCode: "zh", languageTag: "zh-Hant-TW", regionCode: "TW" } as never,
+        ]);
+        expect(detectSystemLanguage()).toBe("zh");
+    });
+
     it("falls back to 'en' for unsupported locales (e.g., Japanese)", () =>
     {
         mockedLocalization.getLocales.mockReturnValue([
