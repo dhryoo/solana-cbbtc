@@ -49,6 +49,18 @@ export function usdcReservePubkey(): PublicKey
 export const RECOMMENDED_MAX_LTV = 0.5;  // 첫 안내 권장 상한
 export const WARN_LTV = 0.6;             // 이 이상이면 명시적 경고 표시
 
+// 렌딩 tx priority fee (compute unit price, microLamports/CU).
+// swap 경로(JupiterService)는 Jupiter 가 서버에서 priority fee 를 넣어주지만, 렌딩 tx 는 이 앱이
+// 직접 조립하므로 ComputeBudget instruction 을 직접 넣어야 한다. 없으면 0 microLamport 로 방송돼
+// 혼잡 시 뒤로 밀리거나 드롭되고, signAndSendTransactions 는 재방송이 없어 waitForConfirmation 이
+// 90초를 소진한 뒤 confirm_timeout 으로 실패한다.
+// compute unit LIMIT 은 일부러 설정하지 않는다 — 렌딩 tx 는 Kamino scope refresh 로 CU 소모가 크고
+// 시뮬레이션 없이 한계를 고정하면 CU 초과로 오히려 실패할 수 있다. LIMIT 미설정 시 기본 상한
+// (200k×ix 수, 최대 1.4M)이 적용되며, 실제 priority fee = price × 그 한계 ≈ 0.0001~0.00014 SOL 로
+// MIN_SOL_GAS_RESERVE_SOL(0.002) 안에서 충분히 보수적이다.
+// TODO(후속): 훅의 simulateTransaction unitsConsumed 로 정확한 CU limit 을 붙이고 price 를 동적화.
+export const LENDING_COMPUTE_UNIT_PRICE_MICROLAMPORTS = 100_000;
+
 // cbBTC 최소 공급량 (base unit, decimals=8). = 0.000001 cbBTC.
 // liquidity→collateral(cToken) 변환 시 환율(≈1.0004 underlying/cToken) 때문에 너무 작은
 // 금액(1~2 unit)은 0 cToken 으로 내림되어 on-chain 6003(InvalidAmount) 발생.

@@ -1,4 +1,5 @@
 import {
+    ComputeBudgetProgram,
     Connection,
     PublicKey,
     SystemProgram,
@@ -30,7 +31,7 @@ import { initUserMetadata } from "@kamino-finance/klend-sdk/dist/@codegen/klend/
 import { Reserve } from "@kamino-finance/klend-sdk/dist/@codegen/klend/accounts/Reserve";
 import { Obligation } from "@kamino-finance/klend-sdk/dist/@codegen/klend/accounts/Obligation";
 
-import { cbbtcReservePubkey, farmsProgramPubkey, kaminoMainMarketPubkey, usdcReservePubkey } from "@/constants/lending";
+import { cbbtcReservePubkey, farmsProgramPubkey, kaminoMainMarketPubkey, LENDING_COMPUTE_UNIT_PRICE_MICROLAMPORTS, usdcReservePubkey } from "@/constants/lending";
 import { kitInstructionToWeb3, type KitInstruction } from "@/utils/kitToWeb3";
 import { collateralFromLiquidity } from "@/utils/kaminoExchange";
 
@@ -171,6 +172,14 @@ function signerArg(owner: PublicKey): TransactionSigner
     return { address: addr(owner) } as unknown as TransactionSigner;
 }
 
+// 모든 렌딩 tx 맨 앞에 넣는 priority fee(compute unit price). 근거·값은 constants/lending.ts 참고.
+function priorityFeeInstruction(): TransactionInstruction
+{
+    return ComputeBudgetProgram.setComputeUnitPrice({
+        microLamports: LENDING_COMPUTE_UNIT_PRICE_MICROLAMPORTS,
+    });
+}
+
 /**
  * cbBTC 공급(예치) 트랜잭션 빌드. 신규 사용자면 initUserMetadata + initObligation 선행.
  * 반환: 미서명 VersionedTransaction (호출부에서 MWA 로 서명·전송).
@@ -228,7 +237,8 @@ export async function buildSupplyTransaction(
     const defaultAddr = address(DEFAULT_PUBKEY);
     const farmsProgram = address(farmsProgramPubkey().toBase58());
     const o = signerArg(owner);
-    const ixs: TransactionInstruction[] = [];
+    // priority fee 를 맨 앞에 — 0 microLamport 방송을 막아 혼잡 시 land 되게 한다.
+    const ixs: TransactionInstruction[] = [priorityFeeInstruction()];
 
     // farm refresh instruction (mode=collateral). pre/post deposit 에 동일하게 사용.
     const buildFarmRefreshIx = (): TransactionInstruction => kitInstructionToWeb3(refreshObligationFarmsForReserve(
@@ -484,7 +494,8 @@ export async function buildWithdrawTransaction(
     const systemProgram = address(SystemProgram.programId.toBase58());
     const farmsProgram = address(farmsProgramPubkey().toBase58());
     const o = signerArg(owner);
-    const ixs: TransactionInstruction[] = [];
+    // priority fee 를 맨 앞에 — 0 microLamport 방송을 막아 혼잡 시 land 되게 한다.
+    const ixs: TransactionInstruction[] = [priorityFeeInstruction()];
 
     const farmRefreshIx = (): TransactionInstruction => kitInstructionToWeb3(refreshObligationFarmsForReserve(
         { mode: FARM_MODE_COLLATERAL },
@@ -668,7 +679,8 @@ export async function buildBorrowTransaction(
     const [usdcAtaAcc] = await connection.getMultipleAccountsInfo([userUsdcAta]);
 
     const o = signerArg(owner);
-    const ixs: TransactionInstruction[] = [];
+    // priority fee 를 맨 앞에 — 0 microLamport 방송을 막아 혼잡 시 land 되게 한다.
+    const ixs: TransactionInstruction[] = [priorityFeeInstruction()];
 
     const refreshReserveIx = (reserve: PublicKey, scope: PublicKey | null): TransactionInstruction =>
         kitInstructionToWeb3(refreshReserve({
@@ -798,7 +810,8 @@ export async function buildRepayTransaction(
 
     const userUsdcAta = getAssociatedTokenAddressSync(usdcMint, owner, true, usdcTokenProgram);
     const o = signerArg(owner);
-    const ixs: TransactionInstruction[] = [];
+    // priority fee 를 맨 앞에 — 0 microLamport 방송을 막아 혼잡 시 land 되게 한다.
+    const ixs: TransactionInstruction[] = [priorityFeeInstruction()];
 
     const refreshReserveIx = (reserve: PublicKey, scope: PublicKey | null): TransactionInstruction =>
         kitInstructionToWeb3(refreshReserve({

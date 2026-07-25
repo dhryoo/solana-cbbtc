@@ -77,6 +77,16 @@ function bn(s: string): { toString(): string }
     return { toString: () => s };
 }
 
+// 모든 렌딩 tx 는 맨 앞에 ComputeBudget priority-fee instruction 을 넣어야 한다(0 microLamport
+// 방송 시 혼잡에서 뒤로 밀리거나 드롭 → confirm_timeout). 이 프로그램·위치를 검증한다.
+const COMPUTE_BUDGET_PROGRAM = "ComputeBudget111111111111111111111111111111";
+
+function firstIxProgram(tx: VersionedTransaction): string | undefined
+{
+    const ix = tx.message.compiledInstructions[0];
+    return ix ? tx.message.staticAccountKeys[ix.programIdIndex]?.toBase58() : undefined;
+}
+
 describe("scopeOracleFromReserve", () =>
 {
     it("scope priceFeed 가 설정돼 있으면 PublicKey 반환", () =>
@@ -222,8 +232,8 @@ describe("buildSupplyTransaction", () =>
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const tx = await buildSupplyTransaction(connection as any, OWNER, 10_000n);
         expect(tx).toBeInstanceOf(VersionedTransaction);
-        // initMeta+initOblig+initFarm+ata + refreshReserve+refreshOblig(pre)+farm(pre)+deposit+farm(post) + refreshReserve+refreshOblig(post)
-        expect(tx.message.compiledInstructions).toHaveLength(11);
+        // priorityFee + initMeta+initOblig+initFarm+ata + refreshReserve+refreshOblig(pre)+farm(pre)+deposit+farm(post) + refreshReserve+refreshOblig(post)
+        expect(tx.message.compiledInstructions).toHaveLength(12);
     });
 
     it("기존 사용자(전부 존재, farm 포함) → 7 instruction", async () =>
@@ -248,8 +258,9 @@ describe("buildSupplyTransaction", () =>
         };
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const tx = await buildSupplyTransaction(connection as any, OWNER, 10_000n);
-        // refreshReserve+refreshOblig(pre)+farm(pre)+deposit+farm(post)+refreshReserve+refreshOblig(post)
-        expect(tx.message.compiledInstructions).toHaveLength(7);
+        // priorityFee + refreshReserve+refreshOblig(pre)+farm(pre)+deposit+farm(post)+refreshReserve+refreshOblig(post)
+        expect(tx.message.compiledInstructions).toHaveLength(8);
+        expect(firstIxProgram(tx)).toBe(COMPUTE_BUDGET_PROGRAM); // priority fee 가 맨 앞
         expect(tx.message.staticAccountKeys[0]?.toBase58()).toBe(OWNER.toBase58()); // payer
     });
 
@@ -266,8 +277,8 @@ describe("buildSupplyTransaction", () =>
         };
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const tx = await buildSupplyTransaction(connection as any, OWNER, 10_000n);
-        // refreshReserve+refreshOblig(pre)+deposit+refreshReserve+refreshOblig(post)
-        expect(tx.message.compiledInstructions).toHaveLength(5);
+        // priorityFee + refreshReserve+refreshOblig(pre)+deposit+refreshReserve+refreshOblig(post)
+        expect(tx.message.compiledInstructions).toHaveLength(6);
     });
 });
 
@@ -305,8 +316,8 @@ describe("buildWithdrawTransaction", () =>
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const tx = await buildWithdrawTransaction(withdrawConn() as any, OWNER, { liquidityBase: 0n, withdrawAll: true });
         expect(tx).toBeInstanceOf(VersionedTransaction);
-        // refreshReserve+refreshOblig(pre)+farm(pre)+withdraw+farm(post). post-refresh 생략(닫힘)
-        expect(tx.message.compiledInstructions).toHaveLength(5);
+        // priorityFee + refreshReserve+refreshOblig(pre)+farm(pre)+withdraw+farm(post). post-refresh 생략(닫힘)
+        expect(tx.message.compiledInstructions).toHaveLength(6);
     });
 
     it("부분 인출 → 7 instruction (post-refresh 유지)", async () =>
@@ -319,8 +330,9 @@ describe("buildWithdrawTransaction", () =>
         // 100 cbBTC liquidity → collateral < depositedCollateral(100000) → 부분 인출, 담보 남음
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const tx = await buildWithdrawTransaction(withdrawConn() as any, OWNER, { liquidityBase: 100n, withdrawAll: false });
-        // refreshReserve+refreshOblig(pre)+farm(pre)+withdraw+farm(post)+refreshReserve+refreshOblig(post)
-        expect(tx.message.compiledInstructions).toHaveLength(7);
+        // priorityFee + refreshReserve+refreshOblig(pre)+farm(pre)+withdraw+farm(post)+refreshReserve+refreshOblig(post)
+        expect(tx.message.compiledInstructions).toHaveLength(8);
+        expect(firstIxProgram(tx)).toBe(COMPUTE_BUDGET_PROGRAM);
     });
 
     it("공급분이 없으면 에러", async () =>
@@ -385,8 +397,9 @@ describe("buildBorrowTransaction", () =>
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const tx = await buildBorrowTransaction(borrowConn() as any, OWNER, 1_000_000n);
         expect(tx).toBeInstanceOf(VersionedTransaction);
-        // ata + refreshReserve x2 + refreshOblig(pre) + borrow + refreshReserve x2 + refreshOblig(post)
-        expect(tx.message.compiledInstructions).toHaveLength(8);
+        // priorityFee + ata + refreshReserve x2 + refreshOblig(pre) + borrow + refreshReserve x2 + refreshOblig(post)
+        expect(tx.message.compiledInstructions).toHaveLength(9);
+        expect(firstIxProgram(tx)).toBe(COMPUTE_BUDGET_PROGRAM);
     });
 
     it("amount 0 이면 에러", async () =>
@@ -425,8 +438,9 @@ describe("buildRepayTransaction", () =>
         });
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const tx = await buildRepayTransaction(repayConn() as any, OWNER, { usdcAmountBase: 0n, repayAll: true });
-        // refreshReserve x2 + refreshOblig(pre) + repay + refreshReserve x2 + refreshOblig(post)
-        expect(tx.message.compiledInstructions).toHaveLength(7);
+        // priorityFee + refreshReserve x2 + refreshOblig(pre) + repay + refreshReserve x2 + refreshOblig(post)
+        expect(tx.message.compiledInstructions).toHaveLength(8);
+        expect(firstIxProgram(tx)).toBe(COMPUTE_BUDGET_PROGRAM);
     });
 
     it("부분 상환 amount 0 이면 에러", async () =>
