@@ -119,13 +119,15 @@ export function parseLightningInput(
     {
         return { kind: "lnurl", lnurl: lower };
     }
-    if (lower.startsWith("ln"))
-    {
-        return parseBolt11(lower, nowSec);
-    }
+    // 주소('@' 포함)를 먼저 분류한다 — BOLT11/LNURL 에는 '@' 가 없으므로 겹치지 않고,
+    // lnpay@…/lnd@… 처럼 'ln' 으로 시작하는 정상 주소를 BOLT11 로 오인하지 않는다 (N4).
     if (LIGHTNING_ADDRESS_RE.test(lower))
     {
         return { kind: "lightningAddress", address: lower };
+    }
+    if (lower.startsWith("ln"))
+    {
+        return parseBolt11(lower, nowSec);
     }
     return { kind: "invalid" };
 }

@@ -84,6 +84,15 @@ describe("parseLightningInput — lightning address / lnurl", () =>
         expect(parseLightningInput("user@localhost").kind).toBe("invalid");
     });
 
+    it("classifies a lightning address whose local-part starts with 'ln' (not bolt11)", () =>
+    {
+        // 'ln' 로 시작하는 로컬파트(lnpay@…, lnd@…)를 BOLT11 로 오인해 거부하면 안 된다 (N4).
+        const r = parseLightningInput("lnpay@walletofsatoshi.com");
+        expect(r.kind).toBe("lightningAddress");
+        if (r.kind !== "lightningAddress") return;
+        expect(r.address).toBe("lnpay@walletofsatoshi.com");
+    });
+
     it("classifies bech32 lnurl strings", () =>
     {
         const r = parseLightningInput("LNURL1DP68GURN8GHJ7UM9WFMXJCM99E3K7MF0V9CXJ0M385EKVCENXC6R2C35XVUKXEFCV5MKVV34X5EKZD3EV56NYD3HXQURZEPEXEJXXEPNXSCRVWFNV9NXZCN9XQ6XYEFHVGCXXCMYXYMNSERXFQ5FNS");
