@@ -280,6 +280,34 @@ describe("buildSupplyTransaction", () =>
         // priorityFee + refreshReserve+refreshOblig(pre)+deposit+refreshReserve+refreshOblig(post)
         expect(tx.message.compiledInstructions).toHaveLength(6);
     });
+
+    it("USDC 부채가 있으면 부채 reserve 도 refresh (6009 ReserveStale 방지 — R09)", async () =>
+    {
+        // 기존 사용자: cbBTC 담보 + USDC 부채(RES_B). refreshObligation 은 [cbBTC, RES_B] 를 나열하므로
+        // 두 reserve 모두 같은 tx 안에서 refreshReserve 돼야 한다. 예전엔 cbBTC 만 refresh 해 6009 로
+        // supply-more 가 시뮬에서 막혔다.
+        (Reserve.decode as jest.Mock)
+            .mockReturnValueOnce(mockReserveDecoded())      // cbBTC reserve
+            .mockReturnValueOnce(mockUsdcReserveDecoded()); // RES_B(부채) reserve — scope 조회용
+        (Obligation.decode as jest.Mock).mockReturnValue({
+            deposits: [{ depositReserve: { toString: () => CBBTC_RES } }],
+            borrows: [{ borrowReserve: { toString: () => RES_B }, borrowedAmountSf: { toString: () => "1152921504606846976000" } }],
+        });
+        const connection = {
+            getMultipleAccountsInfo: jest.fn()
+                .mockResolvedValueOnce([{ data: Buffer.from([9]) }, { data: Buffer.from([8]) }, { data: Buffer.from([1]) }]) // [oblig, meta, reserve]
+                .mockResolvedValueOnce([{ data: Buffer.from([7]) }, { data: Buffer.from([6]) }])                             // [ata, farmState]
+                .mockResolvedValueOnce([{ data: Buffer.from([2]) }]),                                                        // [RES_B reserve]
+            getLatestBlockhash: jest.fn().mockResolvedValue({ blockhash: BLOCKHASH }),
+        };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const tx = await buildSupplyTransaction(connection as any, OWNER, 10_000n);
+        // priorityFee + refreshReserve(cbBTC)+refreshReserve(RES_B)+refreshOblig(pre)+farm(pre)
+        //   +deposit+farm(post)+refreshReserve(cbBTC)+refreshReserve(RES_B)+refreshOblig(post) = 10
+        expect(tx.message.compiledInstructions).toHaveLength(10);
+        // 부채 reserve 계정을 실제로 가져와 디코드(scope 조회)했는지 — cbBTC + RES_B = 2회.
+        expect((Reserve.decode as jest.Mock).mock.calls).toHaveLength(2);
+    });
 });
 
 describe("buildWithdrawTransaction", () =>
@@ -291,7 +319,8 @@ describe("buildWithdrawTransaction", () =>
         return {
             getMultipleAccountsInfo: jest.fn()
                 .mockResolvedValueOnce([{ data: Buffer.from([9]) }, { data: Buffer.from([1]) }]) // [oblig, reserve]
-                .mockResolvedValueOnce([{ data: Buffer.from([7]) }, { data: Buffer.from([6]) }]), // [ata, farmState]
+                .mockResolvedValueOnce([{ data: Buffer.from([7]) }, { data: Buffer.from([6]) }]) // [ata, farmState]
+                .mockResolvedValueOnce([{ data: Buffer.from([2]) }]), // [other reserve] — 부채/혼합 담보 있을 때만 소비됨
             getLatestBlockhash: jest.fn().mockResolvedValue({ blockhash: BLOCKHASH }),
         };
     }
@@ -361,6 +390,26 @@ describe("buildWithdrawTransaction", () =>
         // 버그(=[reserve] 재구성)면 3, 수정(=currentReserves 보존)이면 4.
         const post = tx.message.compiledInstructions.at(-1);
         expect(post?.accountKeyIndexes).toHaveLength(4);
+    });
+
+    it("USDC 부채가 있으면 부채 reserve 도 refresh (6009 ReserveStale 방지 — R09)", async () =>
+    {
+        // cbBTC 담보 + USDC 부채(RES_B) 상태에서 부분 인출. refreshObligation 이 [cbBTC, RES_B] 를
+        // 나열하므로 둘 다 refreshReserve 돼야 한다. 예전엔 cbBTC 만 refresh 해 6009 로 인출이 막혔다.
+        (Reserve.decode as jest.Mock)
+            .mockReturnValueOnce(mockReserveDecoded())      // cbBTC reserve
+            .mockReturnValueOnce(mockUsdcReserveDecoded()); // RES_B(부채) reserve — scope 조회용
+        (Obligation.decode as jest.Mock).mockReturnValue({
+            deposits: [{ depositReserve: { toString: () => CBBTC_RES }, depositedAmount: { toString: () => "100000" } }],
+            borrows: [{ borrowReserve: { toString: () => RES_B }, borrowedAmountSf: { toString: () => "1152921504606846976000" } }],
+        });
+        // 부분 인출(담보 남음) → post-refresh 유지.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const tx = await buildWithdrawTransaction(withdrawConn() as any, OWNER, { liquidityBase: 100n, withdrawAll: false });
+        // priorityFee + refreshReserve(cbBTC)+refreshReserve(RES_B)+refreshOblig(pre)+farm(pre)
+        //   +withdraw+farm(post)+refreshReserve(cbBTC)+refreshReserve(RES_B)+refreshOblig(post) = 10
+        expect(tx.message.compiledInstructions).toHaveLength(10);
+        expect((Reserve.decode as jest.Mock).mock.calls).toHaveLength(2);
     });
 });
 

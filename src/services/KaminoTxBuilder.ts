@@ -181,6 +181,36 @@ function priorityFeeInstruction(): TransactionInstruction
 }
 
 /**
+ * 주어진 reserve 들의 scope 오라클을 on-chain 계정에서 조회한다(base58 → priceFeed|null).
+ * refreshObligation 의 remaining accounts 로 넘어가는 reserve 는 전부 같은 tx 안에서 refreshReserve
+ * 돼야 한다(안 하면 6009 ReserveStale). cbBTC 외 reserve(예: USDC 부채)의 refreshReserve 를 만들려면
+ * 각 reserve 의 scope priceFeed 가 필요하므로 계정을 가져와 디코드한다. 못 읽은 reserve 는 맵에서
+ * 빠진다(best-effort — 현재 동작보다 나빠지지 않음).
+ */
+async function fetchReserveScopes(
+    connection: Connection,
+    reserves: PublicKey[],
+): Promise<Map<string, PublicKey | null>>
+{
+    const out = new Map<string, PublicKey | null>();
+    if (reserves.length === 0)
+    {
+        return out;
+    }
+    const accs = await connection.getMultipleAccountsInfo(reserves);
+    reserves.forEach((r, i) =>
+    {
+        const acc = accs[i];
+        if (acc)
+        {
+            const decoded = Reserve.decode(acc.data) as unknown as DecodedReserve;
+            out.set(r.toBase58(), scopeOracleFromReserve(decoded));
+        }
+    });
+    return out;
+}
+
+/**
  * cbBTC 공급(예치) 트랜잭션 빌드. 신규 사용자면 initUserMetadata + initObligation 선행.
  * 반환: 미서명 VersionedTransaction (호출부에서 MWA 로 서명·전송).
  *
@@ -259,14 +289,16 @@ export async function buildSupplyTransaction(
         },
     ) as KitInstruction);
 
-    const buildRefreshReserveIx = (): TransactionInstruction => kitInstructionToWeb3(refreshReserve({
-        reserve: addr(reserve),
-        lendingMarket: addr(market),
-        pythOracle: none(),
-        switchboardPriceOracle: none(),
-        switchboardTwapOracle: none(),
-        scopePrices: scopeOracle ? some(addr(scopeOracle)) : none(),
-    }) as KitInstruction);
+    const buildRefreshReserveIxFor = (res: PublicKey, scope: PublicKey | null): TransactionInstruction =>
+        kitInstructionToWeb3(refreshReserve({
+            reserve: addr(res),
+            lendingMarket: addr(market),
+            pythOracle: none(),
+            switchboardPriceOracle: none(),
+            switchboardTwapOracle: none(),
+            scopePrices: scope ? some(addr(scope)) : none(),
+        }) as KitInstruction);
+    const buildRefreshReserveIx = (): TransactionInstruction => buildRefreshReserveIxFor(reserve, scopeOracle);
 
     // refreshObligation — remaining accounts = 넘긴 reserve 들(WRITABLE). on-chain 의
     // 현재 보유 reserve 수와 일치해야 함 (불일치 시 6006).
@@ -290,6 +322,26 @@ export async function buildSupplyTransaction(
     const afterReserves = currentReserves.some((r) => r.equals(reserve))
         ? currentReserves
         : [...currentReserves, reserve];
+
+    // R09: refreshObligation 이 나열하는 cbBTC 외 reserve(USDC 부채 등)도 같은 tx 에서 refreshReserve
+    // 해야 6009 ReserveStale 을 피한다. 그 reserve 들의 scope 오라클을 미리 조회해 둔다.
+    const otherReserves = afterReserves.filter((r) => !r.equals(reserve));
+    const otherScopes = await fetchReserveScopes(connection, otherReserves);
+    const pushOtherReserveRefreshes = (group: PublicKey[]): void =>
+    {
+        for (const r of group)
+        {
+            if (r.equals(reserve))
+            {
+                continue; // cbBTC 는 buildRefreshReserveIx() 로 이미 refresh 됨
+            }
+            const scope = otherScopes.get(r.toBase58());
+            if (scope !== undefined)
+            {
+                ixs.push(buildRefreshReserveIxFor(r, scope));
+            }
+        }
+    };
 
     // 1. 신규 사용자: userMetadata (LUT 없이 default)
     if (!userMetaAcc)
@@ -355,6 +407,7 @@ export async function buildSupplyTransaction(
 
     // 4. refreshReserve + refreshObligation (예치 전 — 현재 보유 reserve 기준)
     ixs.push(buildRefreshReserveIx());
+    pushOtherReserveRefreshes(currentReserves); // R09: 부채 등 다른 reserve 도 refresh
     ixs.push(buildRefreshObligationIx(currentReserves));
 
     // 5. farm refresh (deposit 직전 — on-chain check_refresh 가 요구)
@@ -393,6 +446,7 @@ export async function buildSupplyTransaction(
     // 8. refreshReserve + refreshObligation (deposit 후 — obligation 집계값 즉시 갱신).
     // 이게 없으면 depositedValueSf 가 stale(0) 로 남아 포지션이 비어 보인다.
     ixs.push(buildRefreshReserveIx());
+    pushOtherReserveRefreshes(afterReserves); // R09
     ixs.push(buildRefreshObligationIx(afterReserves));
 
     const { blockhash } = await connection.getLatestBlockhash();
@@ -515,14 +569,16 @@ export async function buildWithdrawTransaction(
         },
     ) as KitInstruction);
 
-    const refreshReserveIx = (): TransactionInstruction => kitInstructionToWeb3(refreshReserve({
-        reserve: addr(reserve),
-        lendingMarket: addr(market),
-        pythOracle: none(),
-        switchboardPriceOracle: none(),
-        switchboardTwapOracle: none(),
-        scopePrices: scopeOracle ? some(addr(scopeOracle)) : none(),
-    }) as KitInstruction);
+    const refreshReserveIxFor = (res: PublicKey, scope: PublicKey | null): TransactionInstruction =>
+        kitInstructionToWeb3(refreshReserve({
+            reserve: addr(res),
+            lendingMarket: addr(market),
+            pythOracle: none(),
+            switchboardPriceOracle: none(),
+            switchboardTwapOracle: none(),
+            scopePrices: scope ? some(addr(scope)) : none(),
+        }) as KitInstruction);
+    const refreshReserveIx = (): TransactionInstruction => refreshReserveIxFor(reserve, scopeOracle);
 
     const refreshObligationIx = (reserveList: PublicKey[]): TransactionInstruction =>
     {
@@ -552,6 +608,26 @@ export async function buildWithdrawTransaction(
     // 3007(AccountOwnedByWrongProgram) 로 실패하므로 post-refresh 를 생략한다.
     const willClose = postReserves.length === 0;
 
+    // R09: refreshObligation 이 나열하는 cbBTC 외 reserve(USDC 부채 등)도 refreshReserve 해야 6009 를
+    // 피한다. postReserves ⊆ currentReserves 이므로 currentReserves 기준으로 scope 를 모아 둔다.
+    const otherReserves = currentReserves.filter((r) => !r.equals(reserve));
+    const otherScopes = await fetchReserveScopes(connection, otherReserves);
+    const pushOtherReserveRefreshes = (group: PublicKey[]): void =>
+    {
+        for (const r of group)
+        {
+            if (r.equals(reserve))
+            {
+                continue; // cbBTC 는 refreshReserveIx() 로 이미 refresh 됨
+            }
+            const scope = otherScopes.get(r.toBase58());
+            if (scope !== undefined)
+            {
+                ixs.push(refreshReserveIxFor(r, scope));
+            }
+        }
+    };
+
     // farm user state 가 없으면(드묾) 먼저 init
     if (farm && farmUserState && !farmUserStateAcc)
     {
@@ -579,6 +655,7 @@ export async function buildWithdrawTransaction(
     }
 
     ixs.push(refreshReserveIx());
+    pushOtherReserveRefreshes(currentReserves); // R09: 부채 등 다른 reserve 도 refresh
     ixs.push(refreshObligationIx(currentReserves));
     if (farm)
     {
@@ -613,6 +690,7 @@ export async function buildWithdrawTransaction(
     if (!willClose)
     {
         ixs.push(refreshReserveIx());
+        pushOtherReserveRefreshes(postReserves); // R09
         ixs.push(refreshObligationIx(postReserves));
     }
 
