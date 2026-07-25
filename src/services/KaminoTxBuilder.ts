@@ -409,9 +409,12 @@ export async function buildSupplyTransaction(
         ixs.push(createAssociatedTokenAccountInstruction(owner, userAta, owner, cbbtcMint, liqTokenProgram));
     }
 
-    // 4. refreshReserve + refreshObligation (예치 전 — 현재 보유 reserve 기준)
+    // 4. refreshReserve + refreshObligation (예치 전 — 현재 보유 reserve 기준).
+    // 순서 주의: 다른 reserve(부채 등) 먼저 → cbBTC(연산 reserve) 를 refreshObligation 직전 마지막에.
+    // klend 의 check_refresh 는 연산 reserve 를 '마지막' refreshReserve 로 기대한다(공식 SDK 동일).
+    // 뒤바뀌면 withdraw/deposit 이 2502(RequireKeysEqViolated) 로 실패한다 (R09).
+    pushOtherReserveRefreshes(currentReserves);
     ixs.push(buildRefreshReserveIx());
-    pushOtherReserveRefreshes(currentReserves); // R09: 부채 등 다른 reserve 도 refresh
     ixs.push(buildRefreshObligationIx(currentReserves));
 
     // 5. farm refresh (deposit 직전 — on-chain check_refresh 가 요구)
@@ -448,9 +451,9 @@ export async function buildSupplyTransaction(
     }
 
     // 8. refreshReserve + refreshObligation (deposit 후 — obligation 집계값 즉시 갱신).
-    // 이게 없으면 depositedValueSf 가 stale(0) 로 남아 포지션이 비어 보인다.
-    ixs.push(buildRefreshReserveIx());
+    // 이게 없으면 depositedValueSf 가 stale(0) 로 남아 포지션이 비어 보인다. (순서: 다른 reserve → cbBTC)
     pushOtherReserveRefreshes(afterReserves); // R09
+    ixs.push(buildRefreshReserveIx());
     ixs.push(buildRefreshObligationIx(afterReserves));
 
     const { blockhash } = await connection.getLatestBlockhash();
@@ -664,8 +667,10 @@ export async function buildWithdrawTransaction(
         ixs.push(createAssociatedTokenAccountInstruction(owner, userAta, owner, cbbtcMint, liqTokenProgram));
     }
 
+    // 순서 주의: 다른 reserve(부채 등) 먼저 → cbBTC(연산 reserve) 를 refreshObligation 직전 마지막에.
+    // klend check_refresh 가 연산 reserve 를 '마지막' 으로 기대 — 뒤바뀌면 2502 (R09).
+    pushOtherReserveRefreshes(currentReserves);
     ixs.push(refreshReserveIx());
-    pushOtherReserveRefreshes(currentReserves); // R09: 부채 등 다른 reserve 도 refresh
     ixs.push(refreshObligationIx(currentReserves));
     if (farm)
     {
@@ -699,8 +704,8 @@ export async function buildWithdrawTransaction(
     // obligation 이 닫히는 경우 post refreshObligation 은 닫힌 계정을 건드려 실패 → 생략.
     if (!willClose)
     {
-        ixs.push(refreshReserveIx());
-        pushOtherReserveRefreshes(postReserves); // R09
+        pushOtherReserveRefreshes(postReserves); // R09: 다른 reserve 먼저
+        ixs.push(refreshReserveIx());            // cbBTC 마지막
         ixs.push(refreshObligationIx(postReserves));
     }
 

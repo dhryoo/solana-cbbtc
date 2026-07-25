@@ -87,6 +87,29 @@ function firstIxProgram(tx: VersionedTransaction): string | undefined
     return ix ? tx.message.staticAccountKeys[ix.programIdIndex]?.toBase58() : undefined;
 }
 
+// refreshReserve instruction 은 account[0] 가 reserve 다(다른 명령은 account[0] 가 owner/market).
+// 넘긴 reserve 집합에 대해 tx 순서대로 refresh 된 reserve 시퀀스를 뽑는다 — klend 는 연산 reserve 를
+// '마지막' refreshReserve 로 기대하므로(2502 방지, R09) 그 순서를 고정하기 위함.
+function refreshedReserveOrder(tx: VersionedTransaction, reserves: readonly string[]): string[]
+{
+    const set = new Set(reserves);
+    const out: string[] = [];
+    for (const ix of tx.message.compiledInstructions)
+    {
+        const acc0 = ix.accountKeyIndexes[0];
+        if (acc0 === undefined)
+        {
+            continue;
+        }
+        const key = tx.message.staticAccountKeys[acc0]?.toBase58();
+        if (key !== undefined && set.has(key))
+        {
+            out.push(key);
+        }
+    }
+    return out;
+}
+
 describe("scopeOracleFromReserve", () =>
 {
     it("scope priceFeed 가 설정돼 있으면 PublicKey 반환", () =>
@@ -302,11 +325,14 @@ describe("buildSupplyTransaction", () =>
         };
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const tx = await buildSupplyTransaction(connection as any, OWNER, 10_000n);
-        // priorityFee + refreshReserve(cbBTC)+refreshReserve(RES_B)+refreshOblig(pre)+farm(pre)
-        //   +deposit+farm(post)+refreshReserve(cbBTC)+refreshReserve(RES_B)+refreshOblig(post) = 10
+        // priorityFee + refreshReserve(RES_B)+refreshReserve(cbBTC)+refreshOblig(pre)+farm(pre)
+        //   +deposit+farm(post)+refreshReserve(RES_B)+refreshReserve(cbBTC)+refreshOblig(post) = 10
         expect(tx.message.compiledInstructions).toHaveLength(10);
         // 부채 reserve 계정을 실제로 가져와 디코드(scope 조회)했는지 — cbBTC + RES_B = 2회.
         expect((Reserve.decode as jest.Mock).mock.calls).toHaveLength(2);
+        // 순서: 각 그룹에서 다른 reserve(RES_B) 먼저 → cbBTC(연산 reserve) 를 refreshObligation 직전 마지막에.
+        // 뒤바뀌면 klend check_refresh 2502. pre·post 두 그룹.
+        expect(refreshedReserveOrder(tx, [CBBTC_RES, RES_B])).toEqual([RES_B, CBBTC_RES, RES_B, CBBTC_RES]);
     });
 });
 
@@ -406,10 +432,12 @@ describe("buildWithdrawTransaction", () =>
         // 부분 인출(담보 남음) → post-refresh 유지.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const tx = await buildWithdrawTransaction(withdrawConn() as any, OWNER, { liquidityBase: 100n, withdrawAll: false });
-        // priorityFee + refreshReserve(cbBTC)+refreshReserve(RES_B)+refreshOblig(pre)+farm(pre)
-        //   +withdraw+farm(post)+refreshReserve(cbBTC)+refreshReserve(RES_B)+refreshOblig(post) = 10
+        // priorityFee + refreshReserve(RES_B)+refreshReserve(cbBTC)+refreshOblig(pre)+farm(pre)
+        //   +withdraw+farm(post)+refreshReserve(RES_B)+refreshReserve(cbBTC)+refreshOblig(post) = 10
         expect(tx.message.compiledInstructions).toHaveLength(10);
         expect((Reserve.decode as jest.Mock).mock.calls).toHaveLength(2);
+        // 순서: 다른 reserve(RES_B) 먼저 → cbBTC(연산 reserve) 를 refreshObligation 직전 마지막에 (2502 방지).
+        expect(refreshedReserveOrder(tx, [CBBTC_RES, RES_B])).toEqual([RES_B, CBBTC_RES, RES_B, CBBTC_RES]);
     });
 });
 
