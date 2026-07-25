@@ -1,6 +1,9 @@
+import { Connection } from "@solana/web3.js";
+
 import { getRpcEndpoints } from "@/constants/cluster";
 import { SOL, USDC, type TokenInfo } from "@/constants/tokens";
 import { fetchWithTimeout } from "@/utils/fetchWithTimeout";
+import { makeFailoverFetch } from "@/utils/failoverFetch";
 
 import { LN_SENTINEL } from "./sentinels";
 import { asLightningAmountError } from "./types";
@@ -158,10 +161,17 @@ function loadRuntime(): Promise<AtomiqRuntime>
         /* eslint-enable @typescript-eslint/no-require-imports */
 
         const factory = new sdk.SwapperFactory([chainSolana.SolanaInitializer]);
-        const rpcUrl = getRpcEndpoints()[0];
+        // 앱 RPC failover 를 라이트닝 자금 경로에도 적용 (R16). chain-solana 는 rpcUrl 로 web3.js
+        // Connection 객체도 받으므로(문자열이면 내부에서 new Connection), failover fetch 를 주입한
+        // Connection 을 넘겨 단일 endpoint 고정 대신 429/5xx·네트워크 오류를 흡수한다.
+        const endpoints = getRpcEndpoints();
+        const rpcConnection = new Connection(endpoints[0]!, {
+            commitment: "confirmed",
+            fetch: makeFailoverFetch(endpoints),
+        });
         const lpUrls = await fetchLpUrls();
         const swapper = factory.newSwapper({
-            chains: { SOLANA: { rpcUrl } },
+            chains: { SOLANA: { rpcUrl: rpcConnection } },
             bitcoinNetwork: sdk.BitcoinNetwork.MAINNET,
             // LP 목록을 직접 주입 — SDK 의 api.github.com 의존 우회 (위 REGISTRY 주석 참조)
             intermediaryUrl: lpUrls,

@@ -1,4 +1,4 @@
-import { makeFailoverFetch } from "./ConnectionProvider";
+import { makeFailoverFetch } from "@/utils/failoverFetch";
 
 function res(status: number): Response
 {
