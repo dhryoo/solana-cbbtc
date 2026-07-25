@@ -884,7 +884,7 @@ const makeStyles = (t: ThemePalette) => StyleSheet.create({
     },
     experimentText: { flex: 1, fontSize: 12, lineHeight: 17, color: t.textMuted },
     whatIsRow: { flexDirection: "row" as const, alignItems: "center" as const, gap: 5, alignSelf: "flex-start" as const, paddingVertical: 6 },
-    whatIsText: { fontSize: 13, fontWeight: "700" as const, color: BRAND_PURPLE },
+    whatIsText: { fontSize: 13, fontWeight: "700" as const, color: t.accentText },
     connectCard: {
         alignItems: "center" as const,
         gap: 10,
@@ -1005,9 +1005,9 @@ const makeStyles = (t: ThemePalette) => StyleSheet.create({
         backgroundColor: t.surface,
     },
     proofCopyBtnPressed: { opacity: 0.6, backgroundColor: t.surfaceMuted },
-    proofCopyBtnText: { fontSize: 13, fontWeight: "700", color: BRAND_PURPLE },
+    proofCopyBtnText: { fontSize: 13, fontWeight: "700", color: t.accentText },
     linkRow: { flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: 6 },
-    linkText: { fontSize: 13, fontWeight: "600", color: BRAND_PURPLE },
+    linkText: { fontSize: 13, fontWeight: "600", color: t.accentText },
     errorBox: {
         borderWidth: 1,
         borderColor: t.error,

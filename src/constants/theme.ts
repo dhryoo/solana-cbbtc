@@ -23,6 +23,11 @@ export interface ThemePalette
     primaryPressed: string;
     disabled: string;
 
+    // 작은 보라 텍스트/링크용 접근성 안전 색. BRAND_PURPLE(#9945FF)은 작은 텍스트에서 WCAG AA
+    // (4.5:1)를 통과하지 못한다(다크 muted 배경 ~3.85:1). 장식(아이콘/배경/테두리)엔 BRAND_PURPLE
+    // 을 그대로 쓰되, 본문 텍스트 색으로는 이 토큰을 쓴다. 값은 각 모드 표면에서 4.5:1 이상.
+    accentText: string;
+
     border: string;
     borderStrong: string;
 
@@ -44,6 +49,8 @@ export const LIGHT_PALETTE: ThemePalette = {
     primary: "#111111",
     primaryPressed: "#2a2a2a",
     disabled: "#dddddd",
+    accentText: "#6d28d9", // deep violet — 밝은 표면에서 ≥5:1
+
     border: "#eeeeee",
     borderStrong: "#cccccc",
     error: "#cc3333",
@@ -64,6 +71,8 @@ export const DARK_PALETTE: ThemePalette = {
     primary: "#ffffff",
     primaryPressed: "#dddddd",
     disabled: "#333338",
+    accentText: "#b794f6", // light violet — 어두운 표면에서 ≥6:1
+
     border: "#2a2a2e",
     borderStrong: "#44444a",
     error: "#ff6b6b",

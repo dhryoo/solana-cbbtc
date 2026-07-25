@@ -42,6 +42,6 @@ const makeStyles = (t: ThemePalette) => ({
     text: {
         fontSize: 12,
         fontWeight: "700" as const,
-        color: BRAND_PURPLE,
+        color: t.accentText,
     },
 });

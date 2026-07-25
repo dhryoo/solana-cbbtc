@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Animated, Pressable, Text, View } from "react-native";
 
 import type { ThemePalette } from "@/constants/theme";
@@ -36,19 +37,22 @@ interface ErrorViewProps
 
 export function ErrorView({ message, onRetry, retryLabel, compact }: ErrorViewProps): React.JSX.Element
 {
+    const { t } = useTranslation();
     const styles = useThemedStyles(makeStyles);
+    // retryLabel 미지정 시 하드코딩 "Retry" 대신 현재 로케일의 공통 문구로 폴백 (N5).
+    const label = retryLabel ?? t("common.retry");
     return (
         <View style={compact ? styles.compactCenter : styles.center}>
             <Text style={styles.errorText}>{message}</Text>
             {onRetry && (
                 <Pressable
                     accessibilityRole="button"
-                    accessibilityLabel={retryLabel ?? "Retry"}
+                    accessibilityLabel={label}
                     onPress={onRetry}
                     style={({ pressed }) =>
                         [styles.retryButton, pressed && styles.retryPressed]}
                 >
-                    <Text style={styles.retryText}>{retryLabel ?? "Retry"}</Text>
+                    <Text style={styles.retryText}>{label}</Text>
                 </Pressable>
             )}
         </View>

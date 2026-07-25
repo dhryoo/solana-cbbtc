@@ -278,8 +278,11 @@ function SuccessStage({
             <Text style={styles.sigLabel}>{t("swap.signatureLabel")}</Text>
             <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={t("common.copyAddress")}
-                accessibilityHint={t("common.copyAddressHint")}
+                accessibilityLabel={t("swap.copySignature")}
+                accessibilityHint={t("swap.copySignatureHint")}
+                // onPress 도 둔다 — 스크린리더의 activate(더블탭)는 onLongPress 로 전달되지 않아
+                // onPress 없이는 서명 복사를 비시각적으로 실행할 수 없었다 (N6).
+                onPress={() => { void onLongPressSignature(); }}
                 onLongPress={() => { void onLongPressSignature(); }}
                 delayLongPress={400}
             >

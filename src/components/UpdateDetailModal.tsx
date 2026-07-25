@@ -219,7 +219,7 @@ const makeStyles = (t: ThemePalette) => StyleSheet.create({
     notes: { maxHeight: 240 },
     notesContent: { gap: 6, paddingVertical: 4 },
     bulletRow: { flexDirection: "row", gap: 8, alignItems: "flex-start" },
-    bullet: { color: BRAND_PURPLE, fontSize: 14, lineHeight: 20, fontWeight: "700" },
+    bullet: { color: t.accentText, fontSize: 14, lineHeight: 20, fontWeight: "700" },
     bulletText: { flex: 1, fontSize: 14, lineHeight: 20, color: t.text },
     bodyText: { fontSize: 13, lineHeight: 19, color: t.textMuted },
     actions: { gap: 10 },

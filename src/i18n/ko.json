@@ -22,7 +22,7 @@
         "home": "자산",
         "swap": "Swap",
         "earn": "Earn",
-        "lightning": "라이트닝",
+        "lightning": "Lightning",
         "settings": "설정"
     },
     "earn": {
@@ -470,6 +470,8 @@
         "successTitle": "Swap 성공",
         "successLine": "트랜잭션이 네트워크에 전송됐습니다.",
         "signatureLabel": "Signature",
+        "copySignature": "서명 복사",
+        "copySignatureHint": "트랜잭션 서명을 클립보드에 복사합니다",
         "openSolscan": "Solscan 열기",
         "share": "공유",
         "shareText": "{{inputAmount}} {{inputSymbol}} → {{outputAmount}} {{outputSymbol}} 교환 완료",

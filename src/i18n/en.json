@@ -470,6 +470,8 @@
         "successTitle": "Swap successful",
         "successLine": "Transaction was broadcast to the network.",
         "signatureLabel": "Signature",
+        "copySignature": "Copy signature",
+        "copySignatureHint": "Copies the transaction signature to the clipboard",
         "openSolscan": "Open on Solscan",
         "share": "Share",
         "shareText": "Swapped {{inputAmount}} {{inputSymbol}} → {{outputAmount}} {{outputSymbol}}",

@@ -20,9 +20,9 @@
     },
     "tabs": {
         "home": "资产",
-        "swap": "兑换",
-        "earn": "赚币",
-        "lightning": "闪电",
+        "swap": "Swap",
+        "earn": "Earn",
+        "lightning": "Lightning",
         "settings": "设置"
     },
     "earn": {
@@ -470,6 +470,8 @@
         "successTitle": "兑换成功",
         "successLine": "交易已广播到网络。",
         "signatureLabel": "交易签名",
+        "copySignature": "复制签名",
+        "copySignatureHint": "将交易签名复制到剪贴板",
         "openSolscan": "在 Solscan 打开",
         "share": "分享",
         "shareText": "已兑换 {{inputAmount}} {{inputSymbol}} → {{outputAmount}} {{outputSymbol}}",

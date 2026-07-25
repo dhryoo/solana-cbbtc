@@ -416,7 +416,7 @@ const makeStyles = (t: ThemePalette) => ({
         fontWeight: "500" as const,
     },
     kvValueAccent: {
-        color: BRAND_PURPLE,
+        color: t.accentText,
         fontWeight: "700" as const,
     },
     aboutRow: {

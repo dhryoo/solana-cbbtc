@@ -333,7 +333,7 @@ const makeStyles = (t: ThemePalette) => ({
     resultTitle: { fontSize: 16, fontWeight: "700" as const, color: t.text },
     resultBody: { fontSize: 13, lineHeight: 19, color: t.textMuted },
     linkRow: { flexDirection: "row" as const, alignItems: "center" as const, gap: 6, paddingVertical: 6 },
-    linkText: { fontSize: 13, fontWeight: "600" as const, color: BRAND_PURPLE },
+    linkText: { fontSize: 13, fontWeight: "600" as const, color: t.accentText },
     infoBox: { flexDirection: "row" as const, alignItems: "flex-start" as const, gap: 8, padding: 12, borderRadius: 12, backgroundColor: t.surfaceMuted },
     infoText: { flex: 1, fontSize: 12, lineHeight: 17, color: t.textMuted },
     warnBox: { flexDirection: "row" as const, alignItems: "flex-start" as const, gap: 8, padding: 12, borderRadius: 12, borderWidth: 1, borderColor: t.warn, backgroundColor: t.surface },

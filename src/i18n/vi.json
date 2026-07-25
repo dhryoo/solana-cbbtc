@@ -415,6 +415,8 @@
         "successTitle": "Swap thành công",
         "successLine": "Giao dịch đã được phát lên mạng.",
         "signatureLabel": "Signature",
+        "copySignature": "Sao chép chữ ký",
+        "copySignatureHint": "Sao chép chữ ký giao dịch vào bảng nhớ tạm",
         "openSolscan": "Mở trên Solscan",
         "share": "Chia sẻ",
         "shareText": "Đã swap {{inputAmount}} {{inputSymbol}} → {{outputAmount}} {{outputSymbol}}",
