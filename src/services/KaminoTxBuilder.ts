@@ -33,7 +33,7 @@ import { Obligation } from "@kamino-finance/klend-sdk/dist/@codegen/klend/accoun
 
 import { cbbtcReservePubkey, farmsProgramPubkey, kaminoMainMarketPubkey, LENDING_COMPUTE_UNIT_PRICE_MICROLAMPORTS, usdcReservePubkey } from "@/constants/lending";
 import { kitInstructionToWeb3, type KitInstruction } from "@/utils/kitToWeb3";
-import { collateralFromLiquidity } from "@/utils/kaminoExchange";
+import { collateralFromLiquidity, reserveTotalLiquidity } from "@/utils/kaminoExchange";
 
 import { deriveObligationPda } from "./KaminoService";
 import { lendingMarketAuthority, obligationFarmUserState, userMetadata } from "./kaminoAccounts";
@@ -56,6 +56,10 @@ interface DecodedReserve
         feeVault: AddrLike;
         availableAmount: AddrLike;
         borrowedAmountSf: AddrLike;
+        // 미정산 수수료(Sf). 환율 분모(totalLiquidity)에서 뺀다 — R31. 옛 mock 호환 위해 optional.
+        accumulatedProtocolFeesSf?: AddrLike;
+        accumulatedReferrerFeesSf?: AddrLike;
+        pendingReferrerFeesSf?: AddrLike;
     };
     collateral: {
         mintPubkey: AddrLike;
@@ -501,10 +505,16 @@ export async function buildWithdrawTransaction(
     const collMint = new PublicKey(reserveDecoded.collateral.mintPubkey.toString());
     const collSupply = new PublicKey(reserveDecoded.collateral.supplyVault.toString());
 
-    // 환율 입력: totalLiquidity = available + borrowed(Sf>>60), cTokenSupply = collateral.mintTotalSupply
-    const available = BigInt(reserveDecoded.liquidity.availableAmount.toString());
-    const borrowedSf = BigInt(reserveDecoded.liquidity.borrowedAmountSf.toString());
-    const totalLiquidity = available + (borrowedSf >> 60n);
+    // 환율 입력: totalLiquidity = available + borrowed − 미정산 수수료 (Kamino getTotalSupply, R31),
+    // cTokenSupply = collateral.mintTotalSupply
+    const liq = reserveDecoded.liquidity;
+    const totalLiquidity = reserveTotalLiquidity(
+        BigInt(liq.availableAmount.toString()),
+        BigInt(liq.borrowedAmountSf.toString()),
+        BigInt(liq.accumulatedProtocolFeesSf?.toString() ?? "0"),
+        BigInt(liq.accumulatedReferrerFeesSf?.toString() ?? "0"),
+        BigInt(liq.pendingReferrerFeesSf?.toString() ?? "0"),
+    );
     const cTokenSupply = BigInt(reserveDecoded.collateral.mintTotalSupply.toString());
 
     // 보유 collateral (cbBTC deposit)

@@ -19,7 +19,7 @@ import {
     riskZone,
     type CurvePoint,
 } from "@/utils/lendingMath";
-import { liquidityFromCollateral } from "@/utils/kaminoExchange";
+import { liquidityFromCollateral, reserveTotalLiquidity } from "@/utils/kaminoExchange";
 
 // Kamino 의 scaled fraction 스케일 = 2^60 (Fraction.FRACTIONS = 60). M8.4 실측 검증.
 const FRACTION_SCALE = 2 ** 60;
@@ -38,6 +38,10 @@ export interface ReserveLike
         borrowedAmountSf: BNLike;
         marketPriceSf: BNLike;
         mintDecimals: BNLike;
+        // 미정산 수수료(Sf) — 환율 분모에서 뺀다 (R31). 옛 mock 호환 위해 optional.
+        accumulatedProtocolFeesSf?: BNLike;
+        accumulatedReferrerFeesSf?: BNLike;
+        pendingReferrerFeesSf?: BNLike;
     };
     collateral: {
         mintTotalSupply: BNLike;
@@ -126,9 +130,14 @@ export function cbbtcCollateralAmount(
         return 0;
     }
     const collateralCToken = BigInt(deposit.depositedAmount.toString());
-    const available = BigInt(reserve.liquidity.availableAmount.toString());
-    const borrowedSf = BigInt(reserve.liquidity.borrowedAmountSf.toString());
-    const totalLiquidity = available + (borrowedSf >> 60n);
+    const liq = reserve.liquidity;
+    const totalLiquidity = reserveTotalLiquidity(
+        BigInt(liq.availableAmount.toString()),
+        BigInt(liq.borrowedAmountSf.toString()),
+        BigInt(liq.accumulatedProtocolFeesSf?.toString() ?? "0"),
+        BigInt(liq.accumulatedReferrerFeesSf?.toString() ?? "0"),
+        BigInt(liq.pendingReferrerFeesSf?.toString() ?? "0"),
+    );
     const cTokenSupply = BigInt(reserve.collateral.mintTotalSupply.toString());
     const liquidityBase = liquidityFromCollateral(collateralCToken, totalLiquidity, cTokenSupply);
     const decimals = Number(reserve.liquidity.mintDecimals.toString());
