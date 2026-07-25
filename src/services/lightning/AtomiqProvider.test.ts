@@ -436,3 +436,43 @@ describe("AtomiqProvider.createReceive (positional-arg contract)", () =>
         expect(swapFn).not.toHaveBeenCalled();
     });
 });
+
+describe("AtomiqProvider refund recovery (R25)", () =>
+{
+    function providerWithRefundable(swaps: unknown[]): { provider: AtomiqProvider; getRefundableSwaps: jest.Mock }
+    {
+        const getRefundableSwaps = jest.fn(async () => swaps);
+        const runtime = { makeSigner: (s: unknown) => s, swapper: { getRefundableSwaps } };
+        return { provider: new AtomiqProvider(async () => runtime as never), getRefundableSwaps };
+    }
+
+    it("getRefundableCount returns the number of refundable SOLANA swaps for the address", async () =>
+    {
+        const { provider, getRefundableSwaps } = providerWithRefundable([{}, {}, {}]);
+        await expect(provider.getRefundableCount("ADDR")).resolves.toBe(3);
+        expect(getRefundableSwaps).toHaveBeenCalledWith("SOLANA", "ADDR");
+    });
+
+    it("refundAll refunds each swap and returns the count, surviving a single failure", async () =>
+    {
+        const ok1 = { refund: jest.fn(async () => "tx1") };
+        const bad = { refund: jest.fn(async () => { throw new Error("declined"); }) };
+        const ok2 = { refund: jest.fn(async () => "tx2") };
+        const { provider, getRefundableSwaps } = providerWithRefundable([ok1, bad, ok2]);
+        const signer = { publicKey: { toBase58: () => "SIGNER_ADDR" } } as unknown as SolanaSigningDelegate;
+
+        // 3건 중 1건(서명 거부)만 실패, 나머지는 계속 진행 → 2건 성공.
+        await expect(provider.refundAll(signer)).resolves.toBe(2);
+        expect(getRefundableSwaps).toHaveBeenCalledWith("SOLANA", "SIGNER_ADDR");
+        expect(ok1.refund).toHaveBeenCalledTimes(1);
+        expect(bad.refund).toHaveBeenCalledTimes(1);
+        expect(ok2.refund).toHaveBeenCalledTimes(1);
+    });
+
+    it("refundAll returns 0 when there is nothing to refund", async () =>
+    {
+        const { provider } = providerWithRefundable([]);
+        const signer = { publicKey: { toBase58: () => "SIGNER_ADDR" } } as unknown as SolanaSigningDelegate;
+        await expect(provider.refundAll(signer)).resolves.toBe(0);
+    });
+});
