@@ -23,9 +23,7 @@ const mockedBuilder = KaminoTxBuilder as jest.Mocked<typeof KaminoTxBuilder>;
 const mockedWalletService = WalletService as jest.Mocked<typeof WalletService>;
 
 const FAKE_PUBKEY = new PublicKey(new Uint8Array(32).fill(7));
-// 오라클 stale (PriceTooOld 6039) — allowOracleStale 로 우회 대상.
-const ORACLE_STALE = { InstructionError: [3, { Custom: 6039 }] };
-// 그 외 실패 — 우회 금지.
+// 시뮬 실패 픽스처 — 게이트가 서명 전에 차단해야 한다.
 const OTHER_ERR = { InstructionError: [2, { Custom: 1234 }] };
 
 function wrapper({ children }: { children: React.ReactNode }): React.JSX.Element
@@ -66,18 +64,18 @@ function gateSuite<I>(
     label: string,
     useHook: () => UseMutationResult<{ signature: string }, Error, I>,
     getBuilder: () => jest.Mock,
-    makeInput: (extra: { allowOracleStale?: boolean }) => I,
+    makeInput: () => I,
 ): void
 {
     describe(`${label} — simulation gate`, () =>
     {
-        it("시뮬 실패(비-oracle) → 서명하지 않고 throw", async () =>
+        it("시뮬 실패 → 서명하지 않고 throw", async () =>
         {
             mockedConnection.mockReturnValue(connReturning(OTHER_ERR));
             const { result } = renderHook(() => useHook(), { wrapper });
 
             await expect(
-                act(async () => { await result.current.mutateAsync(makeInput({})); }),
+                act(async () => { await result.current.mutateAsync(makeInput()); }),
             ).rejects.toThrow(/Simulation failed/);
             expect(mockedWalletService.signAndSendTransactions).not.toHaveBeenCalled();
         });
@@ -88,40 +86,17 @@ function gateSuite<I>(
             const { result } = renderHook(() => useHook(), { wrapper });
 
             let returned: { signature: string } | undefined;
-            await act(async () => { returned = await result.current.mutateAsync(makeInput({})); });
+            await act(async () => { returned = await result.current.mutateAsync(makeInput()); });
 
             expect(returned?.signature).toBe("lending-sig");
             expect(mockedWalletService.signAndSendTransactions).toHaveBeenCalledTimes(1);
-        });
-
-        it("allowOracleStale=true + oracle-stale 시뮬 실패 → 게이트 우회하고 서명", async () =>
-        {
-            mockedConnection.mockReturnValue(connReturning(ORACLE_STALE));
-            const { result } = renderHook(() => useHook(), { wrapper });
-
-            let returned: { signature: string } | undefined;
-            await act(async () => { returned = await result.current.mutateAsync(makeInput({ allowOracleStale: true })); });
-
-            expect(returned?.signature).toBe("lending-sig"); // 우회 성공 → 서명까지 진행
-            expect(mockedWalletService.signAndSendTransactions).toHaveBeenCalledTimes(1);
-        });
-
-        it("allowOracleStale=true + 비-oracle 실패 → 우회하지 않고 여전히 throw", async () =>
-        {
-            mockedConnection.mockReturnValue(connReturning(OTHER_ERR));
-            const { result } = renderHook(() => useHook(), { wrapper });
-
-            await expect(
-                act(async () => { await result.current.mutateAsync(makeInput({ allowOracleStale: true })); }),
-            ).rejects.toThrow(/Simulation failed/);
-            expect(mockedWalletService.signAndSendTransactions).not.toHaveBeenCalled();
         });
     });
 }
 
 gateSuite("withdraw", useWithdrawLending, () => mockedBuilder.buildWithdrawTransaction as unknown as jest.Mock,
-    (extra) => ({ liquidityBase: 1_000n, withdrawAll: false, ...extra }));
+    () => ({ liquidityBase: 1_000n, withdrawAll: false }));
 gateSuite("borrow", useBorrowLending, () => mockedBuilder.buildBorrowTransaction as unknown as jest.Mock,
-    (extra) => ({ usdcAmountBase: 1_000_000n, ...extra }));
+    () => ({ usdcAmountBase: 1_000_000n }));
 gateSuite("repay", useRepayLending, () => mockedBuilder.buildRepayTransaction as unknown as jest.Mock,
-    (extra) => ({ usdcAmountBase: 1_000_000n, repayAll: false, ...extra }));
+    () => ({ usdcAmountBase: 1_000_000n, repayAll: false }));

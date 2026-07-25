@@ -1,0 +1,105 @@
+import { useMutation, useQueryClient, type UseMutationResult } from "@tanstack/react-query";
+import type { Connection, PublicKey, VersionedTransaction } from "@solana/web3.js";
+
+import { useWallet } from "@/hooks/useWallet";
+import { useConnection } from "@/providers/ConnectionProvider";
+import { waitForConfirmation } from "@/services/confirmTransaction";
+import { signAndSendTransactions } from "@/services/WalletService";
+import type { TxStep } from "@/utils/txProgress";
+
+export interface LendingTxResult
+{
+    signature: string;
+}
+
+// 시뮬레이션 결과 err/logs 를 사람이 읽을(복사 가능한) 메시지로. 디버깅을 위해 전체 로그 포함.
+export function summarizeSimulationError(err: unknown, logs: readonly string[] | null): string
+{
+    const all = (logs ?? []).join("\n");
+    const base = `Simulation failed: ${JSON.stringify(err)}`;
+    return all ? `${base}\n--- logs ---\n${all}` : base;
+}
+
+// build 콜백 입력의 공통 부분 — 진행 단계 콜백(UI stepper 연동).
+export interface LendingTxInputBase
+{
+    onStep?: (step: TxStep) => void;
+}
+
+/**
+ * Kamino 렌딩 tx mutation 의 공통 골격:
+ *   build → simulate(서명 전 게이트) → MWA 서명·전송 → 온체인 확정.
+ * supply/withdraw/borrow/repay 네 훅이 "빌더"만 다르고 나머지 흐름·쿼리 무효화는 동일하므로 통합한다.
+ *
+ * ⚠️ 서명 전 시뮬레이션이 실패하면 서명하지 않고 throw 한다(실자금 보호). 확정 전 성공 처리 시
+ * 시뮬 통과 후 실패(blockhash 만료 등)를 완료로 오표시하므로, 확정돼야만 done.
+ */
+export function useLendingTxMutation<TInput extends LendingTxInputBase>(
+    tag: string,
+    build: (connection: Connection, owner: PublicKey, input: TInput) => Promise<VersionedTransaction>,
+): UseMutationResult<LendingTxResult, Error, TInput>
+{
+    const connection = useConnection();
+    const { account } = useWallet();
+    const queryClient = useQueryClient();
+
+    return useMutation<LendingTxResult, Error, TInput>({
+        mutationFn: async (input) =>
+        {
+            if (!account)
+            {
+                throw new Error("Wallet is not connected.");
+            }
+
+            const step = (s: TxStep): void =>
+            {
+                input.onStep?.(s);
+            };
+
+            step("preparing");
+            const tx = await build(connection, account.publicKey, input);
+
+            // 서명 전 시뮬레이션 — 계정/로직 오류를 실자금 서명 없이 차단.
+            step("simulating");
+            const sim = await connection.simulateTransaction(tx, {
+                sigVerify: false,
+                replaceRecentBlockhash: true,
+            });
+            if (sim.value.err)
+            {
+                if (__DEV__)
+                {
+                    // 사전 시뮬레이션 실패는 잔액 부족 등 '예상된 사용자 사유'가 많고 UI 안내로 처리된다 →
+                    // 빨간 error 가 아니라 warn 으로 (release 엔 __DEV__ 라 어차피 안 찍힘).
+                    // eslint-disable-next-line no-console
+                    console.warn(`[${tag}] simulation failed`, {
+                        err: sim.value.err,
+                        logs: sim.value.logs,
+                        unitsConsumed: sim.value.unitsConsumed,
+                    });
+                }
+                throw new Error(summarizeSimulationError(sim.value.err, sim.value.logs));
+            }
+
+            step("signing");
+            const signatures = await signAndSendTransactions([tx], account.authToken);
+            const first = signatures[0];
+            if (!first)
+            {
+                throw new Error("No transaction signature was returned.");
+            }
+            step("sending");
+            // 온체인 확정 대기 — status.err→throw, 예산 초과→confirm_timeout.
+            step("confirming");
+            await waitForConfirmation(connection, first);
+            return { signature: first };
+        },
+        onSuccess: () =>
+        {
+            // 새로고침은 백그라운드(fire-and-forget). UI 완료 표시가 RPC refetch 지연에 막히지 않도록.
+            void queryClient.invalidateQueries({ queryKey: ["kamino"] });
+            void queryClient.invalidateQueries({ queryKey: ["balance"] });
+            void queryClient.invalidateQueries({ queryKey: ["history"] });
+        },
+    });
+}

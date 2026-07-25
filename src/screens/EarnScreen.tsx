@@ -599,7 +599,7 @@ function WithdrawForm({ owner, suppliedCbbtc, cbbtcPriceUsd, styles, palette, t,
         setAmount(baseToDecimalString(suppliedBase, CBBTC.decimals));
     };
 
-    const onSubmit = (allowOracleStale = false): void =>
+    const onSubmit = (): void =>
     {
         if (!canSubmit)
         {
@@ -615,9 +615,7 @@ function WithdrawForm({ owner, suppliedCbbtc, cbbtcPriceUsd, styles, palette, t,
         withdraw.mutate(
             {
                 liquidityBase: amountBase ?? 0n,
-                withdrawAll,
-                allowOracleStale,
-                onStep: (step) => { if (sign.isCurrent(token)) setProgress({ step, state: "running" }); },
+                withdrawAll,                onStep: (step) => { if (sign.isCurrent(token)) setProgress({ step, state: "running" }); },
             },
             {
                 onSuccess: (res) =>
@@ -783,7 +781,7 @@ function BorrowForm({ owner, maxBorrowableUsd, styles, palette, t, onFocusInput 
     const exceedsMax = amountBase !== null && amountBase > maxBorrowableBase;
     const canSubmit = isOnline && !borrow.isPending && amountBase !== null && amountBase > 0n && !exceedsMax;
 
-    const runBorrow = (allowOracleStale = false): void =>
+    const runBorrow = (): void =>
     {
         if (amountBase === null)
         {
@@ -798,9 +796,7 @@ function BorrowForm({ owner, maxBorrowableUsd, styles, palette, t, onFocusInput 
         const token = sign.begin();
         borrow.mutate(
             {
-                usdcAmountBase: amountBase,
-                allowOracleStale,
-                onStep: (step) => { if (sign.isCurrent(token)) setProgress({ step, state: "running" }); },
+                usdcAmountBase: amountBase,                onStep: (step) => { if (sign.isCurrent(token)) setProgress({ step, state: "running" }); },
             },
             {
                 onSuccess: (res) =>
@@ -1013,7 +1009,7 @@ function RepayForm({ owner, borrowedUsd, styles, palette, t, onFocusInput }: Rep
         setAmount(baseToDecimalString(debtBase, USDC.decimals));
     };
 
-    const onSubmit = (allowOracleStale = false): void =>
+    const onSubmit = (): void =>
     {
         if (!canSubmit)
         {
@@ -1029,9 +1025,7 @@ function RepayForm({ owner, borrowedUsd, styles, palette, t, onFocusInput }: Rep
         repay.mutate(
             {
                 usdcAmountBase: amountBase ?? 0n,
-                repayAll,
-                allowOracleStale,
-                onStep: (step) => { if (sign.isCurrent(token)) setProgress({ step, state: "running" }); },
+                repayAll,                onStep: (step) => { if (sign.isCurrent(token)) setProgress({ step, state: "running" }); },
             },
             {
                 onSuccess: (res) =>
