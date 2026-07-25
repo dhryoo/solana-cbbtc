@@ -1,10 +1,11 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react-native";
-import { PublicKey, VersionedTransaction, TransactionMessage } from "@solana/web3.js";
+import { type Connection, PublicKey, VersionedTransaction, TransactionMessage } from "@solana/web3.js";
 import React from "react";
 
 import { CBBTC, SOL } from "@/constants/tokens";
 import { useWallet } from "@/hooks/useWallet";
+import { useConnection } from "@/providers/ConnectionProvider";
 import { useNotifications } from "@/providers/NotificationProvider";
 import { waitForConfirmation } from "@/services/confirmTransaction";
 import * as JupiterService from "@/services/JupiterService";
@@ -16,7 +17,7 @@ import { useSwap } from "./useSwap";
 jest.mock("@/hooks/useWallet");
 jest.mock("@/providers/NotificationProvider");
 jest.mock("@/providers/ConnectionProvider", () => ({
-    useConnection: () => ({ getSignatureStatuses: jest.fn() }),
+    useConnection: jest.fn(),
 }));
 jest.mock("@/services/confirmTransaction");
 jest.mock("@/services/JupiterService");
@@ -34,6 +35,8 @@ jest.mock("react-i18next", () =>
     }));
 
 const mockedWallet = useWallet as jest.MockedFunction<typeof useWallet>;
+const mockedUseConnection = useConnection as jest.MockedFunction<typeof useConnection>;
+const mockSimulate = jest.fn();
 const mockedNotifications = useNotifications as jest.MockedFunction<typeof useNotifications>;
 const mockedJupiter = JupiterService as jest.Mocked<typeof JupiterService>;
 const mockedWalletService = WalletService as jest.Mocked<typeof WalletService>;
@@ -103,6 +106,13 @@ describe("useSwap", () =>
             notifySwapSuccess,
         });
 
+        // 기본: 서명 전 시뮬레이션 통과. 개별 테스트에서 err 로 override.
+        mockSimulate.mockResolvedValue({ value: { err: null, logs: [] } });
+        mockedUseConnection.mockReturnValue({
+            getSignatureStatuses: jest.fn(),
+            simulateTransaction: mockSimulate,
+        } as unknown as Connection);
+
         mockedJupiter.getSwapTransaction.mockResolvedValue({
             transaction: fakeTx(),
             lastValidBlockHeight: 1,
@@ -134,6 +144,32 @@ describe("useSwap", () =>
         {
             expect(notifySwapSuccess).toHaveBeenCalledTimes(1);
         });
+    });
+
+    it("blocks a swap whose pre-sign simulation fails (no signing, no gas) — N2", async () =>
+    {
+        mockSimulate.mockResolvedValue({
+            value: {
+                err: { InstructionError: [2, { Custom: 6001 }] },
+                logs: ["Program log: Error: Slippage tolerance exceeded"],
+            },
+        });
+
+        const { result } = renderHook(() => useSwap(), { wrapper });
+
+        await expect(
+            act(async () =>
+            {
+                await result.current.mutateAsync({
+                    quote: fakeQuote(),
+                    inputToken: SOL,
+                    outputToken: CBBTC,
+                });
+            }),
+        ).rejects.toThrow();
+
+        // 시뮬레이션에서 걸렀으므로 서명·전송으로 넘어가지 않는다(가스 낭비 방지).
+        expect(mockedWalletService.signAndSendTransactions).not.toHaveBeenCalled();
     });
 
     it("rejects when wallet is not connected", async () =>

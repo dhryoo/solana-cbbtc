@@ -42,6 +42,15 @@ class MissingSignatureError extends Error
     }
 }
 
+class SwapSimulationError extends Error
+{
+    constructor(message: string)
+    {
+        super(message);
+        this.name = "SwapSimulationError";
+    }
+}
+
 export function useSwap(): UseMutationResult<SwapMutationResult, Error, SwapMutationInput>
 {
     const { t } = useTranslation();
@@ -62,6 +71,21 @@ export function useSwap(): UseMutationResult<SwapMutationResult, Error, SwapMuta
                 quote,
                 userPublicKey: account.publicKey,
             });
+
+            // 서명 전 시뮬레이션 게이트 (N2, 렌딩 경로와 일관). Jupiter 는 build 시 서버측 시뮬을
+            // 이미 하지만, 그 사이 잔액/슬리피지가 바뀌어 온체인 실패할 swap 을 가스 낭비 없이 차단한다.
+            // 실패 로그를 메시지에 담아 swapError 가 사유(슬리피지·잔액부족 등)를 매핑하도록 한다.
+            const sim = await connection.simulateTransaction(transaction, {
+                sigVerify: false,
+                replaceRecentBlockhash: true,
+            });
+            if (sim.value.err)
+            {
+                const detail = (sim.value.logs ?? []).join("\n");
+                throw new SwapSimulationError(
+                    `Swap simulation failed: ${JSON.stringify(sim.value.err)}${detail ? `\n${detail}` : ""}`,
+                );
+            }
 
             const signatures = await signAndSendTransactions(
                 [transaction],
