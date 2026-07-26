@@ -7,6 +7,7 @@ import {
     ActivityIndicator,
     Keyboard,
     Linking,
+    Modal,
     Platform,
     Pressable,
     ScrollView,
@@ -173,6 +174,13 @@ export function LightningScreen(): React.JSX.Element
         setLastError(null);
     }, []);
 
+    // 견적 시트 닫기 — 견적만 비운다(재견적 유도). resetResult 는 결과/진행까지 지워 과하다.
+    const onCloseQuote = useCallback((): void =>
+    {
+        setQuote(null);
+        setCbbtcQuote(null);
+    }, []);
+
     // preimage(=지불 증명) 복사 — 결제 완료(CLAIMED) 후 결과카드에서만 노출됨
     const onCopyPreimage = useCallback(async (secret: string | null): Promise<void> =>
     {
@@ -222,6 +230,7 @@ export function LightningScreen(): React.JSX.Element
         {
             return;
         }
+        Keyboard.dismiss(); // 견적 시트가 뜨기 전에 키보드를 치워 하단 공간 확보
         resetResult();
         if (isCbbtc)
         {
@@ -690,52 +699,72 @@ export function LightningScreen(): React.JSX.Element
                         )}
                     </View>
 
-                    {/* 견적 카드 — USDC/SOL 직결제 */}
-                    {quote && (
-                        <View style={styles.card}>
-                            <Text style={styles.cardTitle}>{t("lightning.quoteHeading")}</Text>
-                            <Row label={t("lightning.quoteSend")} value={`${formatRawAmount(quote.inputBase, quote.srcToken.decimals)} ${quote.srcToken.symbol}`} styles={styles} />
-                            <Row label={t("lightning.quoteFee")} value={`${formatRawAmount(quote.feeBase, quote.srcToken.decimals)} ${quote.srcToken.symbol}`} styles={styles} />
-                            <Row label={t("lightning.quoteReceive")} value={`${formatSats(quote.outputSats)} sats`} styles={styles} />
-                            <Row label={t("lightning.quoteDest")} value={quote.destinationLabel} styles={styles} />
-                            <Pressable
-                                accessibilityRole="button"
-                                accessibilityLabel={t("lightning.payButton")}
-                                accessibilityState={{ disabled: payMutation.isPending, busy: payMutation.isPending }}
-                                disabled={payMutation.isPending}
-                                onPress={onPay}
-                                style={[styles.button, payMutation.isPending && styles.buttonDisabled]}
-                            >
-                                {payMutation.isPending
-                                    ? <ActivityIndicator color={palette.textInverse} />
-                                    : <Text style={styles.buttonText}>{t("lightning.payButton")}</Text>}
-                            </Pressable>
-                        </View>
-                    )}
-
-                    {/* 견적 카드 — cbBTC (Jupiter swap → Atomiq 결제) */}
-                    {cbbtcQuote && (
-                        <View style={styles.card}>
-                            <Text style={styles.cardTitle}>{t("lightning.cbbtcQuoteHeading")}</Text>
-                            <Text style={styles.cbbtcChainHint}>{t("lightning.cbbtcChainHint")}</Text>
-                            <Row label={t("lightning.cbbtcSwapFrom")} value={`~${formatRawAmount(cbbtcQuote.swap.cbbtcInBase, CBBTC.decimals)} ${CBBTC.symbol}`} styles={styles} />
-                            <Row label={t("lightning.cbbtcSwapTo")} value={`${formatRawAmount(cbbtcQuote.usdcTargetBase, USDC.decimals)} ${USDC.symbol}`} styles={styles} />
-                            <Row label={t("lightning.quoteReceive")} value={`${formatSats(cbbtcQuote.atomiqPreview.outputSats)} sats`} styles={styles} />
-                            <Row label={t("lightning.quoteDest")} value={cbbtcQuote.atomiqPreview.destinationLabel} styles={styles} />
-                            <Pressable
-                                accessibilityRole="button"
-                                accessibilityLabel={t("lightning.cbbtcPayButton")}
-                                accessibilityState={{ disabled: cbbtcPayMutation.isPending, busy: cbbtcPayMutation.isPending }}
-                                disabled={cbbtcPayMutation.isPending}
-                                onPress={onPay}
-                                style={[styles.button, cbbtcPayMutation.isPending && styles.buttonDisabled]}
-                            >
-                                {cbbtcPayMutation.isPending
-                                    ? <ActivityIndicator color={palette.textInverse} />
-                                    : <Text style={styles.buttonText}>{t("lightning.cbbtcPayButton")}</Text>}
-                            </Pressable>
-                        </View>
-                    )}
+                    {/* 견적 바텀시트 — 견적/결제를 화면 하단에 append 하지 않고 모달로 띄워 항상 보이게 한다
+                        (전엔 견적 카드가 입력 카드 아래에 생겨 자동 스크롤 없이는 사용자가 못 봤다). 결제 시작
+                        (progress 설정) 시엔 시트를 닫고 TxProgressModal 이 진행을 표시(이중 모달 방지). */}
+                    <Modal
+                        visible={(quote !== null || cbbtcQuote !== null) && progress === null}
+                        transparent
+                        animationType="slide"
+                        onRequestClose={onCloseQuote}
+                    >
+                        <Pressable style={styles.quoteBackdrop} onPress={onCloseQuote} accessible={false}>
+                            <View style={styles.quoteSheet} onStartShouldSetResponder={() => true}>
+                                <View style={styles.quoteSheetHandle} />
+                                {quote && (
+                                    <>
+                                        <Text style={styles.cardTitle}>{t("lightning.quoteHeading")}</Text>
+                                        <Row label={t("lightning.quoteSend")} value={`${formatRawAmount(quote.inputBase, quote.srcToken.decimals)} ${quote.srcToken.symbol}`} styles={styles} />
+                                        <Row label={t("lightning.quoteFee")} value={`${formatRawAmount(quote.feeBase, quote.srcToken.decimals)} ${quote.srcToken.symbol}`} styles={styles} />
+                                        <Row label={t("lightning.quoteReceive")} value={`${formatSats(quote.outputSats)} sats`} styles={styles} />
+                                        <Row label={t("lightning.quoteDest")} value={quote.destinationLabel} styles={styles} />
+                                        <Pressable
+                                            accessibilityRole="button"
+                                            accessibilityLabel={t("lightning.payButton")}
+                                            accessibilityState={{ disabled: payMutation.isPending, busy: payMutation.isPending }}
+                                            disabled={payMutation.isPending}
+                                            onPress={onPay}
+                                            style={[styles.button, payMutation.isPending && styles.buttonDisabled]}
+                                        >
+                                            {payMutation.isPending
+                                                ? <ActivityIndicator color={palette.textInverse} />
+                                                : <Text style={styles.buttonText}>{t("lightning.payButton")}</Text>}
+                                        </Pressable>
+                                    </>
+                                )}
+                                {cbbtcQuote && (
+                                    <>
+                                        <Text style={styles.cardTitle}>{t("lightning.cbbtcQuoteHeading")}</Text>
+                                        <Text style={styles.cbbtcChainHint}>{t("lightning.cbbtcChainHint")}</Text>
+                                        <Row label={t("lightning.cbbtcSwapFrom")} value={`~${formatRawAmount(cbbtcQuote.swap.cbbtcInBase, CBBTC.decimals)} ${CBBTC.symbol}`} styles={styles} />
+                                        <Row label={t("lightning.cbbtcSwapTo")} value={`${formatRawAmount(cbbtcQuote.usdcTargetBase, USDC.decimals)} ${USDC.symbol}`} styles={styles} />
+                                        <Row label={t("lightning.quoteReceive")} value={`${formatSats(cbbtcQuote.atomiqPreview.outputSats)} sats`} styles={styles} />
+                                        <Row label={t("lightning.quoteDest")} value={cbbtcQuote.atomiqPreview.destinationLabel} styles={styles} />
+                                        <Pressable
+                                            accessibilityRole="button"
+                                            accessibilityLabel={t("lightning.cbbtcPayButton")}
+                                            accessibilityState={{ disabled: cbbtcPayMutation.isPending, busy: cbbtcPayMutation.isPending }}
+                                            disabled={cbbtcPayMutation.isPending}
+                                            onPress={onPay}
+                                            style={[styles.button, cbbtcPayMutation.isPending && styles.buttonDisabled]}
+                                        >
+                                            {cbbtcPayMutation.isPending
+                                                ? <ActivityIndicator color={palette.textInverse} />
+                                                : <Text style={styles.buttonText}>{t("lightning.cbbtcPayButton")}</Text>}
+                                        </Pressable>
+                                    </>
+                                )}
+                                <Pressable
+                                    accessibilityRole="button"
+                                    accessibilityLabel={t("common.cancel")}
+                                    onPress={onCloseQuote}
+                                    style={({ pressed }) => [styles.quoteCancelBtn, pressed && { opacity: 0.6 }]}
+                                >
+                                    <Text style={styles.quoteCancelText}>{t("common.cancel")}</Text>
+                                </Pressable>
+                            </View>
+                        </Pressable>
+                    </Modal>
 
                     <TxProgressModal
                         progress={progress}
@@ -927,6 +956,20 @@ const makeStyles = (t: ThemePalette) => StyleSheet.create({
         gap: 10,
     },
     cardTitle: { fontSize: 13, fontWeight: "700", color: t.text },
+    quoteBackdrop: { flex: 1, backgroundColor: t.overlay, justifyContent: "flex-end" as const },
+    quoteSheet: {
+        backgroundColor: t.surface,
+        padding: 20,
+        paddingBottom: 32,
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        borderTopWidth: 1,
+        borderColor: t.borderStrong,
+        gap: 10,
+    },
+    quoteSheetHandle: { alignSelf: "center" as const, width: 40, height: 4, borderRadius: 2, backgroundColor: t.borderStrong, marginBottom: 4 },
+    quoteCancelBtn: { alignItems: "center" as const, paddingVertical: 12, marginTop: 2 },
+    quoteCancelText: { fontSize: 14, fontWeight: "600" as const, color: t.textMuted },
     input: {
         borderWidth: 1,
         borderColor: t.borderStrong,
