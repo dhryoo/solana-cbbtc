@@ -208,6 +208,8 @@ export function EarnScreen(): React.JSX.Element
                                         <WithdrawForm
                                             owner={owner}
                                             suppliedCbbtc={position.data?.suppliedCbbtc ?? 0}
+                                            maxWithdrawableCbbtc={position.data?.maxWithdrawableCbbtc ?? 0}
+                                            hasDebt={(position.data?.borrowedUsd ?? 0) > 0}
                                             cbbtcPriceUsd={market.data?.cbbtcPriceUsd}
                                             styles={styles}
                                             palette={palette}
@@ -562,6 +564,8 @@ interface WithdrawFormProps
 {
     owner: PublicKey;
     suppliedCbbtc: number;
+    maxWithdrawableCbbtc: number;   // 대출 유지하며 안전 인출 가능한 cbBTC 수량
+    hasDebt: boolean;
     cbbtcPriceUsd: number | undefined;
     styles: ReturnType<typeof makeStyles>;
     palette: ThemePalette;
@@ -569,7 +573,7 @@ interface WithdrawFormProps
     onFocusInput: () => void;
 }
 
-function WithdrawForm({ owner, suppliedCbbtc, cbbtcPriceUsd, styles, palette, t, onFocusInput }: WithdrawFormProps): React.JSX.Element
+function WithdrawForm({ owner, suppliedCbbtc, maxWithdrawableCbbtc, hasDebt, cbbtcPriceUsd, styles, palette, t, onFocusInput }: WithdrawFormProps): React.JSX.Element
 {
     const { isOnline } = useNetworkStatus();
     const { showToast } = useToast();
@@ -587,16 +591,31 @@ function WithdrawForm({ owner, suppliedCbbtc, cbbtcPriceUsd, styles, palette, t,
     // 예치 cbBTC 수량은 position 에서 직접(cToken×환율) 받는다 — USD÷가격 파생은 마켓 쿼리 실패 시
     // 0 이 돼 인출을 막고, 과대평가되면 초과 입력이 조용히 전액 인출로 클램프됐다(R11).
     const suppliedBase = BigInt(Math.round(suppliedCbbtc * 10 ** CBBTC.decimals));
+    // 대출이 열려 있으면 담보를 청산 위험까지 빼지 못하도록 안전 인출 상한을 씌운다(전량 이하). 없으면 전량.
+    // 이게 없으면 전량 인출이 Kamino 의 max_withdraw_value 를 넘어 6011 WithdrawTooLarge 로 실패한다.
+    const maxWithdrawBase = BigInt(Math.floor(maxWithdrawableCbbtc * 10 ** CBBTC.decimals));
+    const withdrawCapBase = maxWithdrawBase < suppliedBase ? maxWithdrawBase : suppliedBase;
+    const cappedByDebt = hasDebt && withdrawCapBase < suppliedBase;
     const amountBase = parseTokenAmount(amount, CBBTC.decimals);
-    const exceeds = !withdrawAll && amountBase !== null && amountBase > suppliedBase;
+    const exceeds = !withdrawAll && amountBase !== null && amountBase > withdrawCapBase;
     const canSubmit = isOnline
         && !withdraw.isPending
+        && !(withdrawAll && cappedByDebt) // 대출 있으면 전량(withdrawAll) 인출 금지
         && (withdrawAll || (amountBase !== null && amountBase > 0n && !exceeds));
 
     const onMax = (): void =>
     {
-        setWithdrawAll(true);
-        setAmount(baseToDecimalString(suppliedBase, CBBTC.decimals));
+        if (cappedByDebt)
+        {
+            // 대출 유지에 필요한 담보를 남기고 안전 인출 상한까지만 (전량 금지).
+            setWithdrawAll(false);
+            setAmount(baseToDecimalString(withdrawCapBase, CBBTC.decimals));
+        }
+        else
+        {
+            setWithdrawAll(true);
+            setAmount(baseToDecimalString(suppliedBase, CBBTC.decimals));
+        }
     };
 
     const onSubmit = (): void =>
@@ -683,7 +702,7 @@ function WithdrawForm({ owner, suppliedCbbtc, cbbtcPriceUsd, styles, palette, t,
                     accessibilityRole="button"
                     accessibilityLabel={t("common.max")}
                     onPress={onMax}
-                    disabled={suppliedBase <= 0n || withdraw.isPending}
+                    disabled={withdrawCapBase <= 0n || withdraw.isPending}
                     style={({ pressed }) => [styles.maxBtn, pressed && { opacity: 0.6 }]}
                 >
                     <Text style={styles.maxBtnText}>{t("common.max")}</Text>
@@ -692,6 +711,13 @@ function WithdrawForm({ owner, suppliedCbbtc, cbbtcPriceUsd, styles, palette, t,
             <Text style={styles.balanceLine}>
                 {t("earn.withdraw.supplied", { amount: formatTokenAmount(suppliedCbbtc, CBBTC.decimals) })}
             </Text>
+            {cappedByDebt
+                ? (
+                    <Text style={styles.balanceLine}>
+                        {t("earn.withdraw.maxWithdrawableHint", { amount: formatTokenAmount(maxWithdrawableCbbtc, CBBTC.decimals) })}
+                    </Text>
+                )
+                : null}
             <TextInput
                 style={[styles.input, exceeds && styles.inputError]}
                 value={amount}
@@ -990,17 +1016,19 @@ function RepayForm({ owner, borrowedUsd, styles, palette, t, onFocusInput }: Rep
         && amountBase !== null && amountBase > 0n
         && walletUsdcBase < amountBase;
 
-    // 전액 상환(repayAll) 사전 경고(비차단): debtBase 는 USD 환산이라 USDC price≤1(상시 ~0.9998)에선
-    // 실제 토큰 부채를 과소평가한다 → walletUsdc < debtBase 면 전액 상환이 부족할 가능성이 매우 높다(오탐 거의 없음).
-    // 하드 차단은 price>1 의 과대평가 오탐을 피하려 하지 않는다 — 사용자가 갑작스러운 실패에 놀라지 않게 미리 안내만.
+    // 전액 상환(repayAll) 지갑 부족 사전 차단: debtBase 는 USD 환산이라 USDC price≤1(상시 ~0.9998)에선
+    // 실제 토큰 부채를 과소평가하므로 walletUsdc < debtBase 면 부족이 거의 확실하다. price>1 의 과대평가
+    // 오탐을 피하려 0.1% 버퍼를 둔다(USDC 가 이 이상 벗어나는 일은 거의 없음). 부족이 명확하면 canSubmit
+    // 에서 막아 헛된 지갑 프롬프트/실패 tx(SPL Token insufficient funds — U64_MAX 정산)를 사전에 방지한다.
     const usdcLikelyShortForAll = repayAll
         && walletUsdc.data !== undefined
         && debtBase > 0n
-        && walletUsdcBase < debtBase;
+        && walletUsdcBase < (debtBase * 999n) / 1000n;
 
     const canSubmit = isOnline
         && !repay.isPending
         && !insufficientUsdc
+        && !usdcLikelyShortForAll
         && (repayAll || (amountBase !== null && amountBase > 0n && !exceeds));
 
     const onMax = (): void =>

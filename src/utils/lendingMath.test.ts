@@ -1,11 +1,55 @@
 import {
     healthFactor,
     liquidationPriceFromCollateral,
+    maxWithdrawableCollateral,
     riskZone,
     borrowAprFromCurve,
     supplyAprFromCurve,
     type CurvePoint,
 } from "./lendingMath";
+
+describe("maxWithdrawableCollateral", () =>
+{
+    it("returns the full collateral when there is no debt (currentLtv <= 0)", () =>
+    {
+        expect(maxWithdrawableCollateral(2.5, 0, 0.79, 1.15)).toBe(2.5);
+    });
+
+    it("returns 0 when there is no collateral", () =>
+    {
+        expect(maxWithdrawableCollateral(0, 0.4, 0.79, 1.15)).toBe(0);
+    });
+
+    it("caps the withdrawal so post-withdraw health equals minHealth, below the liquidation boundary", () =>
+    {
+        // 온체인 실측 시나리오: supplied 12.8807, currentLtv 0.3884, liqLtv 0.79 → health 2.034.
+        // 청산선(health 1.0)까지의 최대 인출은 6.549(on-chain max_withdraw_value)이고,
+        // minHealth 1.15 로 캡하면 그보다 보수적이어야 한다.
+        const supplied = 12.8807;
+        const currentLtv = 0.3884;
+        const liqLtv = 0.79;
+        const maxW = maxWithdrawableCollateral(supplied, currentLtv, liqLtv, 1.15);
+
+        // 남은 담보로 본 post-health 가 정확히 minHealth(1.15).
+        const bfDebt = currentLtv * supplied; // 부채 가치는 인출 전후 불변
+        const kept = supplied - maxW;
+        expect(liqLtv / (bfDebt / kept)).toBeCloseTo(1.15, 4);
+        // 청산선(6.549)보다 적게 인출한다.
+        expect(maxW).toBeLessThan(6.549);
+        expect(maxW).toBeGreaterThan(0);
+    });
+
+    it("returns 0 when the position is already at or below minHealth", () =>
+    {
+        // currentLtv 0.7, liqLtv 0.79 → health 1.13 < 1.15 → 안전 인출 불가.
+        expect(maxWithdrawableCollateral(1.0, 0.7, 0.79, 1.15)).toBe(0);
+    });
+
+    it("is conservative (returns 0) when the liquidation LTV is unknown but debt exists", () =>
+    {
+        expect(maxWithdrawableCollateral(1.0, 0.4, 0, 1.15)).toBe(0);
+    });
+});
 
 // Kamino cbBTC 리저브의 실제 borrow rate curve (M8.4 mainnet 실측, 2026-05-21).
 // utilizationRateBps / borrowRateBps (10000 = 100%).

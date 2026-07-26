@@ -5,7 +5,29 @@ import {
     isOracleStaleError,
     isUserRejection,
     isWalletTimeout,
+    isWithdrawTooLarge,
 } from "./lendingErrors";
+
+describe("isWithdrawTooLarge", () =>
+{
+    it("matches Kamino 6011 numeric code", () =>
+    {
+        expect(isWithdrawTooLarge("Simulation failed: {\"InstructionError\":[5,{\"Custom\":6011}]}")).toBe(true);
+    });
+
+    it("matches the WithdrawTooLarge error name and 0x177b", () =>
+    {
+        expect(isWithdrawTooLarge("Error Code: WithdrawTooLarge. Error Number: 6011.")).toBe(true);
+        expect(isWithdrawTooLarge("custom program error: 0x177b")).toBe(true);
+        expect(isWithdrawTooLarge("Program log: Withdraw amount too large")).toBe(true);
+    });
+
+    it("does not match unrelated errors", () =>
+    {
+        expect(isWithdrawTooLarge("PriceTooOld 6039")).toBe(false);
+        expect(isWithdrawTooLarge("ObligationBorrowsEmpty 6021")).toBe(false);
+    });
+});
 
 describe("isOracleStaleError", () =>
 {

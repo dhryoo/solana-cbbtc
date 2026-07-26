@@ -5,12 +5,16 @@ import {
     isNoBorrowsToRepay,
     isOracleStaleError,
     isWalletTimeout,
+    isWithdrawTooLarge,
 } from "./lendingErrors";
 
 // 대표 실패 문자열 (실제 시뮬레이션/MWA 메시지 형태)
 const ORACLE = 'Simulation failed: {"InstructionError":[3,{"Custom":6039}]}'; // PriceTooOld
 const WALLET_TIMEOUT = "java.util.concurrent.TimeoutException: Timed out waiting for response with id=5";
 const NO_BORROWS = 'Simulation failed: {"InstructionError":[3,{"Custom":6021}]}'; // ObligationBorrowsEmpty
+const WITHDRAW_TOO_LARGE = 'Simulation failed: {"InstructionError":[5,{"Custom":6011}]}\n--- logs ---\n'
+    + "Program log: Withdraw value cannot exceed maximum withdraw value\n"
+    + "Program log: Error Code: WithdrawTooLarge. Error Number: 6011.";
 const LAMPORTS = "Transfer: insufficient lamports 0, need 2039280"; // SOL(가스/rent) 부족 — System Program
 // repay 전액 상환 실패: USDC 부족 — SPL Token program "insufficient funds"(lamports 아님).
 const TOKEN_FUNDS = 'Simulation failed: {"InstructionError":[3,{"Custom":1}]}\n--- logs ---\n'
@@ -44,6 +48,12 @@ describe("pickEarnNoticeHintKey", () =>
     it("maps no-borrows-to-repay", () =>
     {
         expect(pickEarnNoticeHintKey({ ...base, message: NO_BORROWS })).toBe("earn.noBorrowsHint");
+    });
+
+    it("maps withdraw-too-large (6011) to the withdraw hint, even if SOL is low", () =>
+    {
+        expect(pickEarnNoticeHintKey({ ...base, message: WITHDRAW_TOO_LARGE })).toBe("earn.withdrawTooLargeHint");
+        expect(pickEarnNoticeHintKey({ ...base, message: WITHDRAW_TOO_LARGE, solGasLow: true })).toBe("earn.withdrawTooLargeHint");
     });
 
     it("maps confirm_timeout to the confirmation hint (even if SOL is low)", () =>
@@ -109,6 +119,7 @@ describe("ladder safety: message predicates are pairwise-disjoint over represent
         ["oracle", isOracleStaleError] as const,
         ["walletTimeout", isWalletTimeout] as const,
         ["noBorrows", isNoBorrowsToRepay] as const,
+        ["withdrawTooLarge", isWithdrawTooLarge] as const,
         ["lamports", isInsufficientLamports] as const,
     ];
 
@@ -116,6 +127,7 @@ describe("ladder safety: message predicates are pairwise-disjoint over represent
         ["oracle", ORACLE],
         ["walletTimeout", WALLET_TIMEOUT],
         ["noBorrows", NO_BORROWS],
+        ["withdrawTooLarge", WITHDRAW_TOO_LARGE],
         ["lamports", LAMPORTS],
     ];
 

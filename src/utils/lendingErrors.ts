@@ -67,3 +67,13 @@ export function isNoBorrowsToRepay(message: string): boolean
 {
     return /6021|ObligationBorrowsEmpty|Obligation borrows are empty/i.test(message);
 }
+
+/**
+ * Kamino 6011 WithdrawTooLarge — 인출액이 최대 인출 가능액을 초과. 열린 대출을 담보가 계속
+ * 뒷받침해야 하므로 담보 전량은 뺄 수 없다. UI 는 인출 상한으로 사전 차단하지만(EarnScreen),
+ * 가격 드리프트 등으로 온체인에서 걸릴 때의 백스톱 — "대출을 먼저 상환" 안내로 처리.
+ */
+export function isWithdrawTooLarge(message: string): boolean
+{
+    return /6011|WithdrawTooLarge|Withdraw amount too large|0x177b/i.test(message);
+}

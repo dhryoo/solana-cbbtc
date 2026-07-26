@@ -50,6 +50,7 @@
         "authFailedHint": "Ủy quyền ví thất bại. Hãy ngắt kết nối rồi kết nối lại ví, sau đó thử lại. (Phiên của bạn có thể đã hết hạn.)",
         "walletTimeoutHint": "Ví không phản hồi kịp. Màn hình phê duyệt có thể đã mở quá lâu, hoặc ứng dụng ví bị tạm dừng ở chế độ nền. Vui lòng thử lại.",
         "noBorrowsHint": "Không có khoản nợ nào để trả. Có thể khoản nợ đã được trả hết, hoặc màn hình đang hiển thị thông tin cũ. Kéo xuống để làm mới.",
+        "withdrawTooLargeHint": "Số tiền rút quá lớn — bạn đang có khoản vay mà tài sản thế chấp phải tiếp tục bảo đảm. Hãy trả bớt USDC hoặc rút số lượng nhỏ hơn.",
         "confirmTimeoutHint": "Việc xác nhận đang mất nhiều thời gian hơn dự kiến. Giao dịch vẫn có thể hoàn tất — hãy kéo xuống để làm mới và kiểm tra trước khi thử lại.",
         "txFailedHint": "Giao dịch đã thất bại on-chain và không được áp dụng. Không có khoản tiền nào bị di chuyển. Vui lòng thử lại.",
         "market": {
@@ -124,6 +125,7 @@
             "placeholder": "Số lượng cbBTC cần rút",
             "button": "Rút",
             "supplied": "Đã cung cấp {{amount}} cbBTC",
+            "maxWithdrawableHint": "Đang có khoản vay — có thể rút tối đa {{amount}} cbBTC mà vẫn an toàn.",
             "completed": "Rút hoàn tất",
             "errorPrefix": "Rút thất bại",
             "noPosition": "Bạn chưa cung cấp cbBTC nào"

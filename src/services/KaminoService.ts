@@ -16,7 +16,9 @@ import {
     supplyAprFromCurve,
     healthFactor,
     liquidationPriceFromCollateral,
+    maxWithdrawableCollateral,
     riskZone,
+    HEALTH_CAUTION_MIN,
     type CurvePoint,
 } from "@/utils/lendingMath";
 import { liquidityFromCollateral, reserveTotalLiquidity } from "@/utils/kaminoExchange";
@@ -170,6 +172,14 @@ export function mapObligationToPosition(
     // 추가로 차입 가능한 한도(USD). allowedBorrowValue(담보×maxLTV) − 현재 bf 조정 부채.
     // borrow factor ~1 인 USDC 기준 ≈ 차입 가능 USDC. 음수 방지.
     const maxBorrowableUsd = Math.max(0, allowedBorrowUsd - bfDebtUsd);
+    // 대출을 유지하며 안전하게 인출 가능한 cbBTC 수량 — 인출 후 health 를 최소 HEALTH_CAUTION_MIN 로
+    // 유지(청산선 health 1.0 위 여유). 차입 없으면 전량. UI 의 인출 상한/MAX 로 쓰여 6011 을 사전 차단.
+    const maxWithdrawableCbbtc = maxWithdrawableCollateral(
+        cbbtcCollateralAmount,
+        currentLtv,
+        liquidationLtv,
+        HEALTH_CAUTION_MIN,
+    );
 
     return {
         hasPosition: suppliedUsd > 0 || borrowedUsd > 0,
@@ -183,6 +193,7 @@ export function mapObligationToPosition(
         riskZone: riskZone(hf),
         cbbtcLiquidationPriceUsd: liquidationPriceFromCollateral(bfDebtUsd, cbbtcCollateralAmount, liquidationLtv),
         maxBorrowableUsd,
+        maxWithdrawableCbbtc,
     };
 }
 
@@ -200,6 +211,7 @@ function emptyPosition(): KaminoPosition
         riskZone: "none",
         cbbtcLiquidationPriceUsd: null,
         maxBorrowableUsd: 0,
+        maxWithdrawableCbbtc: 0,
     };
 }
 

@@ -9,6 +9,7 @@ import {
     isNoBorrowsToRepay,
     isOracleStaleError,
     isWalletTimeout,
+    isWithdrawTooLarge,
 } from "@/utils/lendingErrors";
 
 export interface EarnNoticeInput
@@ -61,6 +62,11 @@ export function pickEarnNoticeHintKey(input: EarnNoticeInput): string | null
     if (isNoBorrowsToRepay(message))
     {
         return "earn.noBorrowsHint";
+    }
+    // 인출액 과다(6011) — 열린 대출 때문. UI 상한이 있지만 온체인에서 걸릴 때의 백스톱.
+    if (isWithdrawTooLarge(message))
+    {
+        return "earn.withdrawTooLargeHint";
     }
     // SOL(가스/rent) 부족만 "SOL 부족" 안내로 — Token 의 "insufficient funds"(예: repay 의 USDC 부족)는
     // 여기서 잡지 않는다(폼이 토큰별로 처리). 잔액 신호(solGasLow)는 취소가 아닐 때만 최후 보루.

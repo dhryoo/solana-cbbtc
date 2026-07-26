@@ -34,6 +34,7 @@
         "authFailedHint": "钱包授权失败。请断开钱包再重新连接，然后重试。（你的会话可能已过期。）",
         "walletTimeoutHint": "钱包没有及时响应。可能是授权界面开着太久，或者钱包应用在后台被挂起了。请重试。",
         "noBorrowsHint": "没有需要还款的债务。可能已经全部还清，或者页面显示的是旧信息。下拉刷新。",
+        "withdrawTooLargeHint": "提取金额过大 — 您有一笔未偿还的贷款需要抵押品继续担保。请偿还部分 USDC 或减少提取量。",
         "confirmTimeoutHint": "确认耗时比预期长。这笔交易仍有可能完成 —— 重试前请先下拉刷新确认。",
         "txFailedHint": "交易在链上失败，未生效。没有资金发生转移。请重试。",
         "market": {
@@ -108,6 +109,7 @@
             "placeholder": "要提取的 cbBTC 数量",
             "button": "提取",
             "supplied": "已存入 {{amount}} cbBTC",
+            "maxWithdrawableHint": "有未偿还贷款 — 在保持安全的前提下最多可提取 {{amount}} cbBTC。",
             "completed": "提取完成",
             "errorPrefix": "提取失败",
             "noPosition": "你还没有存入任何 cbBTC"

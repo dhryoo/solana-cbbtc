@@ -34,6 +34,7 @@
         "authFailedHint": "Wallet authorization failed. Disconnect and reconnect your wallet, then try again. (Your session may have expired.)",
         "walletTimeoutHint": "Wallet didn't respond in time. The approval screen may have been left open too long, or the wallet app was paused in the background. Please try again.",
         "noBorrowsHint": "There's no debt to repay. It may have already been fully repaid, or the screen is showing stale info. Pull down to refresh.",
+        "withdrawTooLargeHint": "Withdraw amount is too large — you have an open loan that your collateral must keep backing. Repay some USDC or withdraw a smaller amount.",
         "confirmTimeoutHint": "Confirmation is taking longer than expected. The transaction may still complete — pull down to refresh and check before retrying.",
         "txFailedHint": "The transaction failed on-chain and was not applied. No funds were moved. Please try again.",
         "market": {
@@ -108,6 +109,7 @@
             "placeholder": "Amount of cbBTC to withdraw",
             "button": "Withdraw",
             "supplied": "Supplied {{amount}} cbBTC",
+            "maxWithdrawableHint": "Loan open — up to {{amount}} cbBTC can be withdrawn while keeping it safe.",
             "completed": "Withdraw complete",
             "errorPrefix": "Withdraw failed",
             "noPosition": "You haven't supplied any cbBTC yet"

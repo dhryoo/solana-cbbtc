@@ -59,6 +59,46 @@ export function liquidationPriceFromCollateral(
     return debtUsd / (collateralAmount * liquidationLtv);
 }
 
+/**
+ * 대출이 열린 상태에서 안전하게 인출 가능한 담보(cbBTC) 최대 **수량**.
+ * 인출 후 health factor 가 minHealth 이상으로 유지되도록 제한한다. Kamino 온체인은 health 1.0
+ * (청산선)까지 인출을 허용하지만(초과 시 6011 WithdrawTooLarge), 그 지점은 즉시 청산 위험이라
+ * minHealth 여유를 둔다.
+ *
+ * 유도: 유지 담보비율 k=(1−w). 부채가치는 인출 전후 불변이므로 post currentLtv' = currentLtv/k,
+ * post health = liquidationLtv·k/currentLtv. post health ≥ minHealth ⟺ k ≥ minHealth·currentLtv/liquidationLtv.
+ *   maxWithdraw = supplied·(1 − minHealth·currentLtv/liquidationLtv), 0 하한.
+ * 부채가 없으면(currentLtv≤0) 전량 인출 가능. liquidationLtv 를 모르면(≤0, 비정상) 보수적으로 0.
+ * 수량 기반이라 가격 드리프트와 무관(liquidationPriceFromCollateral 과 동일한 이유).
+ */
+export function maxWithdrawableCollateral(
+    suppliedCollateral: number,
+    currentLtv: number,
+    liquidationLtv: number,
+    minHealth: number,
+): number
+{
+    if (suppliedCollateral <= 0)
+    {
+        return 0;
+    }
+    if (currentLtv <= 0)
+    {
+        return suppliedCollateral; // 차입 없음 → 전량
+    }
+    if (liquidationLtv <= 0)
+    {
+        return 0; // 임계 미상(비정상) → 안전 확인 불가 → 인출 금지
+    }
+    const keepFraction = (minHealth * currentLtv) / liquidationLtv;
+    const withdrawFraction = 1 - keepFraction;
+    if (withdrawFraction <= 0)
+    {
+        return 0; // 이미 minHealth 이하 → 안전 인출분 없음
+    }
+    return suppliedCollateral * withdrawFraction;
+}
+
 /** Health factor → 위험 구간. null(차입 없음)은 none. */
 export function riskZone(hf: number | null): RiskZone
 {

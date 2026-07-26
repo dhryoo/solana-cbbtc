@@ -35,6 +35,7 @@ export interface KaminoPosition
     riskZone: RiskZone;
     cbbtcLiquidationPriceUsd: number | null;
     maxBorrowableUsd: number;             // 추가 차입 가능 한도 (USD ≈ USDC)
+    maxWithdrawableCbbtc: number;         // 대출 유지하며 안전 인출 가능한 cbBTC 수량(human). 차입 없으면 = suppliedCbbtc
 }
 
 /** 공급 시 예상 수익 견적 (LendingQuoteService). */
