@@ -1,10 +1,11 @@
 /* eslint-disable react-native/no-unused-styles */
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
     ActivityIndicator,
+    findNodeHandle,
     Keyboard,
     Linking,
     Modal,
@@ -180,6 +181,39 @@ export function LightningScreen(): React.JSX.Element
         setQuote(null);
         setCbbtcQuote(null);
     }, []);
+
+    // 결제 결과 카드로 자동 스크롤 — 결과가 화면 하단에 생겨 사용자가 놓치는 걸 막는다.
+    const scrollRef = useRef<ScrollView>(null);
+    const resultRef = useRef<View>(null);
+    useEffect(() =>
+    {
+        if (!outcome)
+        {
+            return undefined;
+        }
+        // 렌더 후 레이아웃이 잡히면 결과 카드 '상단'으로 스크롤(길면 하단이 잘리지 않게). measure 실패 시 끝으로 폴백.
+        const id = setTimeout(() =>
+        {
+            const scroll = scrollRef.current;
+            const node = resultRef.current;
+            if (!scroll || !node)
+            {
+                return;
+            }
+            const scrollNode = findNodeHandle(scroll);
+            if (scrollNode === null)
+            {
+                scroll.scrollToEnd({ animated: true });
+                return;
+            }
+            node.measureLayout(
+                scrollNode,
+                (_x, y) => scroll.scrollTo({ y: Math.max(0, y - 12), animated: true }),
+                () => scroll.scrollToEnd({ animated: true }),
+            );
+        }, 60);
+        return () => clearTimeout(id);
+    }, [outcome]);
 
     // preimage(=지불 증명) 복사 — 결제 완료(CLAIMED) 후 결과카드에서만 노출됨
     const onCopyPreimage = useCallback(async (secret: string | null): Promise<void> =>
@@ -504,7 +538,7 @@ export function LightningScreen(): React.JSX.Element
                     </Pressable>
                 </View>
 
-                <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+                <ScrollView ref={scrollRef} contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
                     {/* 실험 기능 고지 */}
                     <View style={styles.experimentBox}>
                         <Ionicons name="flask-outline" size={16} color={palette.textMuted} />
@@ -776,7 +810,7 @@ export function LightningScreen(): React.JSX.Element
 
                     {/* 결과 */}
                     {outcome && (
-                        <View style={styles.card}>
+                        <View ref={resultRef} style={styles.card}>
                             {outcome.status === "paid" && (
                                 <>
                                 <View style={styles.resultRow}>
