@@ -5,7 +5,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next";
 import {
     ActivityIndicator,
-    findNodeHandle,
     Keyboard,
     Linking,
     Modal,
@@ -183,37 +182,28 @@ export function LightningScreen(): React.JSX.Element
     }, []);
 
     // 결제 결과 카드로 자동 스크롤 — 결과가 화면 하단에 생겨 사용자가 놓치는 걸 막는다.
+    // 결과 카드는 ScrollView 컨텐츠의 직속 자식이라 onLayout 의 y 가 곧 스크롤 오프셋이다.
+    // (measureLayout 은 Fabric 에서 native ref 를 요구해 경고가 나므로 onLayout 을 쓴다.)
+    // outcome 이 새로 생길 때 한 번만 스크롤 — 이후 재레이아웃으로 사용자를 되돌리지 않도록.
     const scrollRef = useRef<ScrollView>(null);
-    const resultRef = useRef<View>(null);
+    const resultScrolledRef = useRef(false);
     useEffect(() =>
     {
         if (!outcome)
         {
-            return undefined;
+            resultScrolledRef.current = false; // 다음 결제를 위해 리셋
         }
-        // 렌더 후 레이아웃이 잡히면 결과 카드 '상단'으로 스크롤(길면 하단이 잘리지 않게). measure 실패 시 끝으로 폴백.
-        const id = setTimeout(() =>
-        {
-            const scroll = scrollRef.current;
-            const node = resultRef.current;
-            if (!scroll || !node)
-            {
-                return;
-            }
-            const scrollNode = findNodeHandle(scroll);
-            if (scrollNode === null)
-            {
-                scroll.scrollToEnd({ animated: true });
-                return;
-            }
-            node.measureLayout(
-                scrollNode,
-                (_x, y) => scroll.scrollTo({ y: Math.max(0, y - 12), animated: true }),
-                () => scroll.scrollToEnd({ animated: true }),
-            );
-        }, 60);
-        return () => clearTimeout(id);
     }, [outcome]);
+    const onResultLayout = useCallback((y: number): void =>
+    {
+        if (resultScrolledRef.current)
+        {
+            return;
+        }
+        resultScrolledRef.current = true;
+        // 결과 카드 '상단'으로 (길면 하단이 잘리지 않게 살짝 위 여백).
+        scrollRef.current?.scrollTo({ y: Math.max(0, y - 12), animated: true });
+    }, []);
 
     // preimage(=지불 증명) 복사 — 결제 완료(CLAIMED) 후 결과카드에서만 노출됨
     const onCopyPreimage = useCallback(async (secret: string | null): Promise<void> =>
@@ -810,7 +800,7 @@ export function LightningScreen(): React.JSX.Element
 
                     {/* 결과 */}
                     {outcome && (
-                        <View ref={resultRef} style={styles.card}>
+                        <View style={styles.card} onLayout={(e) => onResultLayout(e.nativeEvent.layout.y)}>
                             {outcome.status === "paid" && (
                                 <>
                                 <View style={styles.resultRow}>
