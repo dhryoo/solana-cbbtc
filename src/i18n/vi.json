@@ -115,6 +115,7 @@
             "safeMax": "Nhập mức 80%",
             "exceedsMax": "Vượt quá giới hạn vay của bạn",
             "hint": "Vay USDC bằng tài sản thế chấp cbBTC của bạn. Có rủi ro thanh lý — hãy vay một cách thận trọng.",
+            "usdValueNotice": "Số tiền bạn vay và trả sau này được hiển thị theo giá trị USD, nên có thể nhỏ hơn một chút so với số bạn nhập — USDC có giá khoảng $1, không đúng $1 — và tăng dần khi lãi tích lũy.",
             "noCollateral": "Hãy cung cấp cbBTC làm tài sản thế chấp trước để có thể vay",
             "completed": "Vay hoàn tất",
             "checkHealth": "Hãy nhớ kiểm tra Health và giá thanh lý trong mục Vị thế của tôi",

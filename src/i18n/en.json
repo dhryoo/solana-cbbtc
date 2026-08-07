@@ -99,6 +99,7 @@
             "safeMax": "Enter 80% amount",
             "exceedsMax": "Exceeds your borrow limit",
             "hint": "Borrow USDC against your cbBTC collateral. There is liquidation risk — borrow conservatively.",
+            "usdValueNotice": "The amount you borrow and later repay is shown as its USD value, so it can read slightly below the number you enter — USDC is worth about $1, not exactly $1 — and it grows slowly as interest accrues.",
             "noCollateral": "Supply cbBTC as collateral first to be able to borrow",
             "completed": "Borrow complete",
             "checkHealth": "Be sure to check your health and liquidation price under My position",

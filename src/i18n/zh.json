@@ -99,6 +99,7 @@
             "safeMax": "80%",
             "exceedsMax": "超出你的借款上限",
             "hint": "用你的 cbBTC 抵押品借出 USDC。存在清算风险 —— 请保守借款。",
+            "usdValueNotice": "您借入以及之后偿还的金额按其美元价值显示，因此可能略低于您输入的数字 —— USDC 价值约为 $1，并非正好 $1 —— 并且会随利息累积而缓慢增加。",
             "noCollateral": "先存入 cbBTC 作为抵押品才能借款",
             "completed": "借款完成",
             "checkHealth": "务必在“我的仓位”里查看健康度和清算价格",

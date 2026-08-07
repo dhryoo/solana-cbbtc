@@ -99,6 +99,7 @@
             "safeMax": "안전80% 금액 입력",
             "exceedsMax": "차입 한도를 초과했습니다",
             "hint": "cbBTC 담보로 USDC 를 빌립니다. 청산 위험이 있으니 보수적으로 차입하세요.",
+            "usdValueNotice": "빌리는 금액과 나중에 상환하는 금액은 USDC 부채의 USD 가치로 표시되어, 입력한 숫자보다 조금 작게 보일 수 있습니다 — USDC 는 정확히 $1 이 아니라 약 $1 이며, 시간이 지나면 이자가 조금씩 붙습니다.",
             "noCollateral": "먼저 cbBTC 를 공급(담보)해야 차입할 수 있습니다",
             "completed": "차입 완료",
             "checkHealth": "내 포지션에서 health·청산가를 꼭 확인하세요",

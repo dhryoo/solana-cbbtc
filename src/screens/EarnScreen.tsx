@@ -936,6 +936,12 @@ function BorrowForm({ owner, maxBorrowableUsd, styles, palette, t, onFocusInput 
             {exceedsMax
                 ? <Text style={styles.exceedHint}>{t("earn.borrow.exceedsMax")}</Text>
                 : null}
+            {/* 차입 시점 안내 — 표시액은 USDC 부채의 USD 가치라, USDC≈$0.9998 + 이자 때문에 입력값과
+                미세하게 다르게 보인다(예: 2 USDC → ~1.9996). 상환 때 혼선을 미리 없앤다. */}
+            <View style={styles.infoBox}>
+                <Ionicons name="information-circle-outline" size={18} color={palette.textMuted} />
+                <Text style={styles.infoText}>{t("earn.borrow.usdValueNotice")}</Text>
+            </View>
             <LowSolGasWarn show={solGasLow && !notice} uiAmount={solBalance.data?.uiAmount} styles={styles} palette={palette} t={t} />
             <Pressable
                 accessibilityRole="button"
