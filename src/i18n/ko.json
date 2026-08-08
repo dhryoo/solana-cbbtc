@@ -84,6 +84,7 @@
             "placeholder": "상환할 USDC 수량",
             "button": "상환하기",
             "debt": "차입액 {{amount}} USDC",
+            "usdValueNotice": "표시된 부채는 USDC 대출의 USD 가치라, 빌린 금액보다 조금 작게 보일 수 있습니다 — USDC 는 정확히 $1 이 아니라 약 $1 이며, 시간이 지나면 이자가 조금씩 붙습니다.",
             "walletBalance": "지갑 {{amount}} USDC",
             "noDebt": "상환할 차입(빚)이 없습니다",
             "completed": "상환 완료",

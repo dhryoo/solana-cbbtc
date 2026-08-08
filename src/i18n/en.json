@@ -84,6 +84,7 @@
             "placeholder": "Amount of USDC to repay",
             "button": "Repay",
             "debt": "Borrowed {{amount}} USDC",
+            "usdValueNotice": "The debt shown is the USD value of your USDC loan, so it can read slightly below the amount you borrowed — USDC is worth about $1, not exactly $1 — and it grows slowly as interest accrues.",
             "walletBalance": "Wallet {{amount}} USDC",
             "noDebt": "You have no borrowing to repay",
             "completed": "Repay complete",

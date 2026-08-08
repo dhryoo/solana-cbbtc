@@ -100,6 +100,7 @@
             "placeholder": "Số lượng USDC cần trả",
             "button": "Trả nợ",
             "debt": "Đã vay {{amount}} USDC",
+            "usdValueNotice": "Khoản nợ hiển thị là giá trị USD của khoản vay USDC, nên có thể nhỏ hơn một chút so với số bạn đã vay — USDC có giá khoảng $1, không đúng $1 — và tăng dần khi lãi tích lũy.",
             "walletBalance": "Ví {{amount}} USDC",
             "noDebt": "Bạn không có khoản vay nào để trả",
             "completed": "Trả nợ hoàn tất",

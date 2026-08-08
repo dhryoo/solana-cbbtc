@@ -84,6 +84,7 @@
             "placeholder": "要还款的 USDC 数量",
             "button": "还款",
             "debt": "已借 {{amount}} USDC",
+            "usdValueNotice": "显示的债务是您 USDC 贷款的美元价值，因此可能略低于您借入的金额 —— USDC 价值约为 $1，并非正好 $1 —— 并且会随利息累积而缓慢增加。",
             "walletBalance": "钱包 {{amount}} USDC",
             "noDebt": "你没有需要还款的借款",
             "completed": "还款完成",

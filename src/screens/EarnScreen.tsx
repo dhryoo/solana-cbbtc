@@ -1154,6 +1154,12 @@ function RepayForm({ owner, borrowedUsd, styles, palette, t, onFocusInput }: Rep
                 maxLength={20}
                 accessibilityLabel={t("earn.repay.heading")}
             />
+            {/* 상환 시점 안내 — 표시 부채는 USDC 부채의 USD 가치(USDC≈$0.9998)+이자라, 빌린 숫자와
+                미세하게 달라 보이는 이유를 설명(BorrowForm 안내와 짝). */}
+            <View style={styles.infoBox}>
+                <Ionicons name="information-circle-outline" size={18} color={palette.textMuted} />
+                <Text style={styles.infoText}>{t("earn.repay.usdValueNotice")}</Text>
+            </View>
             {(insufficientUsdc || usdcLikelyShortForAll) && !notice
                 ? (
                     <View style={styles.gasWarnBox} accessible accessibilityRole="alert" accessibilityLabel={t("earn.repay.insufficientUsdc")}>
