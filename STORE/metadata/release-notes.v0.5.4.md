@@ -1,16 +1,16 @@
-# Release notes — v0.5.3 (versionCode 26)
+# Release notes — v0.5.4 (versionCode 27)
 
 dApp Store 제출 시 "release notes / What's new" 필드에 아래 영문 블록을 복사.
 이번 릴리스도 **영어만** 작성한다 (스토어 리스팅 로케일 렌더링 여부가 아직 미검증 — 검증 후 로케일별 What's new 도입).
 
-스토어 배포본이 **v0.5.2(versionCode 25)** 이므로 이번 업데이트는 **0.5.2 → 0.5.3** 입니다.
+스토어 배포본이 **v0.5.2(versionCode 25)** 이므로 이번 업데이트는 **0.5.2 → 0.5.4** 입니다.
 patch 범프 사유: **버그 수정 · 안정성 · UX 개선** (새 기능·새 화면 없음). 다만 이번엔 **자금 경로(lending/swap/lightning) 로직이 변경**되었으므로 reviewer notes 에 명시한다.
 새 권한·새 네이티브 모듈·새 네트워크 호스트 **없음**.
 
 ## English (en)
 
 ```
-v0.5.3 — Safer lending, smoother swaps and a clearer Lightning flow
+v0.5.4 — Safer lending, smoother swaps and a clearer Lightning flow
 
 • Lending now works with an open loan — you can withdraw or add cbBTC collateral even while a USDC loan is open (this previously failed). Withdrawals are capped to keep your loan safely collateralized, and "repay all" is blocked up front if your USDC balance can't cover it.
 • Clearer borrow/repay amounts — the Borrow and Repay screens now explain up front why the amount shown can read slightly below what you type (USDC is worth about $1, not exactly $1, and interest accrues over time), so it doesn't surprise you at repay.
@@ -24,7 +24,7 @@ Self-custody as always — keys stay in Seed Vault, no backend or trackers, no a
 ## dApp Store 심사 노트 (제출 시 reviewer notes / "Notes for review" 에 영문 입력)
 
 ```
-REVIEWER NOTES — Solana cbBTC (com.seekerbtcfi.app), v0.5.3 (versionCode 26)
+REVIEWER NOTES — Solana cbBTC (com.seekerbtcfi.app), v0.5.4 (versionCode 27)
 
 WHAT CHANGED SINCE THE LIVE BUILD (v0.5.2, versionCode 25)
 - NO new permissions. None added, removed, or modified.
@@ -49,7 +49,7 @@ CUSTODY & EXPERIMENTAL STATUS (unchanged)
   → 빌드 전 `rm -rf android/app/build` + Metro/Haste 캐시 정리 후 빌드할 것.
 - APK 검증 시 Hermes 번들은 비ASCII 를 **UTF-16LE** 로 저장한다. UTF-8 grep 으로 중국어/한국어를 찾으면 0건이 나오는 게 정상이므로 UTF-16LE 로 검색할 것.
 
-## 이번 릴리스에 포함된 커밋 (v0.5.2..v0.5.3)
+## 이번 릴리스에 포함된 커밋 (v0.5.2..v0.5.4)
 
 - fix(update): keep the update banner clear of the status bar
 - fix(network): self-heal offline banner when connectivity returns
