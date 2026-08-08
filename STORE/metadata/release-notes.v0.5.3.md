@@ -13,7 +13,7 @@ patch 범프 사유: **버그 수정 · 안정성 · UX 개선** (새 기능·�
 v0.5.3 — Safer lending, smoother swaps and a clearer Lightning flow
 
 • Lending now works with an open loan — you can withdraw or add cbBTC collateral even while a USDC loan is open (this previously failed). Withdrawals are capped to keep your loan safely collateralized, and "repay all" is blocked up front if your USDC balance can't cover it.
-• Clearer borrow amounts — the Borrow screen now explains up front why the amount shown can read slightly below what you type (USDC is worth about $1, not exactly $1, and interest accrues over time), so it doesn't surprise you at repay.
+• Clearer borrow/repay amounts — the Borrow and Repay screens now explain up front why the amount shown can read slightly below what you type (USDC is worth about $1, not exactly $1, and interest accrues over time), so it doesn't surprise you at repay.
 • Swaps check before you sign — a swap that would fail on-chain (for example, the price moved past your slippage) is now caught before signing, so you don't waste gas on it.
 • Clearer Lightning flow — the payment quote and the Pay button now open in a bottom sheet so you can't miss them, and the screen scrolls to your payment result when it's done. More Lightning addresses are accepted, and Lightning payments now use the app's RPC failover for fewer stalls.
 • Reliability & polish — the "no internet" banner clears itself when you reconnect, small accent text now meets accessibility contrast, and tab labels are consistent across languages.
@@ -57,7 +57,7 @@ CUSTODY & EXPERIMENTAL STATUS (unchanged)
 - fix(lending): refresh every obligation reserve on supply/withdraw + refresh operation reserve last (R09)
 - fix(lending): subtract unsettled fees from cToken exchange rate (R31)
 - fix(lending): cap withdraw/repay to what an open loan allows — avoid 6011 / insufficient-funds
-- feat(earn): explain the USD-value/interest difference up front in the borrow form
+- feat(earn): explain the USD-value/interest difference up front in the borrow + repay forms
 - refactor(lending): consolidate the four mutation hooks + drop dead allowOracleStale bypass (R28, R32)
 - fix(swap): simulate before signing to block doomed swaps (N2)
 - fix(lightning): classify 'ln'-prefixed lightning addresses correctly (N4)
