@@ -1,0 +1,12 @@
+[
+    {
+        "relation": ["delegate_permission/common.handle_all_urls"],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "com.seekerbtcfi.app",
+            "sha256_cert_fingerprints": [
+                "61:FF:0E:E6:C0:49:78:33:62:FF:BC:01:32:8D:A6:9D:A5:F9:32:22:CB:5F:88:4E:BE:E0:67:40:27:BC:EB:76"
+            ]
+        }
+    }
+]

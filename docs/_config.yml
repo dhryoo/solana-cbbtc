@@ -5,8 +5,10 @@ permalink: pretty
 # pretty permalinks turn /privacy-policy.md into /privacy-policy/
 
 # Don't try to render anything outside docs/
+# .well-known 은 점 폴더라 Jekyll 이 기본 제외 → MWA 지갑이 identity uri 도메인의 assetlinks.json 을 읽으므로 반드시 포함
 include:
     - _config.yml
+    - .well-known
 
 # Default front matter for all docs/*.md
 defaults:
